@@ -1,0 +1,270 @@
+{
+  "type": "longvinter",
+  "display": "Longvinter (Docker)",
+  "data": {
+    "ADMIN_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Admin EOS Account IDs",
+      "desc": "Epic Online Services account ids granted admin on the server",
+      "required": false,
+      "userEdit": true
+    },
+    "COMMUNITY_WEBSITE": {
+      "type": "string",
+      "value": "pufferpanel.com",
+      "display": "Community Website",
+      "desc": "Website advertised next to the server message",
+      "required": false,
+      "userEdit": true
+    },
+    "ENABLE_PVP": {
+      "type": "option",
+      "value": "true",
+      "display": "Enable PvP",
+      "desc": "Allow players to fight each other",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "ENABLE_TENTDECAY": {
+      "type": "option",
+      "value": "true",
+      "display": "Tent Decay",
+      "desc": "Let unused tents decay over time",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players connected at the same time",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_TENTS": {
+      "type": "integer",
+      "value": 2,
+      "display": "Max Tents",
+      "desc": "Number of tents each player may place",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Query port used by Steam",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_MOTD": {
+      "type": "string",
+      "value": "Welcome to PufferPanel Island!",
+      "display": "Server MOTD",
+      "desc": "Message shown on the signs around the island",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel Longvinter Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the game browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password made of letters and digits. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_TAG": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "Server Tag",
+      "desc": "Tag that makes the server easier to find in the browser",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Pull the newest server files from the upstream Git repository before every start",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "git clone --depth 1 https://github.com/Uuvana-Studios/longvinter-linux-server.git longvinter-linux-server",
+        "chmod +x ./longvinter-linux-server/Longvinter/Binaries/Linux/LongvinterServer-Linux-Shipping"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer"
+    },
+    {
+      "if": "!file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+      "type": "writefile",
+      "target": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+      "text": "[/Script/Longvinter.LongvinterGameSession]\nServerName=${SERVER_NAME}\nServerTag=${SERVER_TAG}\nMaxPlayers=${MAX_PLAYERS}\nServerMOTD=${SERVER_MOTD}\nServerPassword=${SERVER_PASSWORD}\nCommunityWebsite=${COMMUNITY_WEBSITE}\nAdminSteamID=${ADMIN_ID}\nbEnablePvP=${ENABLE_PVP}\nbEnableTentDecay=${ENABLE_TENTDECAY}\nMaxTents=${MAX_TENTS}\n"
+    }
+  ],
+  "run": {
+    "command": "./longvinter-linux-server/Longvinter/Binaries/Linux/LongvinterServer-Linux-Shipping Longvinter -Port=${port} -QueryPort=${QUERY_PORT}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "git -C longvinter-linux-server pull --ff-only"
+        ]
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerTag=.*$",
+        "replace": "ServerTag=${SERVER_TAG}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerMOTD=.*$",
+        "replace": "ServerMOTD=${SERVER_MOTD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^CommunityWebsite=.*$",
+        "replace": "CommunityWebsite=${COMMUNITY_WEBSITE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^AdminSteamID=.*$",
+        "replace": "AdminSteamID=${ADMIN_ID}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bEnablePvP=.*$",
+        "replace": "bEnablePvP=${ENABLE_PVP}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bEnableTentDecay=.*$",
+        "replace": "bEnableTentDecay=${ENABLE_TENTDECAY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "longvinter-linux-server/Longvinter/Saved/Config/LinuxServer/Game.ini",
+        "search": "^MaxTents=.*$",
+        "replace": "MaxTents=${MAX_TENTS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

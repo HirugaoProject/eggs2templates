@@ -1,0 +1,215 @@
+{
+  "type": "midnightghosthunt",
+  "display": "Midnight Ghost Hunt (Docker)",
+  "data": {
+    "ADDITIONAL_ARGS": {
+      "type": "string",
+      "value": "",
+      "display": "Additional Arguments",
+      "desc": "Extra arguments such as -NoBots or -NoAutobalance",
+      "required": false,
+      "userEdit": true
+    },
+    "BEACON_PORT": {
+      "type": "integer",
+      "value": 7787,
+      "display": "Beacon Port",
+      "desc": "Beacon port used by the server",
+      "required": true,
+      "userEdit": false
+    },
+    "B_DIFFICULTY": {
+      "type": "string",
+      "value": "Auto",
+      "display": "Bot Difficulty",
+      "desc": "Difficulty of the bots. Auto uses the average player level.",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_MODE": {
+      "type": "option",
+      "value": "4v4 Hunt",
+      "display": "Game Mode",
+      "desc": "Game mode the server hosts",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "4v4 Hunt",
+          "display": "4v4 Hunt"
+        },
+        {
+          "value": "6v6 Hunt",
+          "display": "6v6 Hunt"
+        },
+        {
+          "value": "Darkness",
+          "display": "Darkness"
+        }
+      ]
+    },
+    "GAME_NAME": {
+      "type": "string",
+      "value": "Dedicated_Server_01",
+      "display": "Game Name",
+      "desc": "Name of the game session",
+      "required": true,
+      "userEdit": true
+    },
+    "MAP": {
+      "type": "string",
+      "value": "Asylum",
+      "display": "Server Map",
+      "desc": "Map the server hosts, for example Mansion, Asylum, Theatre, Museum",
+      "required": true,
+      "userEdit": true
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password players must enter to join",
+      "required": false,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "REGION": {
+      "type": "string",
+      "value": "Eastern Europe",
+      "display": "Region",
+      "desc": "Region the dedicated server is listed under",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1118810",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Midnight Ghost Hunt dedicated server (Windows build, run through Proton)",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    }
+  ],
+  "run": {
+    "command": "proton run MidnightGhostHunt/Binaries/Win64/MidnightGhostHuntServer-Win64-Shipping.exe -server -log -port=${port} -queryport=${QUERY_PORT} -BeaconPort=${BEACON_PORT} -multihome=0.0.0.0 -Map=${MAP} -Gamename=\"${GAME_NAME}\" -Gamemode=\"${GAME_MODE}\" -Region=\"${REGION}\" -BotDifficulty=\"${B_DIFFICULTY}\" -password=\"${PASSWORD}\" ${ADDITIONAL_ARGS}",
+    "stopCode": 2,
+    "environmentVars": {
+      "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",
+      "STEAM_COMPAT_DATA_PATH": "/pufferpanel/.steam/steam/steamapps/compatdata/${SRCDS_APPID}",
+      "WINEDEBUG": "-all"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "type": "mkdir",
+        "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

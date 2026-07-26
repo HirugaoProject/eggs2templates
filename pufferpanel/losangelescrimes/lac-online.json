@@ -1,0 +1,72 @@
+{
+  "type": "lacrimes",
+  "display": "LAC-Online Public Server (Docker)",
+  "data": {
+    "VER": {
+      "type": "string",
+      "value": "1.6.2",
+      "display": "Version",
+      "desc": "Build version to install. Available builds are listed at https://dl.lacrimesonline.com/builds",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://dl.lacrimesonline.com/builds/LAC_Linux_v${VER}.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "LAC_Linux_v${VER}.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f LAC_Linux_v${VER}.zip",
+        "chmod +x ./LAC_Linux_v${VER}.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./LAC_Linux_v${VER}.x86_64",
+    "stopCode": 2,
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
