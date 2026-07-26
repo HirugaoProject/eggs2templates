@@ -1,0 +1,113 @@
+{
+  "type": "cuberite",
+  "display": "Cuberite (Docker)",
+  "data": {
+    "ADMIN_PASS": {
+      "type": "string",
+      "value": "ChangeMe",
+      "display": "Admin Password",
+      "desc": "Password of the built-in web administration interface",
+      "required": true,
+      "userEdit": true
+    },
+    "SERV_DESC": {
+      "type": "string",
+      "value": "Cuberite on PufferPanel!",
+      "display": "Server Description",
+      "desc": "Description shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "WEB_PORT": {
+      "type": "integer",
+      "value": 8080,
+      "display": "Web Port",
+      "desc": "TCP port of the web administration interface",
+      "required": true,
+      "userEdit": false
+    },
+    "port": {
+      "type": "integer",
+      "value": 25565,
+      "display": "Port",
+      "desc": "Port the server listens on, written to settings.ini",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'curl -sSL -o cuberite.tar.gz https://download.cuberite.org/linux-x86_64/Cuberite.tar.gz && tar -xf cuberite.tar.gz --strip-components=1 && rm -f cuberite.tar.gz'",
+        "chmod +x ./Cuberite"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Cuberite",
+    "stop": "stop",
+    "pre": [
+      {
+        "if": "file_exists('settings.ini')",
+        "type": "alterfile",
+        "file": "settings.ini",
+        "search": "^Port=.*$",
+        "replace": "Port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('settings.ini')",
+        "type": "alterfile",
+        "file": "settings.ini",
+        "search": "^Description=.*$",
+        "replace": "Description=${SERV_DESC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('webadmin.ini')",
+        "type": "alterfile",
+        "file": "webadmin.ini",
+        "search": "^Ports=.*$",
+        "replace": "Ports=${WEB_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('webadmin.ini')",
+        "type": "alterfile",
+        "file": "webadmin.ini",
+        "search": "^admin=.*$",
+        "replace": "admin=${ADMIN_PASS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${WEB_PORT}:${WEB_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${WEB_PORT}:${WEB_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
