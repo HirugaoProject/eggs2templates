@@ -1,0 +1,112 @@
+{
+  "type": "minecraft-java",
+  "display": "VIAaaS (Docker)",
+  "data": {
+    "JAVA_VERSION": {
+      "type": "option",
+      "value": "21",
+      "display": "Java Version",
+      "desc": "Java runtime the proxy is started with",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "11",
+          "display": "Java 11"
+        },
+        {
+          "value": "17",
+          "display": "Java 17"
+        },
+        {
+          "value": "21",
+          "display": "Java 21"
+        },
+        {
+          "value": "22",
+          "display": "Java 22"
+        },
+        {
+          "value": "25",
+          "display": "Java 25"
+        }
+      ]
+    },
+    "SERVER_JARFILE": {
+      "type": "string",
+      "value": "VIAaaS-all.jar",
+      "display": "Server Jar File",
+      "desc": "Name of the jar the proxy is started from",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MEMORY": {
+      "type": "integer",
+      "value": 1024,
+      "display": "Memory (MB)",
+      "desc": "Java heap size for the proxy",
+      "required": true,
+      "userEdit": true
+    },
+    "WEBSERVER_PORT": {
+      "type": "integer",
+      "value": 25543,
+      "display": "Web Server Port",
+      "desc": "TCP port of the built-in HTTPS interface",
+      "required": true,
+      "userEdit": false
+    },
+    "port": {
+      "type": "integer",
+      "value": 25565,
+      "display": "Port",
+      "desc": "TCP port the proxy listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/ViaVersion/VIAaaS/releases/latest/download/VIAaaS-all.jar"
+      ]
+    },
+    {
+      "type": "move",
+      "source": "VIAaaS-all.jar",
+      "target": "${SERVER_JARFILE}"
+    }
+  ],
+  "run": {
+    "command": "java -Xms128M -Xmx${SERVER_MEMORY}M -jar ${SERVER_JARFILE} -sslPort=${WEBSERVER_PORT}",
+    "stop": "end",
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${WEBSERVER_PORT}:${WEBSERVER_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${WEBSERVER_PORT}:${WEBSERVER_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}
