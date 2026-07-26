@@ -1,0 +1,283 @@
+{
+  "type": "factorio",
+  "display": "Factorio with Mod Updater (Docker)",
+  "data": {
+    "AFK_KICK": {
+      "type": "integer",
+      "value": 0,
+      "display": "AFK Kick",
+      "desc": "Minutes after which AFK players are kicked. 0 disables the kick.",
+      "required": true,
+      "userEdit": true
+    },
+    "FACTORIO_VERSION": {
+      "type": "string",
+      "value": "stable",
+      "display": "Factorio Version",
+      "desc": "Version of Factorio to install. Use stable or latest, or an explicit version such as 2.0.55.",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_SLOTS": {
+      "type": "integer",
+      "value": 20,
+      "display": "Maximum Slots",
+      "desc": "Total number of player slots on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MOD_UPDATER_REF": {
+      "type": "string",
+      "value": "master",
+      "display": "Mod Updater Branch Or Tag",
+      "desc": "Git reference of pdemonaco/factorio-mod-updater that is installed and used to update mods",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_INTERVAL": {
+      "type": "integer",
+      "value": 10,
+      "display": "Auto Save Interval",
+      "desc": "Minutes between automatic saves",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_NAME": {
+      "type": "string",
+      "value": "gamesave",
+      "display": "Save Name",
+      "desc": "Name of the save file under saves/",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_SLOTS": {
+      "type": "integer",
+      "value": 5,
+      "display": "Auto Save Slots",
+      "desc": "Number of automatic saves kept",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_DESC": {
+      "type": "string",
+      "value": "Description",
+      "display": "Server Description",
+      "desc": "Description of the game shown in the listing",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Factorio Server",
+      "display": "Server Name",
+      "desc": "Name of the game as it appears in the game listing",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_TOKEN": {
+      "type": "string",
+      "value": "",
+      "display": "Server Token",
+      "desc": "factorio.com token, required for the server to be listed publicly",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_USERNAME": {
+      "type": "string",
+      "value": "unnamed",
+      "display": "Server Username",
+      "desc": "factorio.com username the server authenticates with",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_MODS_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update Mods On Boot",
+      "desc": "Run the Factorio mod updater before every server start",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 34197,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'curl -sSL -o factorio-headless.tar.xz https://www.factorio.com/get-download/${FACTORIO_VERSION}/headless/linux64 && tar -xf factorio-headless.tar.xz --strip-components=1 && rm -f factorio-headless.tar.xz'"
+      ]
+    },
+    {
+      "if": "!file_exists('data/map-gen-settings.json')",
+      "type": "move",
+      "source": "data/map-gen-settings.example.json",
+      "target": "data/map-gen-settings.json"
+    },
+    {
+      "if": "!file_exists('data/map-settings.json')",
+      "type": "move",
+      "source": "data/map-settings.example.json",
+      "target": "data/map-settings.json"
+    },
+    {
+      "if": "!file_exists('data/server-settings.json')",
+      "type": "move",
+      "source": "data/server-settings.example.json",
+      "target": "data/server-settings.json"
+    },
+    {
+      "type": "mkdir",
+      "target": "saves"
+    },
+    {
+      "if": "!file_exists('saves/' + SAVE_NAME + '.zip')",
+      "type": "command",
+      "commands": [
+        "./bin/x64/factorio --create ./saves/${SAVE_NAME}.zip --map-gen-settings data/map-gen-settings.json --map-settings data/map-settings.json"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "mods"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/pdemonaco/factorio-mod-updater/archive/refs/heads/${MOD_UPDATER_REF}.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${MOD_UPDATER_REF}.tar.gz",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f ${MOD_UPDATER_REF}.tar.gz",
+        "chmod +x ./factorio-mod-updater-${MOD_UPDATER_REF}/mod_updater.py",
+        "pip3 install --user --no-cache-dir requests"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./bin/x64/factorio --port ${port} --server-settings data/server-settings.json --start-server saves/${SAVE_NAME}.zip",
+    "stop": "/quit",
+    "pre": [
+      {
+        "if": "!file_exists('saves/' + SAVE_NAME + '.zip')",
+        "type": "command",
+        "commands": [
+          "./bin/x64/factorio --create ./saves/${SAVE_NAME}.zip --map-gen-settings data/map-gen-settings.json --map-settings data/map-settings.json"
+        ]
+      },
+      {
+        "if": "UPDATE_MODS_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./factorio-mod-updater-${MOD_UPDATER_REF}/mod_updater.py -s /pufferpanel/data/server-settings.json -m /pufferpanel/mods --fact-path /pufferpanel/bin/x64/factorio --update"
+        ]
+      },
+      {
+        "if": "file_exists('data/server-settings.json')",
+        "type": "alterfile",
+        "file": "data/server-settings.json",
+        "search": "\"name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"name\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/server-settings.json')",
+        "type": "alterfile",
+        "file": "data/server-settings.json",
+        "search": "\"description\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"description\": \"${SERVER_DESC}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/server-settings.json')",
+        "type": "alterfile",
+        "file": "data/server-settings.json",
+        "search": "\"max_players\"\\s*:\\s*[0-9]+",
+        "replace": "\"max_players\": ${MAX_SLOTS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/server-settings.json')",
+        "type": "alterfile",
+        "file": "data/server-settings.json",
+        "search": "\"username\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"username\": \"${SERVER_USERNAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/server-settings.json')",
+        "type": "alterfile",
+        "file": "data/server-settings.json",
+        "search": "\"token\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"token\": \"${SERVER_TOKEN}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/server-settings.json')",
+        "type": "alterfile",
+        "file": "data/server-settings.json",
+        "search": "\"autosave_interval\"\\s*:\\s*[0-9]+",
+        "replace": "\"autosave_interval\": ${SAVE_INTERVAL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/server-settings.json')",
+        "type": "alterfile",
+        "file": "data/server-settings.json",
+        "search": "\"autosave_slots\"\\s*:\\s*[0-9]+",
+        "replace": "\"autosave_slots\": ${SAVE_SLOTS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/server-settings.json')",
+        "type": "alterfile",
+        "file": "data/server-settings.json",
+        "search": "\"afk_autokick_interval\"\\s*:\\s*[0-9]+",
+        "replace": "\"afk_autokick_interval\": ${AFK_KICK}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false,
+    "environmentVars": {
+      "PATH": "/pufferpanel/.local/bin:/usr/local/bin:/usr/bin:/bin"
+    }
+  },
+  "environment": {
+    "type": "docker",
+    "image": "python:3.12-bookworm",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "python:3.12-bookworm",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

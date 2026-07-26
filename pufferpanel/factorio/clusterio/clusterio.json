@@ -1,0 +1,214 @@
+{
+  "type": "clusterio",
+  "display": "Clusterio (Docker)",
+  "data": {
+    "ADMIN_STRING": {
+      "type": "string",
+      "value": "",
+      "display": "Server Admin",
+      "desc": "Superadmin account name. Required in controller mode.",
+      "required": false,
+      "userEdit": true
+    },
+    "CLUSTER_NAME": {
+      "type": "string",
+      "value": "Your Cluster",
+      "display": "Cluster Name",
+      "desc": "Name of the controller server cluster. Required in controller mode.",
+      "required": false,
+      "userEdit": true
+    },
+    "CONTROLLER_TOKEN": {
+      "type": "string",
+      "value": "",
+      "display": "Controller Token",
+      "desc": "Authentication token used to connect to the controller server. Required in host mode.",
+      "required": false,
+      "userEdit": true
+    },
+    "CONTROLLER_URL": {
+      "type": "string",
+      "value": "",
+      "display": "Controller URL",
+      "desc": "Connection URL of the controller server. Required in host mode.",
+      "required": false,
+      "userEdit": true
+    },
+    "HOST_NAME": {
+      "type": "string",
+      "value": "Your Sub-Server",
+      "display": "Host Name",
+      "desc": "Host name shown in the controller web UI. Required in host mode.",
+      "required": false,
+      "userEdit": true
+    },
+    "LOG_LEVEL": {
+      "type": "option",
+      "value": "info",
+      "display": "Log Level",
+      "desc": "Verbosity of the Clusterio log output",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "none",
+          "display": "none"
+        },
+        {
+          "value": "fatal",
+          "display": "fatal"
+        },
+        {
+          "value": "error",
+          "display": "error"
+        },
+        {
+          "value": "warn",
+          "display": "warn"
+        },
+        {
+          "value": "audit",
+          "display": "audit"
+        },
+        {
+          "value": "info",
+          "display": "info"
+        },
+        {
+          "value": "verbose",
+          "display": "verbose"
+        }
+      ]
+    },
+    "PLUGINS": {
+      "type": "string",
+      "value": "",
+      "display": "Plugins",
+      "desc": "Space separated list of Clusterio plugins to install, for example @clusterio/plugin-subspace_storage",
+      "required": false,
+      "userEdit": true
+    },
+    "PUBLIC_ADDRESS": {
+      "type": "string",
+      "value": "127.0.0.1",
+      "display": "Public Address",
+      "desc": "Address other machines use to reach this server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MODE": {
+      "type": "option",
+      "value": "controller",
+      "display": "Server Mode",
+      "desc": "Cluster operation mode of this server",
+      "required": true,
+      "userEdit": false,
+      "options": [
+        {
+          "value": "controller",
+          "display": "Controller"
+        },
+        {
+          "value": "host",
+          "display": "Host"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 8080,
+      "display": "Port",
+      "desc": "TCP port the controller HTTP interface listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "if": "SERVER_MODE == 'controller'",
+      "type": "command",
+      "commands": [
+        "npm init @clusterio -y -- --mode controller --download-headless --log-level ${LOG_LEVEL} --admin \"${ADMIN_STRING}\" --public-address ${PUBLIC_ADDRESS}:${port} --plugins ${PLUGINS}"
+      ]
+    },
+    {
+      "if": "SERVER_MODE == 'host'",
+      "type": "command",
+      "commands": [
+        "npm init @clusterio -y -- --mode host --download-headless --log-level ${LOG_LEVEL} --host-name \"${HOST_NAME}\" --public-address ${PUBLIC_ADDRESS} --controller-url ${CONTROLLER_URL} --controller-token ${CONTROLLER_TOKEN} --plugins ${PLUGINS}"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./node_modules/.bin/clusterio${SERVER_MODE} run",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "SERVER_MODE == 'controller' && file_exists('config-controller.json')",
+        "type": "alterfile",
+        "file": "config-controller.json",
+        "search": "\"controller.http_port\"\\s*:\\s*[0-9]+",
+        "replace": "\"controller.http_port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "SERVER_MODE == 'controller' && file_exists('config-controller.json')",
+        "type": "alterfile",
+        "file": "config-controller.json",
+        "search": "\"controller.name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"controller.name\": \"${CLUSTER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "SERVER_MODE == 'host' && file_exists('config-host.json')",
+        "type": "alterfile",
+        "file": "config-host.json",
+        "search": "\"host.controller_url\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"host.controller_url\": \"${CONTROLLER_URL}\"",
+        "regex": true
+      },
+      {
+        "if": "SERVER_MODE == 'host' && file_exists('config-host.json')",
+        "type": "alterfile",
+        "file": "config-host.json",
+        "search": "\"host.controller_token\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"host.controller_token\": \"${CONTROLLER_TOKEN}\"",
+        "regex": true
+      },
+      {
+        "if": "SERVER_MODE == 'host' && file_exists('config-host.json')",
+        "type": "alterfile",
+        "file": "config-host.json",
+        "search": "\"host.public_address\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"host.public_address\": \"${PUBLIC_ADDRESS}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:nodejs_21",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:nodejs_21",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

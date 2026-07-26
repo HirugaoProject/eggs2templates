@@ -1,0 +1,494 @@
+{
+  "type": "fortresscraft",
+  "display": "FortressCraft Evolved (Docker)",
+  "data": {
+    "AUTO_PAUSE": {
+      "type": "option",
+      "value": "true",
+      "display": "Auto Pause",
+      "desc": "Put the server to sleep while nobody is connected",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "G_CAREPACKAGE": {
+      "type": "option",
+      "value": "false",
+      "display": "Care Package",
+      "desc": "Start the world with a care package",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "No"
+        },
+        {
+          "value": "true",
+          "display": "Yes"
+        }
+      ]
+    },
+    "G_CONVEYOR": {
+      "type": "option",
+      "value": "slow",
+      "display": "Conveyors",
+      "desc": "Speed of conveyors",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "slow",
+          "display": "Slow"
+        },
+        {
+          "value": "fast",
+          "display": "Fast"
+        }
+      ]
+    },
+    "G_DAY": {
+      "type": "option",
+      "value": "normal",
+      "display": "Day",
+      "desc": "Day and night cycle of the world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "normal",
+          "display": "Normal"
+        },
+        {
+          "value": "eternal",
+          "display": "Eternal"
+        },
+        {
+          "value": "night",
+          "display": "Night"
+        }
+      ]
+    },
+    "G_FLATLAND": {
+      "type": "option",
+      "value": "false",
+      "display": "Flat Land",
+      "desc": "Generate a flat world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "No"
+        },
+        {
+          "value": "true",
+          "display": "Yes"
+        }
+      ]
+    },
+    "G_POWER": {
+      "type": "option",
+      "value": "scarce",
+      "display": "Power",
+      "desc": "Amount of power available in the world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "scarce",
+          "display": "Scarce"
+        },
+        {
+          "value": "plentiful",
+          "display": "Plentiful"
+        }
+      ]
+    },
+    "G_RESOURCE": {
+      "type": "option",
+      "value": "scarce",
+      "display": "Resources",
+      "desc": "Amount of resources in the world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "rapid",
+          "display": "Rapid"
+        },
+        {
+          "value": "plentiful",
+          "display": "Plentiful"
+        },
+        {
+          "value": "scarce",
+          "display": "Scarce"
+        },
+        {
+          "value": "greg",
+          "display": "Greg"
+        }
+      ]
+    },
+    "G_RushMode": {
+      "type": "option",
+      "value": "false",
+      "display": "Rush Mode",
+      "desc": "Enable rush mode",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "No"
+        },
+        {
+          "value": "true",
+          "display": "Yes"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 64,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "PUBLIC": {
+      "type": "option",
+      "value": "false",
+      "display": "Public",
+      "desc": "List the server on the public server list",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Private"
+        },
+        {
+          "value": "true",
+          "display": "Public"
+        }
+      ]
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "changeme",
+      "display": "RCON Password",
+      "desc": "Password used for RCON",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 27001,
+      "display": "RCON Port",
+      "desc": "Port used for RCON",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel Dedicated Server World",
+      "display": "Server Name",
+      "desc": "Name of the server world",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "443600",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the FortressCraft Evolved dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "linux_server_headless",
+      "display": "Beta Branch",
+      "desc": "Beta branch installed by SteamCMD. The headless Linux server lives on linux_server_headless.",
+      "required": false,
+      "userEdit": true
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns FortressCraft Evolved. Anonymous login cannot be used.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLDNAME": {
+      "type": "string",
+      "value": "WorldName",
+      "display": "World Name",
+      "desc": "World the server loads on startup",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27000,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./FC_Linux_Universal.x86_64"
+      ]
+    },
+    {
+      "if": "!file_exists('Default/firstrun.ini')",
+      "type": "writefile",
+      "target": "Default/firstrun.ini",
+      "text": "[config]\nName=${SERVER_NAME}\nWorldName=${WORLDNAME}\nMaxPlayers=${MAX_PLAYERS}\nPublic=${PUBLIC}\nAutoPause=${AUTO_PAUSE}\nPort=${port}\nRCONPort=${RCON_PORT}\nRCONPassword=${RCON_PASSWORD}\nResources=${G_RESOURCE}\nConveyors=${G_CONVEYOR}\nPower=${G_POWER}\nDay=${G_DAY}\nCarePackage=${G_CAREPACKAGE}\nFlatLand=${G_FLATLAND}\nRushMode=${G_RushMode}\n"
+    }
+  ],
+  "run": {
+    "command": "./FC_Linux_Universal.x86_64 -batchmode -nographics -logFile /dev/stdout",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^Name=.*$",
+        "replace": "Name=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^WorldName=.*$",
+        "replace": "WorldName=${WORLDNAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^Public=.*$",
+        "replace": "Public=${PUBLIC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^AutoPause=.*$",
+        "replace": "AutoPause=${AUTO_PAUSE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^Port=.*$",
+        "replace": "Port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^RCONPort=.*$",
+        "replace": "RCONPort=${RCON_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^RCONPassword=.*$",
+        "replace": "RCONPassword=${RCON_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^Resources=.*$",
+        "replace": "Resources=${G_RESOURCE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^Conveyors=.*$",
+        "replace": "Conveyors=${G_CONVEYOR}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^Power=.*$",
+        "replace": "Power=${G_POWER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^Day=.*$",
+        "replace": "Day=${G_DAY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^CarePackage=.*$",
+        "replace": "CarePackage=${G_CAREPACKAGE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^FlatLand=.*$",
+        "replace": "FlatLand=${G_FLATLAND}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Default/firstrun.ini')",
+        "type": "alterfile",
+        "file": "Default/firstrun.ini",
+        "search": "^RushMode=.*$",
+        "replace": "RushMode=${G_RushMode}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
