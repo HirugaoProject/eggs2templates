@@ -1,0 +1,196 @@
+{
+  "type": "hogwarp",
+  "display": "HogWarp (Docker)",
+  "data": {
+    "API_KEY": {
+      "type": "string",
+      "value": "",
+      "display": "HogWarp API Key",
+      "desc": "API key required to boot the server, issued at https://presence.hogwarp.com/login",
+      "required": true,
+      "userEdit": true
+    },
+    "ARCHIVE_NAME": {
+      "type": "string",
+      "value": "Server.zip",
+      "display": "Archive Name",
+      "desc": "File name of the archive from the download URL above",
+      "required": true,
+      "userEdit": true
+    },
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "",
+      "display": "Download URL",
+      "desc": "Link to the HogWarp server archive. HogWarp distributes its server files through their Discord, so this link has to be supplied by the administrator.",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "Maximum number of players, which depends on the HogWarp Patreon level",
+      "required": true,
+      "userEdit": true
+    },
+    "SERV_DESC": {
+      "type": "string",
+      "value": "",
+      "display": "Server Description",
+      "desc": "Description shown on the HogWarp multiplayer list",
+      "required": false,
+      "userEdit": true
+    },
+    "SERV_ICON": {
+      "type": "string",
+      "value": "",
+      "display": "Server Icon URL",
+      "desc": "Icon shown on the HogWarp multiplayer list",
+      "required": false,
+      "userEdit": true
+    },
+    "SERV_NAME": {
+      "type": "string",
+      "value": "PufferPanel HogWarp Server",
+      "display": "Server Name",
+      "desc": "Name shown on the HogWarp server list",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Port the server listens on, written to config.json",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "plugins"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "download",
+      "files": [
+        "${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${ARCHIVE_NAME}",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f ${ARCHIVE_NAME}",
+        "wineboot --init",
+        "winetricks -q dotnet7"
+      ]
+    },
+    {
+      "if": "!file_exists('config.json')",
+      "type": "writefile",
+      "target": "config.json",
+      "text": "{\n  \"ApiKey\": \"${API_KEY}\",\n  \"Name\": \"${SERV_NAME}\",\n  \"Port\": ${port},\n  \"Description\": \"${SERV_DESC}\",\n  \"MaxPlayer\": ${MAX_PLAYERS},\n  \"IconUrl\": \"${SERV_ICON}\"\n}\n"
+    }
+  ],
+  "run": {
+    "command": "wine HogWarpServer.exe",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEARCH": "win64",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree=n,b;mshtml=n,b",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"ApiKey\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"ApiKey\": \"${API_KEY}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"Name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Name\": \"${SERV_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"Port\"\\s*:\\s*[0-9]+",
+        "replace": "\"Port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"Description\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Description\": \"${SERV_DESC}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"MaxPlayer\"\\s*:\\s*[0-9]+",
+        "replace": "\"MaxPlayer\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"IconUrl\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"IconUrl\": \"${SERV_ICON}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

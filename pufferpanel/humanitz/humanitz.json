@@ -1,0 +1,909 @@
+{
+  "type": "humanitz",
+  "display": "HumanitZ (Docker)",
+  "data": {
+    "ADMIN_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password for the admin",
+      "required": true,
+      "userEdit": true
+    },
+    "AIR_DROP": {
+      "type": "integer",
+      "value": 1,
+      "display": "Air Drop",
+      "desc": "1=Enabled, 0=Disabled. Controls whether air drops are enabled.",
+      "required": true,
+      "userEdit": true
+    },
+    "AIR_DROP_INTERVAL": {
+      "type": "integer",
+      "value": 1,
+      "display": "Air Drop Interval",
+      "desc": "Air drop every X day",
+      "required": true,
+      "userEdit": true
+    },
+    "ALLOW_DISMANTLE": {
+      "type": "integer",
+      "value": 1,
+      "display": "Allow Dismantle",
+      "desc": "1 = Enable players to dismantle their own buildings, 0 = Disable",
+      "required": true,
+      "userEdit": true
+    },
+    "ALLOW_HOUSE_DISMANTLE": {
+      "type": "integer",
+      "value": 1,
+      "display": "Allow House Dismantle",
+      "desc": "1 = Players are able to dismantle house props, 0 = Disable",
+      "required": true,
+      "userEdit": true
+    },
+    "ANIMAL_RESPAWN_TIMER": {
+      "type": "integer",
+      "value": 90,
+      "display": "Animal Respawn Timer",
+      "desc": "Time in minutes for animals to respawn",
+      "required": true,
+      "userEdit": true
+    },
+    "BUILDING_HEALTH": {
+      "type": "integer",
+      "value": 1,
+      "display": "Building Health",
+      "desc": "Health multiplier of player placed buildings. By default set to \"1\".",
+      "required": true,
+      "userEdit": true
+    },
+    "CLEAR_INFECTION": {
+      "type": "integer",
+      "value": 1,
+      "display": "Clear Infection",
+      "desc": "0=Respawning does not rid you of the infection, 1=You lose it upon respawning",
+      "required": true,
+      "userEdit": true
+    },
+    "COMPANION_DMG": {
+      "type": "integer",
+      "value": 1,
+      "display": "Companion Damage",
+      "desc": "Dog companion damage - 0=Low 1=Default 2=High",
+      "required": true,
+      "userEdit": true
+    },
+    "COMPANION_HEALTH": {
+      "type": "integer",
+      "value": 1,
+      "display": "Companion Health",
+      "desc": "Dog companion health - 0=Low 1=Default 2=High",
+      "required": true,
+      "userEdit": true
+    },
+    "DAYS_PER_SEASON": {
+      "type": "integer",
+      "value": 5,
+      "display": "Days Per Season",
+      "desc": "How many days each season lasts",
+      "required": true,
+      "userEdit": true
+    },
+    "DAY_DUR": {
+      "type": "integer",
+      "value": 40,
+      "display": "Day Duration",
+      "desc": "Day duration in minutes",
+      "required": true,
+      "userEdit": true
+    },
+    "DECAY": {
+      "type": "integer",
+      "value": 3600,
+      "display": "Decay",
+      "desc": "By default 3600, the crafted \"Spawn Point\" loses 1 durability every 1 hour. This is used to deal with territory build restrictions, so players have to repair their spawn point.",
+      "required": true,
+      "userEdit": true
+    },
+    "DOG_ENABLED": {
+      "type": "integer",
+      "value": 1,
+      "display": "Dog Companions Enabled",
+      "desc": "Enable finding dog companions you can recruit",
+      "required": true,
+      "userEdit": true
+    },
+    "DOG_NUM": {
+      "type": "integer",
+      "value": 8,
+      "display": "Dog Companion Amount",
+      "desc": "Number of companion dogs that could spawn randomly",
+      "required": true,
+      "userEdit": true
+    },
+    "EAGLE_EYE": {
+      "type": "integer",
+      "value": 1,
+      "display": "Eagle Eye",
+      "desc": "1=Able to purchase the eagle eye skill, 0=You can't",
+      "required": true,
+      "userEdit": true
+    },
+    "FAKE_BUILDING_CLEANUP": {
+      "type": "integer",
+      "value": 3000,
+      "display": "Fake Building Cleanup",
+      "desc": "How long in minutes it takes for the white blueprint building to be destroyed, a value of 0 means no cleanup is done.",
+      "required": true,
+      "userEdit": true
+    },
+    "HUMAN_AMOUNT_MULTI": {
+      "type": "integer",
+      "value": 1,
+      "display": "Human Amount Multiplier",
+      "desc": "Hostile humans spawn count multiplier",
+      "required": true,
+      "userEdit": true
+    },
+    "HUMAN_DIFFICULTY": {
+      "type": "integer",
+      "value": 3,
+      "display": "Human Difficulty",
+      "desc": "0=Very Easy, 1=Easy, 2=Default, 3=Hard, 4=Very Hard, 5=Nightmare",
+      "required": true,
+      "userEdit": true
+    },
+    "HUMAN_RESPAWN_TIMER": {
+      "type": "integer",
+      "value": 90,
+      "display": "Human Respawn Timer",
+      "desc": "Time in minutes for hostile humans to respawn",
+      "required": true,
+      "userEdit": true
+    },
+    "LOOT_RARITY": {
+      "type": "integer",
+      "value": 2,
+      "display": "Loot Rarity",
+      "desc": "0=Scarce, 1=Low, 2=Default, 3=Plentiful, 4=Abundant",
+      "required": true,
+      "userEdit": true
+    },
+    "LOOT_RESPAWN": {
+      "type": "integer",
+      "value": 1,
+      "display": "Loot Respawn",
+      "desc": "1=Loot does respawn, 0=Never respawn",
+      "required": true,
+      "userEdit": true
+    },
+    "LOOT_RESPAWN_TIMER": {
+      "type": "integer",
+      "value": 60,
+      "display": "Loot Respawn Timer",
+      "desc": "If loot respawns how long does it take in minutes",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed",
+      "required": true,
+      "userEdit": true
+    },
+    "MULTIPLAYER_SLEEP": {
+      "type": "integer",
+      "value": 0,
+      "display": "Multiplayer Sleep",
+      "desc": "1=Time passes if everyone performs the sleep emote at the same time, 0=Passing time is disabled",
+      "required": true,
+      "userEdit": true
+    },
+    "NIGHT_DUR": {
+      "type": "integer",
+      "value": 20,
+      "display": "Night Duration",
+      "desc": "Night duration in minutes",
+      "required": true,
+      "userEdit": true
+    },
+    "NO_DEATH_FEEDBACK": {
+      "type": "integer",
+      "value": 0,
+      "display": "No Death Feedback",
+      "desc": "0 to enable player died notification in chat - 1 to disable player died notification in chat.",
+      "required": true,
+      "userEdit": true
+    },
+    "ONLY_ALLOWED_PLAYERS": {
+      "type": "integer",
+      "value": 0,
+      "display": "Only Allowed Players",
+      "desc": "Restrict server to allowed players only",
+      "required": true,
+      "userEdit": true
+    },
+    "ON_DEATH": {
+      "type": "integer",
+      "value": 2,
+      "display": "On Death",
+      "desc": "0=Only lose backpack, and weapon in hand, 1=Previous + pockets, and backpack, 2=All previous + Equipment",
+      "required": true,
+      "userEdit": true
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Server password (if any)",
+      "required": true,
+      "userEdit": true
+    },
+    "PERMA_DEATH": {
+      "type": "integer",
+      "value": 0,
+      "display": "Permanent Death",
+      "desc": "0=Off, 1=Individual perma-death, 2=All players experience perma-death",
+      "required": true,
+      "userEdit": true
+    },
+    "PICKUP_CLEANUP": {
+      "type": "integer",
+      "value": 3000,
+      "display": "Pickup Cleanup",
+      "desc": "How long in minutes it takes for dropped pickups to be destroyed (Pickups part of the world will not be considered), a value of 0 means no cleanup is done.",
+      "required": true,
+      "userEdit": true
+    },
+    "PICKUP_RESPAWN_TIMER": {
+      "type": "integer",
+      "value": 90,
+      "display": "Pickup Respawn Timer",
+      "desc": "Time in minutes it takes to respawn pickups, 0 to disable.",
+      "required": true,
+      "userEdit": true
+    },
+    "PVP": {
+      "type": "integer",
+      "value": 1,
+      "display": "PvP",
+      "desc": "0/1 Off/On. Enable or disable Player vs Player.",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Steam Query Port",
+      "desc": "UDP port used for the Steam server list",
+      "required": true,
+      "userEdit": false
+    },
+    "RECRUIT_DOG": {
+      "type": "integer",
+      "value": 1,
+      "display": "Recruit Companion Dogs",
+      "desc": "Allow players to recruit companion dog",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_INTERVAL_SEC": {
+      "type": "integer",
+      "value": 300,
+      "display": "Saving World Interval",
+      "desc": "Save game every x seconds.",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_NAME": {
+      "type": "string",
+      "value": "DedicatedSaveMP",
+      "display": "Save Name",
+      "desc": "Name of the save-file for the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "HumanitZ [Dedicated]",
+      "display": "Server Name",
+      "desc": "Name of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2728330",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the HumanitZ dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "linuxbranch",
+      "display": "Steam Beta Branch",
+      "desc": "Beta branch holding the Linux build of the server",
+      "required": true,
+      "userEdit": false
+    },
+    "STARTING_SEASON": {
+      "type": "integer",
+      "value": 1,
+      "display": "Starting Season",
+      "desc": "0=Summer, 1=Autum, 2=Winter, 3=Spring",
+      "required": true,
+      "userEdit": true
+    },
+    "TERRITORY": {
+      "type": "integer",
+      "value": 1,
+      "display": "Territory",
+      "desc": "1 = Enabled. In PVE you are not allowed to build in someone's spawn point area. Only non recruit clan members can. 0 = Disable",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "VITAL_DRAIN": {
+      "type": "integer",
+      "value": 1,
+      "display": "Vital Drain",
+      "desc": "How fast your vitals drain 0=Slow, 1=Normal, 2=Fast",
+      "required": true,
+      "userEdit": true
+    },
+    "WEAPON_BREAK": {
+      "type": "integer",
+      "value": 1,
+      "display": "Weapon Durability",
+      "desc": "1=Weapons break when reaching 0% durability except crowbar, 0=Only improvised weapons break at 0% durability",
+      "required": true,
+      "userEdit": true
+    },
+    "ZOMBIE_AMOUNT_MULTI": {
+      "type": "integer",
+      "value": 1,
+      "display": "Zombie Amount Multiplier",
+      "desc": "Zombie spawn count multiplier",
+      "required": true,
+      "userEdit": true
+    },
+    "ZOMBIE_DIFF_DAMAGE": {
+      "type": "integer",
+      "value": 3,
+      "display": "Zombie Difficulty (Damage)",
+      "desc": "0=Very Easy, 1=Easy, 2=Default, 3=Hard, 4=Very Hard, 5=Nightmare",
+      "required": true,
+      "userEdit": true
+    },
+    "ZOMBIE_DIFF_HEALTH": {
+      "type": "integer",
+      "value": 1,
+      "display": "Zombie Difficulty (Health)",
+      "desc": "0=Very Easy, 1=Easy, 2=Default, 3=Hard, 4=Very Hard, 5=Nightmare",
+      "required": true,
+      "userEdit": true
+    },
+    "ZOMBIE_DIFF_SPEED": {
+      "type": "integer",
+      "value": 2,
+      "display": "Zombie Difficulty (Speed)",
+      "desc": "0=Very Easy, 1=Easy, 2=Default, 3=Hard, 4=Very Hard, 5=Nightmare",
+      "required": true,
+      "userEdit": true
+    },
+    "ZOMBIE_DOG_MULTI": {
+      "type": "integer",
+      "value": 1,
+      "display": "Zombie Dog Multiplier",
+      "desc": "Zombie dog spawn count multiplier",
+      "required": true,
+      "userEdit": true
+    },
+    "ZOMBIE_RESPAWN_TIMER": {
+      "type": "integer",
+      "value": 90,
+      "display": "Zombie Respawn Timer",
+      "desc": "Time in minutes for zombies to respawn",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./TSSGame/Binaries/Linux/TSSGameServer-Linux-Shipping"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "TSSGame"
+    },
+    {
+      "if": "!file_exists('TSSGame/GameServerSettings.ini')",
+      "type": "writefile",
+      "target": "TSSGame/GameServerSettings.ini",
+      "text": "[Host Settings]\nServerName=${SERVER_NAME}\nPassword=${PASSWORD}\nSaveName=${SAVE_NAME}\nAdminPass=${ADMIN_PASS}\nMaxPlayers=${MAX_PLAYERS}\nOnlyAllowedPlayers=${ONLY_ALLOWED_PLAYERS}\n\n[World Settings]\nSaveIntervalSec=${SAVE_INTERVAL_SEC}\nNoDeathFeedback=${NO_DEATH_FEEDBACK}\nPermaDeath=${PERMA_DEATH}\nOnDeath=${ON_DEATH}\nPVP=${PVP}\nClearInfection=${CLEAR_INFECTION}\nEagleEye=${EAGLE_EYE}\nAirDrop=${AIR_DROP}\nWeaponBreak=${WEAPON_BREAK}\nMultiplayerSleep=${MULTIPLAYER_SLEEP}\nLootRespawn=${LOOT_RESPAWN}\nLootRespawnTimer=${LOOT_RESPAWN_TIMER}\nPickupRespawnTimer=${PICKUP_RESPAWN_TIMER}\nLootRarity=${LOOT_RARITY}\nAirDropInterval=${AIR_DROP_INTERVAL}\nZombieDiffHealth=${ZOMBIE_DIFF_HEALTH}\nZombieDiffSpeed=${ZOMBIE_DIFF_SPEED}\nZombieDiffDamage=${ZOMBIE_DIFF_DAMAGE}\nHumanDifficulty=${HUMAN_DIFFICULTY}\nZombieAmountMulti=${ZOMBIE_AMOUNT_MULTI}\nHumanAmountMulti=${HUMAN_AMOUNT_MULTI}\nZombieDogMulti=${ZOMBIE_DOG_MULTI}\nZombieRespawnTimer=${ZOMBIE_RESPAWN_TIMER}\nHumanRespawnTimer=${HUMAN_RESPAWN_TIMER}\nAnimalRespawnTimer=${ANIMAL_RESPAWN_TIMER}\nStartingSeason=${STARTING_SEASON}\nDaysPerSeason=${DAYS_PER_SEASON}\nDayDur=${DAY_DUR}\nNightDur=${NIGHT_DUR}\nVitalDrain=${VITAL_DRAIN}\nDogEnabled=${DOG_ENABLED}\nDogNum=${DOG_NUM}\nRecruitDog=${RECRUIT_DOG}\nBuildingHealth=${BUILDING_HEALTH}\nCompanionHealth=${COMPANION_HEALTH}\nCompanionDmg=${COMPANION_DMG}\nAllowDismantle=${ALLOW_DISMANTLE}\nAllowHouseDismantle=${ALLOW_HOUSE_DISMANTLE}\nTerritory=${TERRITORY}\nDecay=${DECAY}\nPickupCleanup=${PICKUP_CLEANUP}\nFakeBuildingCleanup=${FAKE_BUILDING_CLEANUP}\n"
+    }
+  ],
+  "run": {
+    "command": "./TSSGame/Binaries/Linux/TSSGameServer-Linux-Shipping TSSGame -log -port=${port} -queryport=${QUERY_PORT} -steamservername=\"${SERVER_NAME}\"",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^Password=.*$",
+        "replace": "Password=${PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^SaveName=.*$",
+        "replace": "SaveName=${SAVE_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^AdminPass=.*$",
+        "replace": "AdminPass=${ADMIN_PASS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^OnlyAllowedPlayers=.*$",
+        "replace": "OnlyAllowedPlayers=${ONLY_ALLOWED_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^SaveIntervalSec=.*$",
+        "replace": "SaveIntervalSec=${SAVE_INTERVAL_SEC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^NoDeathFeedback=.*$",
+        "replace": "NoDeathFeedback=${NO_DEATH_FEEDBACK}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^PermaDeath=.*$",
+        "replace": "PermaDeath=${PERMA_DEATH}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^OnDeath=.*$",
+        "replace": "OnDeath=${ON_DEATH}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^PVP=.*$",
+        "replace": "PVP=${PVP}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^ClearInfection=.*$",
+        "replace": "ClearInfection=${CLEAR_INFECTION}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^EagleEye=.*$",
+        "replace": "EagleEye=${EAGLE_EYE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^AirDrop=.*$",
+        "replace": "AirDrop=${AIR_DROP}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^WeaponBreak=.*$",
+        "replace": "WeaponBreak=${WEAPON_BREAK}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^MultiplayerSleep=.*$",
+        "replace": "MultiplayerSleep=${MULTIPLAYER_SLEEP}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^LootRespawn=.*$",
+        "replace": "LootRespawn=${LOOT_RESPAWN}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^LootRespawnTimer=.*$",
+        "replace": "LootRespawnTimer=${LOOT_RESPAWN_TIMER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^PickupRespawnTimer=.*$",
+        "replace": "PickupRespawnTimer=${PICKUP_RESPAWN_TIMER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^LootRarity=.*$",
+        "replace": "LootRarity=${LOOT_RARITY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^AirDropInterval=.*$",
+        "replace": "AirDropInterval=${AIR_DROP_INTERVAL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^ZombieDiffHealth=.*$",
+        "replace": "ZombieDiffHealth=${ZOMBIE_DIFF_HEALTH}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^ZombieDiffSpeed=.*$",
+        "replace": "ZombieDiffSpeed=${ZOMBIE_DIFF_SPEED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^ZombieDiffDamage=.*$",
+        "replace": "ZombieDiffDamage=${ZOMBIE_DIFF_DAMAGE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^HumanDifficulty=.*$",
+        "replace": "HumanDifficulty=${HUMAN_DIFFICULTY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^ZombieAmountMulti=.*$",
+        "replace": "ZombieAmountMulti=${ZOMBIE_AMOUNT_MULTI}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^HumanAmountMulti=.*$",
+        "replace": "HumanAmountMulti=${HUMAN_AMOUNT_MULTI}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^ZombieDogMulti=.*$",
+        "replace": "ZombieDogMulti=${ZOMBIE_DOG_MULTI}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^ZombieRespawnTimer=.*$",
+        "replace": "ZombieRespawnTimer=${ZOMBIE_RESPAWN_TIMER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^HumanRespawnTimer=.*$",
+        "replace": "HumanRespawnTimer=${HUMAN_RESPAWN_TIMER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^AnimalRespawnTimer=.*$",
+        "replace": "AnimalRespawnTimer=${ANIMAL_RESPAWN_TIMER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^StartingSeason=.*$",
+        "replace": "StartingSeason=${STARTING_SEASON}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^DaysPerSeason=.*$",
+        "replace": "DaysPerSeason=${DAYS_PER_SEASON}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^DayDur=.*$",
+        "replace": "DayDur=${DAY_DUR}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^NightDur=.*$",
+        "replace": "NightDur=${NIGHT_DUR}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^VitalDrain=.*$",
+        "replace": "VitalDrain=${VITAL_DRAIN}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^DogEnabled=.*$",
+        "replace": "DogEnabled=${DOG_ENABLED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^DogNum=.*$",
+        "replace": "DogNum=${DOG_NUM}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^RecruitDog=.*$",
+        "replace": "RecruitDog=${RECRUIT_DOG}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^BuildingHealth=.*$",
+        "replace": "BuildingHealth=${BUILDING_HEALTH}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^CompanionHealth=.*$",
+        "replace": "CompanionHealth=${COMPANION_HEALTH}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^CompanionDmg=.*$",
+        "replace": "CompanionDmg=${COMPANION_DMG}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^AllowDismantle=.*$",
+        "replace": "AllowDismantle=${ALLOW_DISMANTLE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^AllowHouseDismantle=.*$",
+        "replace": "AllowHouseDismantle=${ALLOW_HOUSE_DISMANTLE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^Territory=.*$",
+        "replace": "Territory=${TERRITORY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^Decay=.*$",
+        "replace": "Decay=${DECAY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^PickupCleanup=.*$",
+        "replace": "PickupCleanup=${PICKUP_CLEANUP}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TSSGame/GameServerSettings.ini')",
+        "type": "alterfile",
+        "file": "TSSGame/GameServerSettings.ini",
+        "search": "^FakeBuildingCleanup=.*$",
+        "replace": "FakeBuildingCleanup=${FAKE_BUILDING_CLEANUP}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

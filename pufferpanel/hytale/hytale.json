@@ -1,0 +1,178 @@
+{
+  "type": "hytale",
+  "display": "Hytale (Docker)",
+  "data": {
+    "DISABLE_SENTRY": {
+      "type": "option",
+      "value": "",
+      "display": "Disable Sentry",
+      "desc": "Hytale uses Sentry to report crashes. Disable it while actively developing plugins.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Sentry enabled"
+        },
+        {
+          "value": "--disable-sentry",
+          "display": "Sentry disabled"
+        }
+      ]
+    },
+    "DOWNLOADER_ARGS": {
+      "type": "string",
+      "value": "-patchline release -o .",
+      "display": "Downloader Arguments",
+      "desc": "Arguments passed to the Hytale downloader CLI when it fetches the server files. Run the downloader with -help in the console to see the arguments the current build accepts.",
+      "required": true,
+      "userEdit": true
+    },
+    "HYTALE_ACCEPT_EARLY_PLUGINS": {
+      "type": "option",
+      "value": "",
+      "display": "Accept Early Plugins",
+      "desc": "Hytale warns that loading early plugins is unsupported and may cause instability",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Disabled"
+        },
+        {
+          "value": "--accept-early-plugins",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "HYTALE_ALLOW_OP": {
+      "type": "option",
+      "value": "",
+      "display": "Allow Operators",
+      "desc": "Allow players to be granted operator status",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Disabled"
+        },
+        {
+          "value": "--allow-op",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "HYTALE_AUTH_MODE": {
+      "type": "option",
+      "value": "authenticated",
+      "display": "Auth Mode",
+      "desc": "Authentication mode the server runs in",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "authenticated",
+          "display": "Authenticated"
+        },
+        {
+          "value": "offline",
+          "display": "Offline"
+        }
+      ]
+    },
+    "SERVER_MEMORY": {
+      "type": "integer",
+      "value": 4096,
+      "display": "Memory (MB)",
+      "desc": "Java heap size for the server",
+      "required": true,
+      "userEdit": true
+    },
+    "USE_AOT_CACHE": {
+      "type": "option",
+      "value": "-XX:AOTCache=Server/HytaleServer.aot",
+      "display": "Use Ahead-of-Time Cache",
+      "desc": "Hytale ships a pre-trained AOT Java cache that noticeably improves startup time",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "-XX:AOTCache=Server/HytaleServer.aot",
+          "display": "Enabled"
+        },
+        {
+          "value": "",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 25565,
+      "display": "Port",
+      "desc": "Port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://downloader.hytale.com/hytale-downloader.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "hytale-downloader.zip",
+      "destination": "hytale-downloader"
+    },
+    {
+      "type": "move",
+      "source": "hytale-downloader/hytale-downloader-linux-amd64",
+      "target": "hytale-downloader/hytale-downloader-linux"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod 755 hytale-downloader/hytale-downloader-linux",
+        "rm -f hytale-downloader.zip",
+        "./hytale-downloader/hytale-downloader-linux ${DOWNLOADER_ARGS}"
+      ]
+    }
+  ],
+  "run": {
+    "command": "java ${USE_AOT_CACHE} -Xms128M -Xmx${SERVER_MEMORY}M -jar Server/HytaleServer.jar ${HYTALE_ALLOW_OP} ${HYTALE_ACCEPT_EARLY_PLUGINS} ${DISABLE_SENTRY} --auth-mode ${HYTALE_AUTH_MODE} --assets Assets.zip --bind 0.0.0.0:${port}",
+    "stop": "/stop",
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/pterodactyl/games:hytale",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/pterodactyl/games:hytale",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

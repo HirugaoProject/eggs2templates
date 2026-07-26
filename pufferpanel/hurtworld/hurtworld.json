@@ -1,0 +1,203 @@
+{
+  "type": "hurtworld",
+  "display": "Hurtworld (Docker)",
+  "data": {
+    "ADMINS": {
+      "type": "string",
+      "value": "",
+      "display": "Server Owner GUID",
+      "desc": "Steam id of the server owner, granted admin on startup",
+      "required": false,
+      "userEdit": true
+    },
+    "CREATIVE_MODE": {
+      "type": "option",
+      "value": "0",
+      "display": "Creative Mode",
+      "desc": "Free build mode",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "HOSTNAME": {
+      "type": "string",
+      "value": "A Hurtworld Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the public server list",
+      "required": true,
+      "userEdit": true
+    },
+    "INSTALL_OXIDE": {
+      "type": "boolean",
+      "value": false,
+      "display": "Include Oxide",
+      "desc": "Install the uMod/Oxide modding framework during installation",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 60,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server at one time",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 13871,
+      "display": "Query Port",
+      "desc": "Server query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "405100",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Hurtworld dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 12871,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "Hurtworld_Data/Plugins/x86"
+    },
+    {
+      "type": "mkdir",
+      "target": "Hurtworld_Data/Plugins/x86_64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "cp steamcmd/linux32/steamclient.so Hurtworld_Data/Plugins/x86/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so Hurtworld_Data/Plugins/x86_64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./Hurtworld.x86_64"
+      ]
+    },
+    {
+      "if": "INSTALL_OXIDE",
+      "type": "download",
+      "files": [
+        "https://umod.org/games/hurtworld/download/develop"
+      ]
+    },
+    {
+      "if": "INSTALL_OXIDE && file_exists('Oxide.Hurtworld.zip')",
+      "type": "extract",
+      "source": "Oxide.Hurtworld.zip",
+      "destination": "."
+    },
+    {
+      "if": "INSTALL_OXIDE",
+      "type": "command",
+      "commands": [
+        "rm -f Oxide.Hurtworld.zip"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Hurtworld.x86_64 -batchmode -nographics -exec \"host ${port};queryport ${QUERY_PORT};maxplayers ${MAX_PLAYERS};servername ${HOSTNAME};creativemode ${CREATIVE_MODE};addadmin ${ADMINS}\" -logfile /dev/stdout",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

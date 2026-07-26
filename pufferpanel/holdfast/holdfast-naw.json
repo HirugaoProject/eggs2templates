@@ -1,0 +1,321 @@
+{
+  "type": "holdfast",
+  "display": "Holdfast: Nations At War (Docker)",
+  "data": {
+    "ADMIN_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password for the in-game admin login on F1",
+      "required": false,
+      "userEdit": true
+    },
+    "EXTRA_FLAGS": {
+      "type": "string",
+      "value": "",
+      "display": "Extra SteamCMD Flags",
+      "desc": "Extra SteamCMD flags, for example -beta <branch> to install a beta build",
+      "required": false,
+      "userEdit": true
+    },
+    "FPSMAX": {
+      "type": "integer",
+      "value": 60,
+      "display": "Server FPS",
+      "desc": "Frame rate the server runs at",
+      "required": true,
+      "userEdit": true
+    },
+    "MOTD": {
+      "type": "string",
+      "value": "Welcome!",
+      "display": "Welcome Message",
+      "desc": "Message shown in the text chat when a player joins",
+      "required": true,
+      "userEdit": true
+    },
+    "PLAYERS": {
+      "type": "integer",
+      "value": 150,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "REGION": {
+      "type": "option",
+      "value": "europe",
+      "display": "Server Region",
+      "desc": "Region of the world the server is located in",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "europe",
+          "display": "Europe"
+        },
+        {
+          "value": "usa",
+          "display": "USA"
+        },
+        {
+          "value": "asia",
+          "display": "Asia"
+        },
+        {
+          "value": "australia",
+          "display": "Australia"
+        },
+        {
+          "value": "southamerica",
+          "display": "South America"
+        }
+      ]
+    },
+    "SERVER_COMM_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Server Comm Port",
+      "desc": "Communication port used by the server",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_CONFIG_PATH": {
+      "type": "string",
+      "value": "serverconfig_default.txt",
+      "display": "Config Name",
+      "desc": "Configuration file inside holdfastnaw-dedicated/configs the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_LOG_ARCHIVE_PATH": {
+      "type": "string",
+      "value": "logs_archive",
+      "display": "Server Log Archive",
+      "desc": "Directory archived logs are written to",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Holdfast Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password locking the server. Leave blank for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Server Query Port",
+      "desc": "Query port used by the server browser",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1424230",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Holdfast dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27960,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} ${EXTRA_FLAGS} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "holdfastnaw-dedicated/configs"
+    },
+    {
+      "type": "mkdir",
+      "target": "holdfastnaw-dedicated/logs_output"
+    },
+    {
+      "type": "mkdir",
+      "target": "holdfastnaw-dedicated/logs_adminactions"
+    },
+    {
+      "type": "mkdir",
+      "target": "holdfastnaw-dedicated/logs_playerlogin"
+    },
+    {
+      "type": "mkdir",
+      "target": "holdfastnaw-dedicated/logs_score"
+    },
+    {
+      "type": "mkdir",
+      "target": "holdfastnaw-dedicated/logs_chat"
+    },
+    {
+      "type": "mkdir",
+      "target": "holdfastnaw-dedicated/${SERVER_LOG_ARCHIVE_PATH}"
+    },
+    {
+      "type": "mkdir",
+      "target": "holdfastnaw-dedicated/workshop"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('holdfastnaw-dedicated/configs/' + SERVER_CONFIG_PATH)",
+      "type": "command",
+      "commands": [
+        "cp holdfastnaw-dedicated/serverconfig_default.txt holdfastnaw-dedicated/configs/${SERVER_CONFIG_PATH}"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'exec \"./holdfastnaw-dedicated/Holdfast NaW\" -startserver -batchmode -nographics -screen-width 320 -screen-height 240 -screen-quality Fastest -framerate ${FPSMAX} --serverheadless -serverConfigFilePath holdfastnaw-dedicated/configs/${SERVER_CONFIG_PATH} -logFile /dev/stdout -logArchivesDirectory holdfastnaw-dedicated/${SERVER_LOG_ARCHIVE_PATH}/ -adminCommandsLogFilePath holdfastnaw-dedicated/logs_adminactions/admin_${SERVER_CONFIG_PATH} -playersLogFilePath holdfastnaw-dedicated/logs_playerlogin/players_${SERVER_CONFIG_PATH} -scoreboardLogFilePath holdfastnaw-dedicated/logs_score/scorelog_${SERVER_CONFIG_PATH} -chatLogFilePath holdfastnaw-dedicated/logs_chat/chatlog_${SERVER_CONFIG_PATH} -workshopDataPath holdfastnaw-dedicated/workshop -micSpammersPlayersFilePath holdfastnaw-dedicated/micspammers.txt -mutedVoipPlayersFilePath holdfastnaw-dedicated/mutedplayersvoip.txt -mutedChatPlayersFilePath holdfastnaw-dedicated/mutedplayerschat.txt -bannedPlayersFilePath holdfastnaw-dedicated/bannedplayers.txt -p ${port} -o ${SERVER_COMM_PORT}'",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} ${EXTRA_FLAGS} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('holdfastnaw-dedicated/configs/' + SERVER_CONFIG_PATH)",
+        "type": "alterfile",
+        "file": "holdfastnaw-dedicated/configs/${SERVER_CONFIG_PATH}",
+        "search": "^ServerName .*$",
+        "replace": "ServerName \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('holdfastnaw-dedicated/configs/' + SERVER_CONFIG_PATH)",
+        "type": "alterfile",
+        "file": "holdfastnaw-dedicated/configs/${SERVER_CONFIG_PATH}",
+        "search": "^ServerMessage .*$",
+        "replace": "ServerMessage \"${MOTD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('holdfastnaw-dedicated/configs/' + SERVER_CONFIG_PATH)",
+        "type": "alterfile",
+        "file": "holdfastnaw-dedicated/configs/${SERVER_CONFIG_PATH}",
+        "search": "^ServerPassword .*$",
+        "replace": "ServerPassword \"${SERVER_PASS}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('holdfastnaw-dedicated/configs/' + SERVER_CONFIG_PATH)",
+        "type": "alterfile",
+        "file": "holdfastnaw-dedicated/configs/${SERVER_CONFIG_PATH}",
+        "search": "^AdminPassword .*$",
+        "replace": "AdminPassword \"${ADMIN_PASS}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('holdfastnaw-dedicated/configs/' + SERVER_CONFIG_PATH)",
+        "type": "alterfile",
+        "file": "holdfastnaw-dedicated/configs/${SERVER_CONFIG_PATH}",
+        "search": "^ServerMaximumPlayers .*$",
+        "replace": "ServerMaximumPlayers ${PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('holdfastnaw-dedicated/configs/' + SERVER_CONFIG_PATH)",
+        "type": "alterfile",
+        "file": "holdfastnaw-dedicated/configs/${SERVER_CONFIG_PATH}",
+        "search": "^ServerRegion .*$",
+        "replace": "ServerRegion ${REGION}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${SERVER_QUERY_PORT}:${SERVER_QUERY_PORT}/udp",
+      "0.0.0.0:${SERVER_COMM_PORT}:${SERVER_COMM_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${SERVER_QUERY_PORT}:${SERVER_QUERY_PORT}/udp",
+        "0.0.0.0:${SERVER_COMM_PORT}:${SERVER_COMM_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
