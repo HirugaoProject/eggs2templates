@@ -1,0 +1,76 @@
+{
+  "type": "tachyon",
+  "display": "Tachyon (Docker)",
+  "data": {
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "https://github.com/Dav-Edward/TachyonsCE/releases/latest/download/TachyonsCEServer.jar",
+      "display": "Download URL",
+      "desc": "Link to the TachyonsCE server jar. Releases are listed at https://github.com/Dav-Edward/TachyonsCE/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 25565,
+      "display": "Port",
+      "desc": "Port the server listens on, written to config.cfg as SERVER_PORT",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "move",
+      "source": "TachyonsCE*.jar",
+      "target": "TachyonsCEServer.jar"
+    }
+  ],
+  "run": {
+    "command": "java -Xms128M -XX:MaxRAMPercentage=95.0 -Dterminal.jline=false -Dterminal.ansi=true -jar TachyonsCEServer.jar",
+    "stop": "/exit",
+    "pre": [
+      {
+        "if": "file_exists('config.cfg')",
+        "type": "alterfile",
+        "file": "config.cfg",
+        "search": "^SERVER_PORT=.*$",
+        "replace": "SERVER_PORT=${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:java_11",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:java_11",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}

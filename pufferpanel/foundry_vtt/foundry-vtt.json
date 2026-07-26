@@ -1,0 +1,149 @@
+{
+  "type": "foundryvtt",
+  "display": "Foundry VTT (Docker)",
+  "data": {
+    "FOUNDRY_LANGUAGE": {
+      "type": "string",
+      "value": "en.core",
+      "display": "Language",
+      "desc": "Localization used by the application",
+      "required": true,
+      "userEdit": true
+    },
+    "TIMED_URL": {
+      "type": "string",
+      "value": "",
+      "display": "Timed Download URL",
+      "desc": "Temporary download link for the Node.js build of Foundry VTT, taken from the purchased licences page at https://foundryvtt.com. The link expires quickly, so paste a fresh one right before installing.",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_CHANNEL": {
+      "type": "option",
+      "value": "release",
+      "display": "Update Channel",
+      "desc": "Channel used for automatic updates",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "release",
+          "display": "Stable release"
+        },
+        {
+          "value": "prototype",
+          "display": "Prototype"
+        },
+        {
+          "value": "testing",
+          "display": "Testing"
+        },
+        {
+          "value": "development",
+          "display": "Development"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 30000,
+      "display": "Port",
+      "desc": "TCP port the web interface listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "app"
+    },
+    {
+      "type": "mkdir",
+      "target": "data/Config"
+    },
+    {
+      "type": "download",
+      "files": [
+        "${TIMED_URL}"
+      ]
+    },
+    {
+      "type": "move",
+      "source": "foundryvtt*.zip",
+      "target": "foundryvtt.zip"
+    },
+    {
+      "type": "extract",
+      "source": "foundryvtt.zip",
+      "destination": "app"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f foundryvtt.zip"
+      ]
+    },
+    {
+      "if": "!file_exists('data/Config/options.json')",
+      "type": "writefile",
+      "target": "data/Config/options.json",
+      "text": "{\n  \"port\": ${port},\n  \"upnp\": false,\n  \"fullscreen\": false,\n  \"hostname\": null,\n  \"localHostname\": null,\n  \"routePrefix\": null,\n  \"sslCert\": null,\n  \"sslKey\": null,\n  \"awsConfig\": null,\n  \"dataPath\": \"/pufferpanel/data\",\n  \"passwordSalt\": null,\n  \"proxySSL\": false,\n  \"proxyPort\": null,\n  \"minifyStaticFiles\": true,\n  \"updateChannel\": \"${UPDATE_CHANNEL}\",\n  \"language\": \"${FOUNDRY_LANGUAGE}\",\n  \"upnpLeaseDuration\": null,\n  \"world\": null\n}\n"
+    }
+  ],
+  "run": {
+    "command": "node ./app/main.js --dataPath=/pufferpanel/data",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('data/Config/options.json')",
+        "type": "alterfile",
+        "file": "data/Config/options.json",
+        "search": "\"port\"\\s*:\\s*[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/Config/options.json')",
+        "type": "alterfile",
+        "file": "data/Config/options.json",
+        "search": "\"language\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"language\": \"${FOUNDRY_LANGUAGE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/Config/options.json')",
+        "type": "alterfile",
+        "file": "data/Config/options.json",
+        "search": "\"updateChannel\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"updateChannel\": \"${UPDATE_CHANNEL}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:nodejs_22",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:nodejs_22",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}

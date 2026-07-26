@@ -1,0 +1,330 @@
+{
+  "type": "foundry",
+  "display": "Foundry (Docker)",
+  "data": {
+    "AUTOSAVE_INTERVAL": {
+      "type": "integer",
+      "value": 300,
+      "display": "Autosave Interval",
+      "desc": "Seconds between automatic saves",
+      "required": true,
+      "userEdit": true
+    },
+    "MAP_SEED": {
+      "type": "string",
+      "value": "42938743982",
+      "display": "Map Seed",
+      "desc": "Seed used to generate the world",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "PAUSE_SERVER": {
+      "type": "option",
+      "value": "true",
+      "display": "Pause Server When Empty",
+      "desc": "Pause the server while nobody is connected",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Yes"
+        },
+        {
+          "value": "false",
+          "display": "No"
+        }
+      ]
+    },
+    "PUBLIC_SERVER": {
+      "type": "option",
+      "value": "true",
+      "display": "Public Server",
+      "desc": "List the server in the Steam server browser",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Public"
+        },
+        {
+          "value": "false",
+          "display": "Private"
+        }
+      ]
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Steam Query Port",
+      "desc": "Port used by the Steam server browser to query the server",
+      "required": true,
+      "userEdit": false
+    },
+    "SAVE_PATH": {
+      "type": "string",
+      "value": "/pufferpanel/serverfiles",
+      "display": "Save Path",
+      "desc": "Directory the server stores its save files in",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Foundry Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the Steam server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2915550",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Foundry dedicated server (Windows build, run through Wine)",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_PW": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password players must enter to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "MyFoundry",
+      "display": "World Name",
+      "desc": "Folder the save files are stored in",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 3724,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": "Mods"
+    },
+    {
+      "type": "mkdir",
+      "target": "serverfiles"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "wineboot --init"
+      ]
+    },
+    {
+      "if": "!file_exists('App.cfg')",
+      "type": "download",
+      "files": [
+        "https://dedicated.foundry-game.com/App.cfg"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'Xvfb :0 -screen 0 1024x768x16 & exec wine /pufferpanel/FoundryDedicatedServer.exe -log'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^server_name\\s*=.*$",
+        "replace": "server_name=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^server_password\\s*=.*$",
+        "replace": "server_password=${SRV_PW}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^server_world_name\\s*=.*$",
+        "replace": "server_world_name=${WORLD_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^server_max_players\\s*=.*$",
+        "replace": "server_max_players=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^server_port\\s*=.*$",
+        "replace": "server_port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^server_query_port\\s*=.*$",
+        "replace": "server_query_port=${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^pause_server_when_empty\\s*=.*$",
+        "replace": "pause_server_when_empty=${PAUSE_SERVER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^autosave_interval\\s*=.*$",
+        "replace": "autosave_interval=${AUTOSAVE_INTERVAL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^server_public\\s*=.*$",
+        "replace": "server_public=${PUBLIC_SERVER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^map_seed\\s*=.*$",
+        "replace": "map_seed=${MAP_SEED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('App.cfg')",
+        "type": "alterfile",
+        "file": "App.cfg",
+        "search": "^save_path\\s*=.*$",
+        "replace": "save_path=${SAVE_PATH}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

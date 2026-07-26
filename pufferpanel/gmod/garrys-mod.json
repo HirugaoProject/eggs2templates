@@ -1,0 +1,201 @@
+{
+  "type": "srcds",
+  "display": "Garry's Mod (Docker)",
+  "data": {
+    "GAMEMODE": {
+      "type": "string",
+      "value": "sandbox",
+      "display": "Gamemode",
+      "desc": "Gamemode the server runs",
+      "required": true,
+      "userEdit": true
+    },
+    "LUA_REFRESH": {
+      "type": "option",
+      "value": "-disableluarefresh",
+      "display": "Lua Refresh",
+      "desc": "Whether the server reloads Lua files at runtime",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "-disableluarefresh",
+          "display": "Disabled"
+        },
+        {
+          "value": "",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "4020",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Garry's Mod dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_MAP": {
+      "type": "string",
+      "value": "gm_flatgrass",
+      "display": "Map",
+      "desc": "Map the server loads on boot",
+      "required": true,
+      "userEdit": true
+    },
+    "STEAM_TOKEN": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Account Token",
+      "desc": "Game server login token required for the server to be listed publicly",
+      "required": false,
+      "userEdit": true
+    },
+    "TICKRATE": {
+      "type": "integer",
+      "value": 22,
+      "display": "Tickrate",
+      "desc": "How often the server updates entity positions",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORKSHOP_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Workshop Collection ID",
+      "desc": "Id of the Steam Workshop collection loaded by the server, the number at the end of the collection URL",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "garrysmod/lua/autorun/server"
+    },
+    {
+      "type": "mkdir",
+      "target": "garrysmod/cfg"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./srcds_run"
+      ]
+    },
+    {
+      "if": "!file_exists('garrysmod/lua/autorun/server/workshop.lua')",
+      "type": "writefile",
+      "target": "garrysmod/lua/autorun/server/workshop.lua",
+      "text": "-- Docs: https://wiki.facepunch.com/gmod/resource.AddWorkshop\n-- Place the id of each workshop addon that should be downloaded by joining players.\n-- Use the addon ids, not the collection id.\n\nresource.AddWorkshop( \"\" )\n"
+    },
+    {
+      "if": "!file_exists('garrysmod/cfg/server.cfg')",
+      "type": "writefile",
+      "target": "garrysmod/cfg/server.cfg",
+      "text": "// Do not set RCON here, use the startup parameters instead.\n\nhostname \"A PufferPanel Garry's Mod Server\"\nsv_password \"\"\nsv_loadingurl \"\"\nsv_downloadurl \"\"\n\n// Steam server list settings\nsv_region 255\nsv_lan 0\nsv_allowdownload 1\nsv_allowupload 1\n"
+    }
+  ],
+  "run": {
+    "command": "./srcds_run -game garrysmod -console -port ${port} +ip 0.0.0.0 +host_workshop_collection ${WORKSHOP_ID} +map ${SRCDS_MAP} +gamemode ${GAMEMODE} -strictportbind -norestart +sv_setsteamaccount ${STEAM_TOKEN} +maxplayers ${MAX_PLAYERS} -tickrate ${TICKRATE} ${LUA_REFRESH}",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

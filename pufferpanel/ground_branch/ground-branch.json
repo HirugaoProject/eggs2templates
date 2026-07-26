@@ -1,0 +1,186 @@
+{
+  "type": "groundbranch",
+  "display": "Ground Branch (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed to connect to the server",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Server Query Port",
+      "desc": "Port clients use to reach the server lobby",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Unnamed Ground Branch Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "476400",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Ground Branch dedicated server (Windows build, run through Wine)",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "GroundBranch/ServerConfig"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "wineboot --init"
+      ]
+    },
+    {
+      "if": "!file_exists('GroundBranch/ServerConfig/Server.ini')",
+      "type": "writefile",
+      "target": "GroundBranch/ServerConfig/Server.ini",
+      "text": "[/Script/RBZooKeeper.ZKServer]\n; Name of the server, 64 characters max\nServerName=${SERVER_NAME}\n\n; Message of the day, 512 characters max\nServerMOTD=\"Welcome!\"\n\n; Password required to join the server, leave empty for a public server\nPassword=\n\n; Maximum number of players\nMaxPlayers=${MAX_PLAYERS}\n"
+    }
+  ],
+  "run": {
+    "command": "wine GroundBranch/Binaries/Win64/GroundBranchServer-Win64-Shipping.exe MultiHome=0.0.0.0 Port=${port} QueryPort=${QUERY_PORT} -log",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEARCH": "win64",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('GroundBranch/ServerConfig/Server.ini')",
+        "type": "alterfile",
+        "file": "GroundBranch/ServerConfig/Server.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('GroundBranch/ServerConfig/Server.ini')",
+        "type": "alterfile",
+        "file": "GroundBranch/ServerConfig/Server.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('GroundBranch/Config/DefaultModding.ini')",
+        "type": "alterfile",
+        "file": "GroundBranch/Config/DefaultModding.ini",
+        "search": "^ModPath=.*$",
+        "replace": "ModPath=../steamapps/workshop/content/16900/",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
