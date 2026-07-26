@@ -1,0 +1,357 @@
+{
+  "type": "astrocolony",
+  "display": "Astro Colony (Docker)",
+  "data": {
+    "SERVER_ADMINS": {
+      "type": "string",
+      "value": "",
+      "display": "Admin List",
+      "desc": "Comma separated list of Steam64 IDs allowed to administrate the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_AUTOSAVEINTERVAL": {
+      "type": "string",
+      "value": "5.0",
+      "display": "Autosave Interval",
+      "desc": "Minutes between automatic saves, for example 5.0 for five minutes",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_AUTOSAVESCOUNT": {
+      "type": "integer",
+      "value": 10,
+      "display": "Autosaves Count",
+      "desc": "How many automatic save files to keep",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_FREECONSTRUCTION": {
+      "type": "option",
+      "value": "0",
+      "display": "Free Construction",
+      "desc": "Build without consuming resources",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "SERVER_LOADLATESTSAVEGAME": {
+      "type": "option",
+      "value": "1",
+      "display": "Load Latest Savegame",
+      "desc": "Load the most recent save on startup instead of starting a new game",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SERVER_MAPNAME": {
+      "type": "string",
+      "value": "YourMapName",
+      "display": "Map Name",
+      "desc": "Map name displayed in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MAPSEED": {
+      "type": "integer",
+      "value": 7300,
+      "display": "Map Seed",
+      "desc": "Seed used to generate the map",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MAXPLAYERS": {
+      "type": "integer",
+      "value": 5,
+      "display": "Max Players",
+      "desc": "Number of players allowed on the server, between 1 and 10",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Astro Colony Dedicated Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_OXYGENCONSUMPTION": {
+      "type": "option",
+      "value": "1",
+      "display": "Oxygen Consumption",
+      "desc": "Astronauts consume oxygen",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join. Leave empty to make the server public.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "UDP port used for the Steam server list",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_SHAREDTECHNOLOGIES": {
+      "type": "option",
+      "value": "1",
+      "display": "Shared Technologies",
+      "desc": "Research is shared between all players",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2934900",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Astro Colony dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./AstroColony/Binaries/Linux/AstroColonyServer"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "AstroColony/Saved/Config/LinuxServer"
+    },
+    {
+      "if": "!file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+      "type": "writefile",
+      "target": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+      "text": "[/Script/ACFeature.EHServerSubsystem]\nServerPassword=${SERVER_PASSWORD}\nSeed=${SERVER_MAPSEED}\nMapName=${SERVER_MAPNAME}\nMaxPlayers=${SERVER_MAXPLAYERS}\nShouldLoadLatestSavegame=${SERVER_LOADLATESTSAVEGAME}\nAdminList=${SERVER_ADMINS}\nSharedTechnologies=${SERVER_SHAREDTECHNOLOGIES}\nOxygenConsumption=${SERVER_OXYGENCONSUMPTION}\nFreeConstruction=${SERVER_FREECONSTRUCTION}\nAutosaveInterval=${SERVER_AUTOSAVEINTERVAL}\nAutosavesCount=${SERVER_AUTOSAVESCOUNT}\n"
+    }
+  ],
+  "run": {
+    "command": "./AstroColony/Binaries/Linux/AstroColonyServer -log -Port=${port} -QueryPort=${SERVER_QUERY_PORT} -SteamServerName=\"${SERVER_NAME}\"",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^Seed=.*$",
+        "replace": "Seed=${SERVER_MAPSEED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^MapName=.*$",
+        "replace": "MapName=${SERVER_MAPNAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${SERVER_MAXPLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^ShouldLoadLatestSavegame=.*$",
+        "replace": "ShouldLoadLatestSavegame=${SERVER_LOADLATESTSAVEGAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^AdminList=.*$",
+        "replace": "AdminList=${SERVER_ADMINS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^SharedTechnologies=.*$",
+        "replace": "SharedTechnologies=${SERVER_SHAREDTECHNOLOGIES}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^OxygenConsumption=.*$",
+        "replace": "OxygenConsumption=${SERVER_OXYGENCONSUMPTION}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^FreeConstruction=.*$",
+        "replace": "FreeConstruction=${SERVER_FREECONSTRUCTION}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^AutosaveInterval=.*$",
+        "replace": "AutosaveInterval=${SERVER_AUTOSAVEINTERVAL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('AstroColony/Saved/Config/LinuxServer/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "AstroColony/Saved/Config/LinuxServer/ServerSettings.ini",
+        "search": "^AutosavesCount=.*$",
+        "replace": "AutosavesCount=${SERVER_AUTOSAVESCOUNT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${SERVER_QUERY_PORT}:${SERVER_QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${SERVER_QUERY_PORT}:${SERVER_QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

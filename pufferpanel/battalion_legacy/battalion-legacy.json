@@ -1,0 +1,139 @@
+{
+  "type": "battalionlegacy",
+  "display": "BATTALION: Legacy (Docker)",
+  "data": {
+    "ADMIN_PW": {
+      "type": "string",
+      "value": "changeme",
+      "display": "Admin Password",
+      "desc": "Password used to authenticate as server administrator",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel hosted Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "805140",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the BATTALION: Legacy dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./Battalion/Binaries/Linux/BattalionServer-Linux-Shipping"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Battalion/Binaries/Linux/BattalionServer-Linux-Shipping Battalion -Port=${port} -QueryPort=${QUERY_PORT} -SteamServerName=\"${SERVER_NAME}\" -Queue=\"Wartide\" -AdminPassword=\"${ADMIN_PW}\" -Log",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

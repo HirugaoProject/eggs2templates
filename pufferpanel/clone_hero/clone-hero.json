@@ -1,0 +1,96 @@
+{
+  "type": "clonehero",
+  "display": "Clone Hero (Docker)",
+  "data": {
+    "LOG_LEVEL": {
+      "type": "integer",
+      "value": 4,
+      "display": "Log Level",
+      "desc": "Maximum logging level written to the console",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_DISPLAY_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Clone Hero Server",
+      "display": "Server Name",
+      "desc": "Name of the server shown to players",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join. Leave blank to run an open server.",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 14242,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/clonehero-game/releases/releases/latest/download/CloneHero-StandaloneServer.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "CloneHero-StandaloneServer.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f CloneHero-StandaloneServer.zip",
+        "chmod +x ./Server"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "./Server -l ${LOG_LEVEL} -n \"${SERVER_DISPLAY_NAME}\" -p ${port} -a 0.0.0.0 -ps ${SERVER_PASSWORD}",
+        "if": "SERVER_PASSWORD != ''"
+      },
+      {
+        "command": "./Server -l ${LOG_LEVEL} -n \"${SERVER_DISPLAY_NAME}\" -p ${port} -a 0.0.0.0 -np"
+      }
+    ],
+    "stopCode": 2,
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,417 @@
+{
+  "type": "carriercommand2",
+  "display": "Carrier Command 2 (Docker)",
+  "data": {
+    "BASE_DIFFICULTY": {
+      "type": "option",
+      "value": "0",
+      "display": "Base Difficulty",
+      "desc": "Difficulty of capturing enemy bases",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Easy"
+        },
+        {
+          "value": "1",
+          "display": "Normal"
+        },
+        {
+          "value": "2",
+          "display": "Hard"
+        }
+      ]
+    },
+    "BLUEPRINTS": {
+      "type": "option",
+      "value": "0",
+      "display": "Blueprints",
+      "desc": "Blueprint unlock state",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Default, research required"
+        },
+        {
+          "value": "1",
+          "display": "All unlocked"
+        }
+      ]
+    },
+    "CARRIER_COUNT_PER_TEAM": {
+      "type": "integer",
+      "value": 1,
+      "display": "Carriers Per Team",
+      "desc": "Number of carriers each team gets, 1 to 4",
+      "required": true,
+      "userEdit": true
+    },
+    "ISLAND_COUNT": {
+      "type": "integer",
+      "value": 16,
+      "display": "Island Count",
+      "desc": "Number of islands generated in the world, 4 to 32",
+      "required": true,
+      "userEdit": true
+    },
+    "ISLAND_COUNT_PER_TEAM": {
+      "type": "integer",
+      "value": 1,
+      "display": "Starting Islands Per Team",
+      "desc": "Number of islands each team controls at game start, 1 to 8",
+      "required": true,
+      "userEdit": true
+    },
+    "LOADOUT_TYPE": {
+      "type": "option",
+      "value": "0",
+      "display": "Loadout Type",
+      "desc": "Starting carrier loadout",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Default"
+        },
+        {
+          "value": "1",
+          "display": "Minimal"
+        },
+        {
+          "value": "2",
+          "display": "Full"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "Maximum simultaneous players, 1 to 16",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_NAME": {
+      "type": "string",
+      "value": "",
+      "display": "Save Name",
+      "desc": "Folder name under saved_games/ the server loads on launch. Leave blank to start a fresh game.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Display name shown to players in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password players must enter to join. Leave blank for no password.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1489630",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of Carrier Command 2",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password for the Steam account above",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Carrier Command 2. Anonymous SteamCMD installs are not possible for this game.",
+      "required": true,
+      "userEdit": false
+    },
+    "TEAM_COUNT_AI": {
+      "type": "integer",
+      "value": 1,
+      "display": "AI Team Count",
+      "desc": "Number of AI controlled enemy teams, 0 to 4",
+      "required": true,
+      "userEdit": true
+    },
+    "TEAM_COUNT_HUMAN": {
+      "type": "integer",
+      "value": 1,
+      "display": "Human Team Count",
+      "desc": "Number of human controlled teams, 1 to 4",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Re-run SteamCMD before every server start. Off by default, because it requires the Steam credentials to still be valid.",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 25565,
+      "display": "Port",
+      "desc": "First UDP port used by the server. Carrier Command 2 also listens on the next three UDP ports.",
+      "required": true,
+      "userEdit": false
+    },
+    "port_2": {
+      "type": "integer",
+      "value": 25566,
+      "display": "Port +1",
+      "desc": "Must be the game port + 1",
+      "required": true,
+      "userEdit": false
+    },
+    "port_3": {
+      "type": "integer",
+      "value": 25567,
+      "display": "Port +2",
+      "desc": "Must be the game port + 2",
+      "required": true,
+      "userEdit": false
+    },
+    "port_4": {
+      "type": "integer",
+      "value": 25568,
+      "display": "Port +3",
+      "desc": "Must be the game port + 3",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": "linux64"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel/sdk_redist +login anonymous +@sSteamCmdForcePlatformType windows +app_update 1007 validate +quit"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp sdk_redist/steamworks_sdk_redist/steamclient.dll ./steamclient.dll",
+        "cp sdk_redist/steamworks_sdk_redist/tier0_s.dll ./tier0_s.dll",
+        "cp sdk_redist/steamworks_sdk_redist/vstdlib_s.dll ./vstdlib_s.dll",
+        "rm -rf sdk_redist",
+        "cp steamcmd/linux64/steamclient.so linux64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('server_config.xml')",
+      "type": "writefile",
+      "target": "server_config.xml",
+      "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<data port=\"${port}\" max_players=\"${MAX_PLAYERS}\" server_name=\"${SERVER_NAME}\" password=\"${SERVER_PASSWORD}\" save_name=\"${SAVE_NAME}\" island_count=\"${ISLAND_COUNT}\" island_count_per_team=\"${ISLAND_COUNT_PER_TEAM}\" carrier_count_per_team=\"${CARRIER_COUNT_PER_TEAM}\" team_count_ai=\"${TEAM_COUNT_AI}\" team_count_human=\"${TEAM_COUNT_HUMAN}\" base_difficulty=\"${BASE_DIFFICULTY}\" loadout_type=\"${LOADOUT_TYPE}\" blueprints=\"${BLUEPRINTS}\" game_data_path=\"rom_0\">\n    <permissions/>\n    <active_mod_folders/>\n</data>\n"
+    }
+  ],
+  "run": {
+    "command": "wine ./dedicated_server.exe",
+    "stopCode": 2,
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel/linux64",
+      "LOGNAME": "container",
+      "SteamAppId": "1489630",
+      "USER": "container",
+      "WINEARCH": "win32",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "port=\"[^\"]*\"",
+        "replace": "port=\"${port}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "max_players=\"[^\"]*\"",
+        "replace": "max_players=\"${MAX_PLAYERS}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "server_name=\"[^\"]*\"",
+        "replace": "server_name=\"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "password=\"[^\"]*\"",
+        "replace": "password=\"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "save_name=\"[^\"]*\"",
+        "replace": "save_name=\"${SAVE_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "island_count=\"[^\"]*\"",
+        "replace": "island_count=\"${ISLAND_COUNT}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "island_count_per_team=\"[^\"]*\"",
+        "replace": "island_count_per_team=\"${ISLAND_COUNT_PER_TEAM}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "carrier_count_per_team=\"[^\"]*\"",
+        "replace": "carrier_count_per_team=\"${CARRIER_COUNT_PER_TEAM}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "team_count_ai=\"[^\"]*\"",
+        "replace": "team_count_ai=\"${TEAM_COUNT_AI}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "team_count_human=\"[^\"]*\"",
+        "replace": "team_count_human=\"${TEAM_COUNT_HUMAN}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "base_difficulty=\"[^\"]*\"",
+        "replace": "base_difficulty=\"${BASE_DIFFICULTY}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "loadout_type=\"[^\"]*\"",
+        "replace": "loadout_type=\"${LOADOUT_TYPE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.xml')",
+        "type": "alterfile",
+        "file": "server_config.xml",
+        "search": "blueprints=\"[^\"]*\"",
+        "replace": "blueprints=\"${BLUEPRINTS}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port_2}:${port_2}/udp",
+      "0.0.0.0:${port_3}:${port_3}/udp",
+      "0.0.0.0:${port_4}:${port_4}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port_2}:${port_2}/udp",
+        "0.0.0.0:${port_3}:${port_3}/udp",
+        "0.0.0.0:${port_4}:${port_4}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

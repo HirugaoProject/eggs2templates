@@ -1,0 +1,229 @@
+{
+  "type": "astroneer",
+  "display": "Astroneer Dedicated Server (Docker)",
+  "data": {
+    "OWNER_GUID": {
+      "type": "string",
+      "value": "",
+      "display": "Server Owner GUID",
+      "desc": "Steam64 ID of the server owner",
+      "required": true,
+      "userEdit": true
+    },
+    "OWNER_NAME": {
+      "type": "string",
+      "value": "",
+      "display": "Server Owner Name",
+      "desc": "Steam username of the server owner",
+      "required": true,
+      "userEdit": true
+    },
+    "PUBLIC_IP": {
+      "type": "string",
+      "value": "",
+      "display": "Public IP",
+      "desc": "Public IP address clients use to connect to the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel hosted Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PWD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "If set, players must provide this password to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "728470",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Astroneer dedicated server (Windows build, run through Proton)",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 8777,
+      "display": "Port",
+      "desc": "UDP port the server binds to. It is written to Engine.ini as url.Port.",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+    },
+    {
+      "type": "mkdir",
+      "target": "Astro/Saved/Config/WindowsServer"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('Astro/Saved/Config/WindowsServer/Engine.ini')",
+      "type": "writefile",
+      "target": "Astro/Saved/Config/WindowsServer/Engine.ini",
+      "text": "[URL]\nPort=${port}\n\n[SystemSettings]\nnet.AllowEncryption=false\n"
+    },
+    {
+      "if": "!file_exists('Astro/Saved/Config/WindowsServer/AstroServerSettings.ini')",
+      "type": "writefile",
+      "target": "Astro/Saved/Config/WindowsServer/AstroServerSettings.ini",
+      "text": "[/Script/Astro.AstroServerSettings]\nbLoadAutoSave=True\nMaxServerFramerate=30.000000\nMaxServerIdleFramerate=3.000000\nbWaitForPlayersBeforeShutdown=False\nPublicIP=${PUBLIC_IP}\nServerName=${SERVER_NAME}\nMaximumPlayerCount=8\nOwnerName=${OWNER_NAME}\nOwnerGuid=${OWNER_GUID}\nPlayerActivityTimeout=0\nServerPassword=${SERVER_PWD}\nbDisableServerTravel=False\nDenyUnlistedPlayers=False\nVerbosePlayerProperties=True\nAutoSaveGameInterval=900\nBackupSaveGamesInterval=7200\nServerGuid=\nActiveSaveFileDescriptiveName=SAVE_1\nServerAdvertisedName=${SERVER_NAME}\nConsolePort=1234\nConsolePassword=\nHeartbeatInterval=55\nPlayerProperties=(PlayerFirstJoinName=\"${OWNER_NAME}\",PlayerCategory=Admin,PlayerGuid=\"${OWNER_GUID}\",PlayerRecentJoinName=\"\")\n"
+    }
+  ],
+  "run": {
+    "command": "proton run ./Astro/Binaries/Win64/AstroServer-Win64-Shipping.exe",
+    "stopCode": 2,
+    "environmentVars": {
+      "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",
+      "STEAM_COMPAT_DATA_PATH": "/pufferpanel/.steam/steam/steamapps/compatdata/${SRCDS_APPID}",
+      "WINEDEBUG": "-all"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "type": "mkdir",
+        "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+      },
+      {
+        "if": "file_exists('Astro/Saved/Config/WindowsServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "Astro/Saved/Config/WindowsServer/Engine.ini",
+        "search": "^Port=.*$",
+        "replace": "Port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Astro/Saved/Config/WindowsServer/AstroServerSettings.ini')",
+        "type": "alterfile",
+        "file": "Astro/Saved/Config/WindowsServer/AstroServerSettings.ini",
+        "search": "^PublicIP=.*$",
+        "replace": "PublicIP=${PUBLIC_IP}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Astro/Saved/Config/WindowsServer/AstroServerSettings.ini')",
+        "type": "alterfile",
+        "file": "Astro/Saved/Config/WindowsServer/AstroServerSettings.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Astro/Saved/Config/WindowsServer/AstroServerSettings.ini')",
+        "type": "alterfile",
+        "file": "Astro/Saved/Config/WindowsServer/AstroServerSettings.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${SERVER_PWD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Astro/Saved/Config/WindowsServer/AstroServerSettings.ini')",
+        "type": "alterfile",
+        "file": "Astro/Saved/Config/WindowsServer/AstroServerSettings.ini",
+        "search": "^OwnerName=.*$",
+        "replace": "OwnerName=${OWNER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Astro/Saved/Config/WindowsServer/AstroServerSettings.ini')",
+        "type": "alterfile",
+        "file": "Astro/Saved/Config/WindowsServer/AstroServerSettings.ini",
+        "search": "^OwnerGuid=.*$",
+        "replace": "OwnerGuid=${OWNER_GUID}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,229 @@
+{
+  "type": "beammp",
+  "display": "BeamMP Server (Docker)",
+  "data": {
+    "AUTHKEY": {
+      "type": "string",
+      "value": "",
+      "display": "Authentication Key",
+      "desc": "Authentication key for the server, obtained from the BeamMP keymaster at https://keymaster.beammp.com",
+      "required": true,
+      "userEdit": true
+    },
+    "DESCRIPTION": {
+      "type": "string",
+      "value": "BeamMP Default Description",
+      "display": "Server Description",
+      "desc": "Description shown on the server list",
+      "required": false,
+      "userEdit": true
+    },
+    "LOGCHAT": {
+      "type": "option",
+      "value": "true",
+      "display": "Chat Logging",
+      "desc": "Log the in game chat to the server console",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAP": {
+      "type": "string",
+      "value": "/levels/gridmap_v2/info.json",
+      "display": "Map",
+      "desc": "Map the server hosts, for example /levels/gridmap_v2/info.json or /levels/west_coast_usa/info.json",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_CARS": {
+      "type": "integer",
+      "value": 1,
+      "display": "Max Cars",
+      "desc": "Maximum number of cars each player may spawn",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 6,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "NAME": {
+      "type": "string",
+      "value": "BeamMP Server",
+      "display": "Server Name",
+      "desc": "Name shown on the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "PRIVATE": {
+      "type": "option",
+      "value": "false",
+      "display": "Private",
+      "desc": "Hide the server from the public server list",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Public"
+        },
+        {
+          "value": "true",
+          "display": "Private"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 30814,
+      "display": "Port",
+      "desc": "Port the server listens on, used for both TCP and UDP",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/BeamMP/BeamMP-Server/releases/latest/download/BeamMP-Server.debian.12.x86_64"
+      ]
+    },
+    {
+      "type": "move",
+      "source": "BeamMP-Server.debian.12.x86_64",
+      "target": "BeamMP-Server"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./BeamMP-Server"
+      ]
+    },
+    {
+      "if": "!file_exists('ServerConfig.toml')",
+      "type": "writefile",
+      "target": "ServerConfig.toml",
+      "text": "# This is the BeamMP-Server config file.\n# Documentation: https://wiki.beammp.com/en/home/server-maintenance\n[General]\nName = \"${NAME}\"\nPort = ${port}\nAuthKey = \"${AUTHKEY}\"\nPrivate = ${PRIVATE}\nMaxPlayers = ${MAX_PLAYERS}\nMaxCars = ${MAX_CARS}\nMap = \"${MAP}\"\nDescription = \"${DESCRIPTION}\"\nResourceFolder = \"Resources\"\nLogChat = ${LOGCHAT}\nDebug = false\n"
+    }
+  ],
+  "run": {
+    "command": "./BeamMP-Server",
+    "stop": "exit",
+    "pre": [
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^Name\\s*=.*$",
+        "replace": "Name = \"${NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^Port\\s*=.*$",
+        "replace": "Port = ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^AuthKey\\s*=.*$",
+        "replace": "AuthKey = \"${AUTHKEY}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^Private\\s*=.*$",
+        "replace": "Private = ${PRIVATE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^MaxPlayers\\s*=.*$",
+        "replace": "MaxPlayers = ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^MaxCars\\s*=.*$",
+        "replace": "MaxCars = ${MAX_CARS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^Map\\s*=.*$",
+        "replace": "Map = \"${MAP}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^Description\\s*=.*$",
+        "replace": "Description = \"${DESCRIPTION}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerConfig.toml')",
+        "type": "alterfile",
+        "file": "ServerConfig.toml",
+        "search": "^LogChat\\s*=.*$",
+        "replace": "LogChat = ${LOGCHAT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

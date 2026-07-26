@@ -1,0 +1,198 @@
+{
+  "type": "iw4x",
+  "display": "IW4x (Call of Duty: Modern Warfare 2) (Docker)",
+  "data": {
+    "MOD_DIR": {
+      "type": "string",
+      "value": "",
+      "display": "Mod Directory",
+      "desc": "Name of the directory the mod lives in. Leave blank to run without a mod.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel IW4X",
+      "display": "Server Name",
+      "desc": "Server hostname. Colour codes are supported: ^1 red, ^2 green, ^3 yellow, ^4 blue, ^5 cyan, ^6 pink, ^7 white.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join. Leave blank for an open server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "10190",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of Call of Duty: Modern Warfare 2",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Modern Warfare 2. Anonymous login cannot be used.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update IW4x On Boot",
+      "desc": "Run the IW4x launcher update check before every server start",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 28960,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/iw4x/launcher/releases/latest/download/iw4x-launcher-x86_64-unknown-linux-gnu.tar.gz",
+        "https://github.com/iw4x/iw4-server-configs/archive/main.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "iw4x-launcher-x86_64-unknown-linux-gnu.tar.gz",
+      "destination": "."
+    },
+    {
+      "type": "extract",
+      "source": "main.zip",
+      "destination": "."
+    },
+    {
+      "type": "move",
+      "source": "iw4-server-configs-main/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -rf iw4-server-configs-main main.zip iw4x-launcher-x86_64-unknown-linux-gnu.tar.gz steamcmd_linux.tar.gz LICENSE README.md",
+        "chmod +x ./iw4x-launcher"
+      ]
+    }
+  ],
+  "run": {
+    "command": "wine iw4x.exe -dedicated -stdout +set fs_game ${MOD_DIR} +set sv_lanonly 0 +set net_port ${port} +exec server.cfg +set party_enable \"0\" +map_rotate",
+    "stopCode": 2,
+    "environmentVars": {
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./iw4x-launcher --update"
+        ]
+      },
+      {
+        "if": "file_exists('userraw/server.cfg')",
+        "type": "alterfile",
+        "file": "userraw/server.cfg",
+        "search": "^\\s*sv_hostname.*$",
+        "replace": "sv_hostname \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('userraw/server.cfg')",
+        "type": "alterfile",
+        "file": "userraw/server.cfg",
+        "search": "^\\s*set g_password.*$",
+        "replace": "set g_password \"${SERVER_PASSWORD}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

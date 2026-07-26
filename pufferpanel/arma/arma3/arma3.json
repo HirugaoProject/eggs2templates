@@ -1,0 +1,332 @@
+{
+  "type": "arma3",
+  "display": "Arma 3 (Docker)",
+  "data": {
+    "BASIC_URL": {
+      "type": "string",
+      "value": "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/arma/arma3/egg-arma3-config/basic.cfg",
+      "display": "basic.cfg URL",
+      "desc": "URL of a valid Arma 3 basic.cfg. Arma refuses to start without this file, so it is downloaded during installation. server.cfg is fetched from the same directory.",
+      "required": true,
+      "userEdit": false
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed to join the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MODIFICATIONS": {
+      "type": "string",
+      "value": "",
+      "display": "Client Mods",
+      "desc": "Semicolon separated list of mod folders loaded with -mod, for example myMod;vn;@123456789;. Folder names must be lowercase, without spaces, and must not start with a digit. Upload the mod folders to the server root or download them with SteamCMD yourself; this template does not manage Steam Workshop downloads.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVERMODS": {
+      "type": "string",
+      "value": "",
+      "display": "Server-Side Only Mods",
+      "desc": "Semicolon separated list of mod folders loaded with -serverMod. They run server side only and are not required by clients.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_BINARY": {
+      "type": "option",
+      "value": "arma3server_x64",
+      "display": "Server Binary",
+      "desc": "Server binary to start",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "arma3server_x64",
+          "display": "64-bit (arma3server_x64)"
+        },
+        {
+          "value": "arma3server",
+          "display": "32-bit (arma3server)"
+        },
+        {
+          "value": "arma3serverprofiling_x64",
+          "display": "64-bit profiling (arma3serverprofiling_x64)"
+        },
+        {
+          "value": "arma3serverprofiling",
+          "display": "32-bit profiling (arma3serverprofiling)"
+        }
+      ]
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join the server. Leave blank for no password.",
+      "required": false,
+      "userEdit": true
+    },
+    "STARTUP_PARAMS": {
+      "type": "string",
+      "value": "-noLogs",
+      "display": "Extra Startup Parameters",
+      "desc": "See https://community.bistudio.com/wiki/Arma_3_Startup_Parameters. -noLogs is recommended to prevent console rate limit warnings.",
+      "required": false,
+      "userEdit": true
+    },
+    "STEAMCMD_APPID": {
+      "type": "string",
+      "value": "233780",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Arma 3 dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAMCMD_EXTRA_FLAGS": {
+      "type": "string",
+      "value": "",
+      "display": "Extra Flags For SteamCMD",
+      "desc": "Extra SteamCMD flags, typically used for beta builds. Example: -beta profiling -betapassword CautionSpecialProfilingAndTestingBranchArma3",
+      "required": false,
+      "userEdit": true
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account. Steam Guard must be turned off completely for the install to succeed. The value is stored in plain text, so use a dedicated account.",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "A real Steam account is required to download the Arma 3 dedicated server. Anonymous login cannot be used, but the account does not need to own Arma 3.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 2302,
+      "display": "Port",
+      "desc": "Game port. Arma 3 also uses the following three UDP ports for Steam query and reporting.",
+      "required": true,
+      "userEdit": false
+    },
+    "port_steam_1": {
+      "type": "integer",
+      "value": 2303,
+      "display": "Steam Query Port",
+      "desc": "Must be the game port + 1",
+      "required": true,
+      "userEdit": false
+    },
+    "port_steam_2": {
+      "type": "integer",
+      "value": 2304,
+      "display": "Steam Reporting Port",
+      "desc": "Must be the game port + 2",
+      "required": true,
+      "userEdit": false
+    },
+    "port_steam_3": {
+      "type": "integer",
+      "value": 2305,
+      "display": "VON Port",
+      "desc": "Must be the game port + 3",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SERVER_BINARY",
+        "MAX_PLAYERS",
+        "SERVER_PASSWORD",
+        "STARTUP_PARAMS",
+        "MODIFICATIONS",
+        "SERVERMODS"
+      ],
+      "order": 1
+    },
+    {
+      "display": "Network",
+      "description": "Ports used by the server",
+      "variables": [
+        "port",
+        "port_steam_1",
+        "port_steam_2",
+        "port_steam_3"
+      ],
+      "order": 2
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Steam credentials and update settings",
+      "variables": [
+        "STEAMCMD_APPID",
+        "STEAM_USER",
+        "STEAM_PASS",
+        "STEAMCMD_EXTRA_FLAGS",
+        "UPDATE_ON_BOOT",
+        "BASIC_URL"
+      ],
+      "order": 3
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": "serverprofile"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${STEAMCMD_APPID} ${STEAMCMD_EXTRA_FLAGS} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('basic.cfg')",
+      "type": "download",
+      "files": [
+        "${BASIC_URL}"
+      ]
+    },
+    {
+      "if": "!file_exists('server.cfg')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/arma/arma3/egg-arma3-config/server.cfg"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "bash -c 'export USER=container USER_ID=$(id -u) GROUP_ID=$(id -g); envsubst < /passwd.template > /tmp/passwd; export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libnss_wrapper.so; exec ./${SERVER_BINARY} -ip=0.0.0.0 -port=${port} -profiles=./serverprofile -bepath=./ -cfg=basic.cfg -config=server.cfg -mod=\"${MODIFICATIONS}\" -serverMod=\"${SERVERMODS}\" ${STARTUP_PARAMS}'",
+        "if": "SERVER_BINARY.contains('x64')"
+      },
+      {
+        "command": "bash -c 'export USER=container USER_ID=$(id -u) GROUP_ID=$(id -g); envsubst < /passwd.template > /tmp/passwd; export LD_PRELOAD=/usr/lib/i386-linux-gnu/libnss_wrapper.so; exec ./${SERVER_BINARY} -ip=0.0.0.0 -port=${port} -profiles=./serverprofile -bepath=./ -cfg=basic.cfg -config=server.cfg -mod=\"${MODIFICATIONS}\" -serverMod=\"${SERVERMODS}\" ${STARTUP_PARAMS}'"
+      }
+    ],
+    "stopCode": 2,
+    "environmentVars": {
+      "NSS_WRAPPER_GROUP": "/tmp/group",
+      "NSS_WRAPPER_PASSWD": "/tmp/passwd"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${STEAMCMD_APPID} ${STEAMCMD_EXTRA_FLAGS} +quit"
+        ]
+      },
+      {
+        "if": "!file_exists('basic.cfg')",
+        "type": "download",
+        "files": [
+          "${BASIC_URL}"
+        ]
+      },
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^\\s*(//)?\\s*password\\s*=.*$",
+        "replace": "password = \"${SERVER_PASSWORD}\";",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^\\s*(//)?\\s*maxPlayers\\s*=.*$",
+        "replace": "maxPlayers = ${MAX_PLAYERS};",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:arma3",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port_steam_1}:${port_steam_1}/udp",
+      "0.0.0.0:${port_steam_2}:${port_steam_2}/udp",
+      "0.0.0.0:${port_steam_3}:${port_steam_3}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:arma3",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port_steam_1}:${port_steam_1}/udp",
+        "0.0.0.0:${port_steam_2}:${port_steam_2}/udp",
+        "0.0.0.0:${port_steam_3}:${port_steam_3}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

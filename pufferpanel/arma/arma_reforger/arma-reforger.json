@@ -1,0 +1,330 @@
+{
+  "type": "armareforger",
+  "display": "Arma Reforger (Docker)",
+  "data": {
+    "ADMIN_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password used to log in as server administrator",
+      "required": false,
+      "userEdit": true
+    },
+    "BATTLEYE": {
+      "type": "option",
+      "value": "true",
+      "display": "Enable BattlEye",
+      "desc": "Enables the anti-cheat engine and requires all clients to run it",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "DISABLE_THIRD": {
+      "type": "option",
+      "value": "false",
+      "display": "Disable Third Person",
+      "desc": "Forces first person view for all players",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Third person allowed"
+        },
+        {
+          "value": "true",
+          "display": "First person only"
+        }
+      ]
+    },
+    "LOG_INTERVAL_MS": {
+      "type": "integer",
+      "value": 0,
+      "display": "Log FPS Interval (ms)",
+      "desc": "How often, in milliseconds, the server logs FPS and other debug statistics. Set to 0 to disable.",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_FPS": {
+      "type": "integer",
+      "value": 120,
+      "display": "Max FPS",
+      "desc": "Maximum server frame rate, which saves resources in some cases",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed to join the server, between 1 and 256",
+      "required": true,
+      "userEdit": true
+    },
+    "PUBLIC_ADDRESS": {
+      "type": "string",
+      "value": "",
+      "display": "Public Address",
+      "desc": "Public IP address the server advertises. Leave blank to let the server detect it.",
+      "required": false,
+      "userEdit": true
+    },
+    "SCENARIO_ID": {
+      "type": "string",
+      "value": "{ECC61978EDCC2B5A}Missions/23_Campaign.conf",
+      "display": "Scenario ID",
+      "desc": "Id of the scenario to run. Valid ids are printed to the console on startup because the server is started with -listScenarios.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Arma Reforger Server",
+      "display": "Server Name",
+      "desc": "Name displayed in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password clients must enter before they can join. Leave blank for no password.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1874900",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Arma Reforger dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "VISIBLE": {
+      "type": "option",
+      "value": "true",
+      "display": "Visible In Server Browser",
+      "desc": "Whether the server is listed in the server browser",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Visible"
+        },
+        {
+          "value": "false",
+          "display": "Hidden"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 2001,
+      "display": "Port",
+      "desc": "UDP port the server binds to and advertises",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SERVER_NAME",
+        "port",
+        "PUBLIC_ADDRESS",
+        "MAX_PLAYERS",
+        "SERVER_PASS",
+        "ADMIN_PASS",
+        "SCENARIO_ID",
+        "VISIBLE",
+        "BATTLEYE",
+        "DISABLE_THIRD"
+      ],
+      "order": 1
+    },
+    {
+      "display": "Advanced",
+      "description": "Performance and logging",
+      "variables": [
+        "MAX_FPS",
+        "LOG_INTERVAL_MS"
+      ],
+      "order": 2
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Installation and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 3
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": "profile"
+    },
+    {
+      "type": "mkdir",
+      "target": "tmp"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +app_update 1007 validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./ArmaReforgerServer"
+      ]
+    },
+    {
+      "if": "!file_exists('config.json')",
+      "type": "writefile",
+      "target": "config.json",
+      "text": "{\n\t\"bindAddress\": \"0.0.0.0\",\n\t\"bindPort\": ${port},\n\t\"publicAddress\": \"${PUBLIC_ADDRESS}\",\n\t\"publicPort\": ${port},\n\t\"game\": {\n\t\t\"name\": \"${SERVER_NAME}\",\n\t\t\"password\": \"${SERVER_PASS}\",\n\t\t\"passwordAdmin\": \"${ADMIN_PASS}\",\n\t\t\"admins\": [],\n\t\t\"scenarioId\": \"${SCENARIO_ID}\",\n\t\t\"maxPlayers\": ${MAX_PLAYERS},\n\t\t\"visible\": ${VISIBLE},\n\t\t\"gameProperties\": {\n\t\t\t\"serverMaxViewDistance\": 2500,\n\t\t\t\"serverMinGrassDistance\": 50,\n\t\t\t\"networkViewDistance\": 1000,\n\t\t\t\"disableThirdPerson\": ${DISABLE_THIRD},\n\t\t\t\"fastValidation\": true,\n\t\t\t\"battlEye\": ${BATTLEYE},\n\t\t\t\"VONDisableUI\": false,\n\t\t\t\"VONDisableDirectSpeechUI\": false\n\t\t},\n\t\t\"mods\": []\n\t}\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./ArmaReforgerServer -gproj ./addons/data/ArmaReforger.gproj -config ./config.json -profile ./profile -backendlog -nothrow -listScenarios -logStats ${LOG_INTERVAL_MS} -maxFPS ${MAX_FPS} -addonTempDir ./tmp",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +app_update 1007 +quit"
+        ]
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"bindPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"bindPort\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"publicPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"publicPort\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"publicAddress\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"publicAddress\": \"${PUBLIC_ADDRESS}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"maxPlayers\"\\s*:\\s*[0-9]+",
+        "replace": "\"maxPlayers\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"scenarioId\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"scenarioId\": \"${SCENARIO_ID}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"name\": \"${SERVER_NAME}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

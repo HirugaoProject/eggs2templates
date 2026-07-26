@@ -1,0 +1,360 @@
+{
+  "type": "avorion",
+  "display": "Avorion (Docker)",
+  "data": {
+    "ADMIN_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Admin ID",
+      "desc": "Steam64 ID of the server administrator",
+      "required": false,
+      "userEdit": true
+    },
+    "COLLISION_DMG": {
+      "type": "string",
+      "value": "1",
+      "display": "Collision Damage",
+      "desc": "Multiplier for collision damage, where 0 disables it and 1 is full damage",
+      "required": true,
+      "userEdit": true
+    },
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "0",
+      "display": "Game Difficulty",
+      "desc": "Difficulty of the galaxy",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "-3",
+          "display": "Beginner"
+        },
+        {
+          "value": "-2",
+          "display": "Easy"
+        },
+        {
+          "value": "-1",
+          "display": "Normal"
+        },
+        {
+          "value": "0",
+          "display": "Veteran"
+        },
+        {
+          "value": "1",
+          "display": "Expert"
+        },
+        {
+          "value": "2",
+          "display": "Hardcore"
+        },
+        {
+          "value": "3",
+          "display": "Insane"
+        }
+      ]
+    },
+    "GALAXY_NAME": {
+      "type": "string",
+      "value": "Avorion",
+      "display": "Galaxy Name",
+      "desc": "Name of the galaxy directory under galaxy/",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_THREADS": {
+      "type": "integer",
+      "value": 1,
+      "display": "Threads",
+      "desc": "Number of worker threads the server uses",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27003,
+      "display": "Query Port",
+      "desc": "Avorion query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SAME_START_SECTOR": {
+      "type": "option",
+      "value": "true",
+      "display": "Same Start Sector",
+      "desc": "All players start in the same sector",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Yes"
+        },
+        {
+          "value": "false",
+          "display": "No"
+        }
+      ]
+    },
+    "SAVE_INTERVAL": {
+      "type": "integer",
+      "value": 300,
+      "display": "Save Interval",
+      "desc": "Seconds between automatic saves",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_LISTED": {
+      "type": "option",
+      "value": "true",
+      "display": "List Publicly",
+      "desc": "Whether the server is listed in the public server list",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Listed"
+        },
+        {
+          "value": "false",
+          "display": "Unlisted"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Avorion Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "565060",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Avorion dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Beta Branch",
+      "desc": "Installs a beta branch if specified",
+      "required": false,
+      "userEdit": true
+    },
+    "STEAM_MASTER_PORT": {
+      "type": "integer",
+      "value": 27021,
+      "display": "Steam Master Port",
+      "desc": "Port used to talk to the Steam master server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_QUERY_PORT": {
+      "type": "integer",
+      "value": 27020,
+      "display": "Steam Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27000,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SERVER_NAME",
+        "GALAXY_NAME",
+        "ADMIN_ID",
+        "MAX_PLAYERS",
+        "DIFFICULTY",
+        "COLLISION_DMG",
+        "SAVE_INTERVAL",
+        "SAME_START_SECTOR",
+        "GAME_THREADS",
+        "SERVER_LISTED"
+      ],
+      "order": 1
+    },
+    {
+      "display": "Network",
+      "description": "Ports used by the server",
+      "variables": [
+        "port",
+        "QUERY_PORT",
+        "STEAM_QUERY_PORT",
+        "STEAM_MASTER_PORT"
+      ],
+      "order": 2
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Installation and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "SRCDS_BETAID",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 3
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "backups"
+    },
+    {
+      "type": "mkdir",
+      "target": "galaxy/${GALAXY_NAME}"
+    },
+    {
+      "if": "!file_exists('galaxy/' + GALAXY_NAME + '/server.ini')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/avorion/server.ini"
+      ]
+    },
+    {
+      "if": "file_exists('server.ini')",
+      "type": "move",
+      "source": "server.ini",
+      "target": "galaxy/${GALAXY_NAME}/server.ini"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./bin/AvorionServer"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./bin/AvorionServer --galaxy-name ${GALAXY_NAME} --admin ${ADMIN_ID} --datapath galaxy --port ${port} --query-port ${QUERY_PORT} --steam-master-port ${STEAM_MASTER_PORT} --steam-query-port ${STEAM_QUERY_PORT} --max-players ${MAX_PLAYERS} --difficulty ${DIFFICULTY} --collision-damage ${COLLISION_DMG} --save-interval ${SAVE_INTERVAL} --same-start-sector ${SAME_START_SECTOR} --server-name \"${SERVER_NAME}\" --threads ${GAME_THREADS} --listed ${SERVER_LISTED}",
+    "stop": "/stop",
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "./linux64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${STEAM_QUERY_PORT}:${STEAM_QUERY_PORT}/udp",
+      "0.0.0.0:${STEAM_MASTER_PORT}:${STEAM_MASTER_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${STEAM_QUERY_PORT}:${STEAM_QUERY_PORT}/udp",
+        "0.0.0.0:${STEAM_MASTER_PORT}:${STEAM_MASTER_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

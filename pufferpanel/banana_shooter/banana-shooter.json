@@ -1,0 +1,163 @@
+{
+  "type": "bananashooter",
+  "display": "Banana Shooter (Docker)",
+  "data": {
+    "SERVER": {
+      "type": "string",
+      "value": "PufferPanelServer",
+      "display": "Server Profile",
+      "desc": "Name of the profile directory under Servers/ that holds Config.json",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "BananaShooter",
+      "display": "Server Name",
+      "desc": "Name of the server in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2406780",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Banana Shooter dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_GSLT": {
+      "type": "string",
+      "value": "",
+      "display": "Game Server Login Token",
+      "desc": "Token used to authenticate the server against the Steam network. Create one at https://steamcommunity.com/dev/managegameservers",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./BSDS.x86_64"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Servers/${SERVER}"
+    },
+    {
+      "if": "!file_exists('Servers/' + SERVER + '/Config.json')",
+      "type": "writefile",
+      "target": "Servers/${SERVER}/Config.json",
+      "text": "{\n  \"Config_Version\": \"1.363\",\n  \"Server\": {\n    \"DLC_Only\": false,\n    \"STEAM_GSLT\": \"${STEAM_GSLT}\",\n    \"VAC_Secure\": true,\n    \"Enable_Scheduled_Shutdown\": true,\n    \"Scheduled_Restart_Time\": \"T02:00:00\",\n    \"Scheduled_Restart_Warnings\": [\n      \"00:30:00\",\n      \"00:15:00\",\n      \"00:05:00\",\n      \"00:01:00\",\n      \"00:00:30\",\n      \"00:00:15\",\n      \"00:00:03\",\n      \"00:00:02\",\n      \"00:00:01\"\n    ],\n    \"Enable_Update_Restart\": true,\n    \"Update_Shutdown_Check_Interval\": 300.0,\n    \"Update_Shutdown_Warnings\": [\n      \"00:03:00\",\n      \"00:01:00\",\n      \"00:00:30\",\n      \"00:00:15\",\n      \"00:00:03\",\n      \"00:00:02\",\n      \"00:00:01\"\n    ]\n  },\n  \"Browser\": {\n    \"Server_Name\": \"${SERVER_NAME}\",\n    \"Description_Short\": \"\"\n  },\n  \"Game\": {\n    \"Random_Map\": false,\n    \"Random_GameMode\": false,\n    \"Minimal_Player_Amount\": 2,\n    \"Server_Type\": 1\n  }\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./BSDS.x86_64 -batchmode -nographics +Server ${SERVER} +maxplayercount 40 +port ${port}",
+    "stopCode": 9,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Servers/' + SERVER + '/Config.json')",
+        "type": "alterfile",
+        "file": "Servers/${SERVER}/Config.json",
+        "search": "\"STEAM_GSLT\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"STEAM_GSLT\": \"${STEAM_GSLT}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Servers/' + SERVER + '/Config.json')",
+        "type": "alterfile",
+        "file": "Servers/${SERVER}/Config.json",
+        "search": "\"Server_Name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Server_Name\": \"${SERVER_NAME}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

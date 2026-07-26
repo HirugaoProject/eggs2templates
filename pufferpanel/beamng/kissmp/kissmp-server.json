@@ -1,0 +1,125 @@
+{
+  "type": "kissmp",
+  "display": "KissMP Server (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "KissMP Server",
+      "display": "Server Name",
+      "desc": "Name shown on the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "0.8.0",
+      "display": "KissMP Version",
+      "desc": "Release of KISS-multiplayer to install, without the leading v. Releases are listed at https://github.com/TheHellBox/KISS-multiplayer/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 3698,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/TheHellBox/KISS-multiplayer/releases/download/v${VERSION}/KissMP_v${VERSION}.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "KissMP_v${VERSION}.zip",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/*/kissmp-server",
+      "target": "kissmp-server"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted KissMP_v${VERSION}.zip",
+        "chmod +x ./kissmp-server"
+      ]
+    },
+    {
+      "if": "!file_exists('config.json')",
+      "type": "writefile",
+      "target": "config.json",
+      "text": "{\n  \"port\": ${port},\n  \"max_players\": ${MAX_PLAYERS},\n  \"server_name\": \"${SERVER_NAME}\",\n  \"description\": \"A KissMP server hosted with PufferPanel\",\n  \"map\": \"/levels/gridmap_v2/info.json\",\n  \"max_vehicles_per_client\": 3,\n  \"show_in_server_list\": true,\n  \"upnp_enabled\": false\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./kissmp-server",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"port\"\\s*:\\s*[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"max_players\"\\s*:\\s*[0-9]+",
+        "replace": "\"max_players\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"server_name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"server_name\": \"${SERVER_NAME}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

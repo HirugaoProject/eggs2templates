@@ -1,0 +1,217 @@
+{
+  "type": "assettocorsa",
+  "display": "Assetto Corsa (Freeroam + AI) (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password used to log in as server administrator",
+      "required": true,
+      "userEdit": true
+    },
+    "HTTP_PORT": {
+      "type": "integer",
+      "value": 8081,
+      "display": "HTTP Port",
+      "desc": "TCP port of the built-in HTTP server used by the lobby",
+      "required": true,
+      "userEdit": false
+    },
+    "MAX_CLIENTS": {
+      "type": "integer",
+      "value": 18,
+      "display": "Max Clients",
+      "desc": "Maximum number of connected clients, between 2 and 25",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "AC_Server",
+      "display": "Server Name",
+      "desc": "Name of the server as shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "If set, players must enter this password to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 9600,
+      "display": "Port",
+      "desc": "Port used for both the TCP and the UDP game traffic",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SERVER_NAME",
+        "SERVER_PASSWORD",
+        "ADMIN_PASSWORD",
+        "MAX_CLIENTS",
+        "port",
+        "HTTP_PORT"
+      ],
+      "order": 1
+    }
+  ],
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/compujuckel/AssettoServer/releases/latest/download/assetto-server-linux-x64.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "assetto-server-linux-x64.tar.gz",
+      "destination": "."
+    },
+    {
+      "type": "mkdir",
+      "target": "cfg"
+    },
+    {
+      "if": "!file_exists('cfg/server_cfg.ini')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/assetto_corsa/cfg/server_cfg.ini"
+      ]
+    },
+    {
+      "if": "!file_exists('cfg/server_cfg.ini')",
+      "type": "move",
+      "source": "server_cfg.ini",
+      "target": "cfg/server_cfg.ini"
+    },
+    {
+      "if": "!file_exists('cfg/extra_cfg.yml')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/assetto_corsa/cfg/extra_cfg.yml"
+      ]
+    },
+    {
+      "if": "!file_exists('cfg/extra_cfg.yml')",
+      "type": "move",
+      "source": "extra_cfg.yml",
+      "target": "cfg/extra_cfg.yml"
+    },
+    {
+      "if": "!file_exists('cfg/entry_list.ini')",
+      "type": "writefile",
+      "target": "cfg/entry_list.ini",
+      "text": ""
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./AssettoServer",
+        "rm -f assetto-server-linux-x64.tar.gz"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./AssettoServer",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('cfg/server_cfg.ini')",
+        "type": "alterfile",
+        "file": "cfg/server_cfg.ini",
+        "search": "^NAME=.*$",
+        "replace": "NAME=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('cfg/server_cfg.ini')",
+        "type": "alterfile",
+        "file": "cfg/server_cfg.ini",
+        "search": "^PASSWORD=.*$",
+        "replace": "PASSWORD=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('cfg/server_cfg.ini')",
+        "type": "alterfile",
+        "file": "cfg/server_cfg.ini",
+        "search": "^ADMIN_PASSWORD=.*$",
+        "replace": "ADMIN_PASSWORD=${ADMIN_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('cfg/server_cfg.ini')",
+        "type": "alterfile",
+        "file": "cfg/server_cfg.ini",
+        "search": "^MAX_CLIENTS=.*$",
+        "replace": "MAX_CLIENTS=${MAX_CLIENTS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('cfg/server_cfg.ini')",
+        "type": "alterfile",
+        "file": "cfg/server_cfg.ini",
+        "search": "^UDP_PORT=.*$",
+        "replace": "UDP_PORT=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('cfg/server_cfg.ini')",
+        "type": "alterfile",
+        "file": "cfg/server_cfg.ini",
+        "search": "^TCP_PORT=.*$",
+        "replace": "TCP_PORT=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('cfg/server_cfg.ini')",
+        "type": "alterfile",
+        "file": "cfg/server_cfg.ini",
+        "search": "^HTTP_PORT=.*$",
+        "replace": "HTTP_PORT=${HTTP_PORT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${HTTP_PORT}:${HTTP_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${HTTP_PORT}:${HTTP_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

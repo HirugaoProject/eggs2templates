@@ -1,0 +1,114 @@
+{
+  "type": "mcgalaxy",
+  "display": "ClassiCube (MCGalaxy) (Docker)",
+  "data": {
+    "HOSTNAME": {
+      "type": "string",
+      "value": "PufferPanel Server",
+      "display": "Server Name",
+      "desc": "Name of the server as shown in the ClassiCube server list",
+      "required": true,
+      "userEdit": true
+    },
+    "MOTD": {
+      "type": "string",
+      "value": "Welcome to the server",
+      "display": "MOTD",
+      "desc": "Message of the day shown to joining players",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 25565,
+      "display": "Port",
+      "desc": "TCP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://cdn.classicube.net/client/mcg/release/MCGalaxy.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "MCGalaxy.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f MCGalaxy.zip"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "properties"
+    },
+    {
+      "if": "!file_exists('properties/server.properties')",
+      "type": "writefile",
+      "target": "properties/server.properties",
+      "text": "server-name = ${HOSTNAME}\nmotd = ${MOTD}\nport = ${port}\npublic = true\nmax-players = 20\nverify-names = true\n"
+    }
+  ],
+  "run": {
+    "command": "mono MCGalaxyCLI.exe",
+    "stop": "/shutdown 3 SIGTERM Server shutting down...",
+    "pre": [
+      {
+        "if": "file_exists('properties/server.properties')",
+        "type": "alterfile",
+        "file": "properties/server.properties",
+        "search": "^server-name\\s*=.*$",
+        "replace": "server-name = ${HOSTNAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('properties/server.properties')",
+        "type": "alterfile",
+        "file": "properties/server.properties",
+        "search": "^motd\\s*=.*$",
+        "replace": "motd = ${MOTD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('properties/server.properties')",
+        "type": "alterfile",
+        "file": "properties/server.properties",
+        "search": "^port\\s*=.*$",
+        "replace": "port = ${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:mono_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:mono_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}

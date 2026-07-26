@@ -1,0 +1,197 @@
+{
+  "type": "brickadia",
+  "display": "Brickadia (Docker)",
+  "data": {
+    "SERVER_HOSTING_TOKEN": {
+      "type": "string",
+      "value": "",
+      "display": "Dedicated Server Hosting Token",
+      "desc": "Brickadia dedicated server hosting token, created at https://brickadia.com/account under Create Server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_LIST_PUBLIC": {
+      "type": "option",
+      "value": "True",
+      "display": "List Server Publicly",
+      "desc": "Whether the server appears in the public server listing",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "True",
+          "display": "Public"
+        },
+        {
+          "value": "False",
+          "display": "Private"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Server",
+      "display": "Server Name",
+      "desc": "Name of the server on the public server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password players must enter to join. Leave blank for none.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3017590",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Brickadia dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "world",
+      "display": "World",
+      "desc": "World loaded on startup and saved to automatically",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": ".config/Epic/Brickadia/Saved/Config/LinuxServer"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./Brickadia/Binaries/Linux/BrickadiaServer-Linux-Shipping"
+      ]
+    },
+    {
+      "if": "!file_exists('.config/Epic/Brickadia/Saved/Config/LinuxServer/GameUserSettings.ini')",
+      "type": "writefile",
+      "target": ".config/Epic/Brickadia/Saved/Config/LinuxServer/GameUserSettings.ini",
+      "text": "[Server__BP_ServerSettings_General_C BP_ServerSettings_General_C]\nServerName=${SERVER_NAME}\nServerPassword=${SERVER_PASSWORD}\nbPubliclyListed=${SERVER_LIST_PUBLIC}\n"
+    }
+  ],
+  "run": {
+    "command": "./Brickadia/Binaries/Linux/BrickadiaServer-Linux-Shipping -server -log -world=\"${WORLD_NAME}\" -port=${port} -token=${SERVER_HOSTING_TOKEN}",
+    "stop": "exit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('.config/Epic/Brickadia/Saved/Config/LinuxServer/GameUserSettings.ini')",
+        "type": "alterfile",
+        "file": ".config/Epic/Brickadia/Saved/Config/LinuxServer/GameUserSettings.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/Epic/Brickadia/Saved/Config/LinuxServer/GameUserSettings.ini')",
+        "type": "alterfile",
+        "file": ".config/Epic/Brickadia/Saved/Config/LinuxServer/GameUserSettings.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/Epic/Brickadia/Saved/Config/LinuxServer/GameUserSettings.ini')",
+        "type": "alterfile",
+        "file": ".config/Epic/Brickadia/Saved/Config/LinuxServer/GameUserSettings.ini",
+        "search": "^bPubliclyListed=.*$",
+        "replace": "bPubliclyListed=${SERVER_LIST_PUBLIC}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

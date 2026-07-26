@@ -1,0 +1,147 @@
+{
+  "type": "colonysurvival",
+  "display": "Colony Survival (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_STEAMPORT": {
+      "type": "integer",
+      "value": 27005,
+      "display": "Steam Port",
+      "desc": "Port used to talk to the Steam network",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "748090",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Colony Survival dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "World Name",
+      "desc": "Name of the world the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27004,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./colonyserver.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./colonyserver.x86_64 -batchmode -nographics +server.world \"${WORLD_NAME}\" +server.networktype SteamOnline +server.name \"${SERVER_NAME}\" +server.maxplayers ${MAX_PLAYERS} +server.gameport ${port} +server.ip 0.0.0.0 +server.steamport ${SERVER_STEAMPORT}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${SERVER_STEAMPORT}:${SERVER_STEAMPORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${SERVER_STEAMPORT}:${SERVER_STEAMPORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

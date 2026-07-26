@@ -1,0 +1,186 @@
+{
+  "type": "citadel",
+  "display": "Citadel: Forged with Fire (Docker)",
+  "data": {
+    "ADMIN_PASSWD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password used to authenticate as server administrator",
+      "required": false,
+      "userEdit": true
+    },
+    "QPORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "489650",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Citadel dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Connection Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "linux64"
+    },
+    {
+      "type": "mkdir",
+      "target": "Citadel/Plugins/UWorks/Source/ThirdParty/Linux"
+    },
+    {
+      "type": "mkdir",
+      "target": "Citadel/Saved/Config"
+    },
+    {
+      "type": "mkdir",
+      "target": "Engine/Saved/Config"
+    },
+    {
+      "type": "mkdir",
+      "target": "Config"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so linux64/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so Citadel/Plugins/UWorks/Source/ThirdParty/Linux/steamclient.so",
+        "rm -rf Citadel/Saved/Config/LinuxServer Engine/Saved/Config/LinuxServer",
+        "ln -sfn ../../../Config Citadel/Saved/Config/LinuxServer",
+        "ln -sfn ../../../Config Engine/Saved/Config/LinuxServer",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./CitadelServer.sh"
+      ]
+    },
+    {
+      "if": "!file_exists('Config/Game.ini')",
+      "type": "writefile",
+      "target": "Config/Game.ini",
+      "text": "[/Script/Citadel.CitadelGameSession]\nConnectionPort=${port}\nQueryPort=${QPORT}\nPassword=${ADMIN_PASSWD}\n"
+    }
+  ],
+  "run": {
+    "command": "./CitadelServer.sh",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Config/Game.ini')",
+        "type": "alterfile",
+        "file": "Config/Game.ini",
+        "search": "^ConnectionPort=.*$",
+        "replace": "ConnectionPort=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Config/Game.ini')",
+        "type": "alterfile",
+        "file": "Config/Game.ini",
+        "search": "^QueryPort=.*$",
+        "replace": "QueryPort=${QPORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Config/Game.ini')",
+        "type": "alterfile",
+        "file": "Config/Game.ini",
+        "search": "^Password=.*$",
+        "replace": "Password=${ADMIN_PASSWD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QPORT}:${QPORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QPORT}:${QPORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
