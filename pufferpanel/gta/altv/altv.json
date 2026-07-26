@@ -1,0 +1,163 @@
+{
+  "type": "altv",
+  "display": "alt:V (Docker)",
+  "data": {
+    "BUILD": {
+      "type": "option",
+      "value": "release",
+      "display": "Release Branch",
+      "desc": "Branch the server binary and data files are downloaded from",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "release",
+          "display": "release"
+        },
+        {
+          "value": "rc",
+          "display": "rc"
+        },
+        {
+          "value": "dev",
+          "display": "dev"
+        }
+      ]
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password players must enter to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_DESC": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Description",
+      "desc": "Description of the server shown in the browser",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7788,
+      "display": "Port",
+      "desc": "Port the server listens on, written to server.toml",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "data"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://cdn.alt-mp.com/server/${BUILD}/x64_linux/altv-server",
+        "https://cdn.alt-mp.com/server/${BUILD}/x64_linux/update.json"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./altv-server"
+      ]
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://cdn.alt-mp.com/data/${BUILD}/data/vehmodels.bin",
+        "https://cdn.alt-mp.com/data/${BUILD}/data/vehmods.bin",
+        "https://cdn.alt-mp.com/data/${BUILD}/data/clothes.bin",
+        "https://cdn.alt-mp.com/data/${BUILD}/data/pedmodels.bin",
+        "https://cdn.alt-mp.com/data/${BUILD}/data/weaponmodels.bin",
+        "https://cdn.alt-mp.com/data/${BUILD}/data/rpfdata.bin"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "mv -f vehmodels.bin vehmods.bin clothes.bin pedmodels.bin weaponmodels.bin rpfdata.bin data/"
+      ]
+    },
+    {
+      "if": "!file_exists('server.toml')",
+      "type": "writefile",
+      "target": "server.toml",
+      "text": "name: 'alt:V Server'\nhost: 0.0.0.0\nport: ${port}\nplayers: 128\n#password: ${PASSWORD}\nannounce: false\n#token: YOUR_TOKEN\ngamemode: Freeroam\nwebsite: example.com\nlanguage: en\ndescription: ${SERVER_DESC}\nmodules: [\n\n]\nresources: [\n\n]\n"
+    }
+  ],
+  "run": {
+    "command": "./altv-server",
+    "stop": "quit",
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "."
+    },
+    "pre": [
+      {
+        "if": "file_exists('server.toml')",
+        "type": "alterfile",
+        "file": "server.toml",
+        "search": "^host:.*$",
+        "replace": "host: 0.0.0.0",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.toml')",
+        "type": "alterfile",
+        "file": "server.toml",
+        "search": "^port:.*$",
+        "replace": "port: ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.toml')",
+        "type": "alterfile",
+        "file": "server.toml",
+        "search": "^#?password:.*$",
+        "replace": "password: ${PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.toml')",
+        "type": "alterfile",
+        "file": "server.toml",
+        "search": "^description:.*$",
+        "replace": "description: ${SERVER_DESC}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:altv",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:altv",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,250 @@
+{
+  "type": "fivem",
+  "display": "FiveM (Docker)",
+  "data": {
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "",
+      "display": "Artifact Download URL",
+      "desc": "Direct link to the FXServer Linux artifact archive, for example https://runtime.fivem.net/artifacts/fivem/build_proot_linux/master/<build>/fx.tar.xz . Pick a build from https://runtime.fivem.net/artifacts/fivem/build_proot_linux/master/",
+      "required": true,
+      "userEdit": true
+    },
+    "FIVEM_LICENSE": {
+      "type": "string",
+      "value": "",
+      "display": "FiveM License Key",
+      "desc": "Required to start the server. Keys are issued at https://portal.cfx.re/",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_TYPE": {
+      "type": "option",
+      "value": "gta5",
+      "display": "Game Type",
+      "desc": "gta5 for FiveM, rdr3 for RedM",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "gta5",
+          "display": "FiveM (gta5)"
+        },
+        {
+          "value": "rdr3",
+          "display": "RedM (rdr3)"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 48,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_HOSTNAME": {
+      "type": "string",
+      "value": "My new FXServer!",
+      "display": "Server Hostname",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "STEAM_WEBAPIKEY": {
+      "type": "string",
+      "value": "none",
+      "display": "Steam Web API Key",
+      "desc": "Steam Web API key, or none. Keys are issued at https://steamcommunity.com/dev/apikey",
+      "required": true,
+      "userEdit": true
+    },
+    "TXADMIN_ENABLE": {
+      "type": "option",
+      "value": "0",
+      "display": "Enable txAdmin",
+      "desc": "Start txAdmin instead of executing server.cfg directly",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "TXHOST_DATA_PATH": {
+      "type": "string",
+      "value": "/pufferpanel/txData",
+      "display": "txAdmin Data Path",
+      "desc": "Directory txAdmin stores its data in",
+      "required": true,
+      "userEdit": false
+    },
+    "TXHOST_GAME_NAME": {
+      "type": "string",
+      "value": "fivem",
+      "display": "txAdmin Game Name",
+      "desc": "Restricts txAdmin to running either FiveM or RedM servers",
+      "required": true,
+      "userEdit": true
+    },
+    "TXHOST_TXA_PORT": {
+      "type": "integer",
+      "value": 40120,
+      "display": "txAdmin Port",
+      "desc": "TCP port of the txAdmin web panel",
+      "required": true,
+      "userEdit": false
+    },
+    "port": {
+      "type": "integer",
+      "value": 30120,
+      "display": "Port",
+      "desc": "Port the server listens on for both TCP and UDP, written to server.cfg",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "resources"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/citizenfx/cfx-server-data/archive/refs/heads/master.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "master.tar.gz",
+      "destination": "cfx-server-data"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'cp -Rf cfx-server-data/cfx-server-data-master/resources/* resources/'",
+        "rm -rf cfx-server-data master.tar.gz"
+      ]
+    },
+    {
+      "type": "download",
+      "files": [
+        "${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "fx.tar.xz",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f fx.tar.xz"
+      ]
+    },
+    {
+      "if": "!file_exists('server.cfg')",
+      "type": "writefile",
+      "target": "server.cfg",
+      "text": "endpoint_add_tcp \"0.0.0.0:${port}\"\nendpoint_add_udp \"0.0.0.0:${port}\"\n\nsv_hostname \"${SERVER_HOSTNAME}\"\nsv_maxclients ${MAX_PLAYERS}\nsets sv_projectName \"${SERVER_HOSTNAME}\"\nsets sv_projectDesc \"A FiveM server hosted with PufferPanel\"\n\nset sv_licenseKey ${FIVEM_LICENSE}\nset steam_webApiKey ${STEAM_WEBAPIKEY}\nsv_scriptHookAllowed 0\n\nensure mapmanager\nensure chat\nensure spawnmanager\nensure sessionmanager\nensure basic-gamemode\nensure hardcap\nensure rconlog\n"
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "bash -c 'exec ./alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"/pufferpanel/alpine/usr/lib/v8/:/pufferpanel/alpine/lib/:/pufferpanel/alpine/usr/lib/\" -- /pufferpanel/alpine/opt/cfx-server/FXServer +set citizen_dir /pufferpanel/alpine/opt/cfx-server/citizen/ +set sv_licenseKey ${FIVEM_LICENSE} +set steam_webApiKey ${STEAM_WEBAPIKEY} +set sv_maxplayers ${MAX_PLAYERS}'",
+        "if": "TXADMIN_ENABLE == '1'"
+      },
+      {
+        "command": "bash -c 'exec ./alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"/pufferpanel/alpine/usr/lib/v8/:/pufferpanel/alpine/lib/:/pufferpanel/alpine/usr/lib/\" -- /pufferpanel/alpine/opt/cfx-server/FXServer +set citizen_dir /pufferpanel/alpine/opt/cfx-server/citizen/ +set sv_licenseKey ${FIVEM_LICENSE} +set steam_webApiKey ${STEAM_WEBAPIKEY} +set sv_maxplayers ${MAX_PLAYERS} +exec server.cfg'"
+      }
+    ],
+    "stop": "quit",
+    "environmentVars": {
+      "TXHOST_DATA_PATH": "${TXHOST_DATA_PATH}",
+      "TXHOST_GAME_NAME": "${TXHOST_GAME_NAME}",
+      "TXHOST_TXA_PORT": "${TXHOST_TXA_PORT}"
+    },
+    "pre": [
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^endpoint_add_tcp.*$",
+        "replace": "endpoint_add_tcp \"0.0.0.0:${port}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^endpoint_add_udp.*$",
+        "replace": "endpoint_add_udp \"0.0.0.0:${port}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^sv_hostname.*$",
+        "replace": "sv_hostname \"${SERVER_HOSTNAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^set sv_licenseKey.*$",
+        "replace": "set sv_licenseKey ${FIVEM_LICENSE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^sv_maxclients.*$",
+        "replace": "sv_maxclients ${MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${TXHOST_TXA_PORT}:${TXHOST_TXA_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${TXHOST_TXA_PORT}:${TXHOST_TXA_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

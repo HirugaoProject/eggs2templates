@@ -1,0 +1,109 @@
+{
+  "type": "samp",
+  "display": "SA-MP (Docker)",
+  "data": {
+    "RCON_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password used for RCON, written to server.cfg",
+      "required": false,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "0.3.7",
+      "display": "Version",
+      "desc": "Server version to install. It is used as the file name at https://sampcenter.com/download/server/linux/<version>.tar.gz",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to server.cfg",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://sampcenter.com/download/server/linux/${VERSION}.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${VERSION}.tar.gz",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/*/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted ${VERSION}.tar.gz",
+        "chmod +x ./samp03svr"
+      ]
+    },
+    {
+      "if": "!file_exists('server.cfg')",
+      "type": "writefile",
+      "target": "server.cfg",
+      "text": "echo Executing Server Config...\nlanmode 0\nrcon_password ${RCON_PASS}\nmaxplayers 50\nport ${port}\nhostname SA-MP 0.3 Server\ngamemode0 grandlarc 1\nfilterscripts gl_actions\nannounce 0\nchatlogging 0\nweburl www.sa-mp.com\nonfoot_rate 40\nincar_rate 40\nweapon_rate 40\nstream_distance 300.0\nstream_rate 1000\nmaxnpc 0\nlogtimeformat [%H:%M:%S]\nlanguage English\n"
+    }
+  ],
+  "run": {
+    "command": "./samp03svr",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^port .*$",
+        "replace": "port ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.cfg')",
+        "type": "alterfile",
+        "file": "server.cfg",
+        "search": "^rcon_password .*$",
+        "replace": "rcon_password ${RCON_PASS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:samp",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:samp",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

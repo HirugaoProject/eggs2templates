@@ -1,0 +1,111 @@
+{
+  "type": "mtasa",
+  "display": "Multi Theft Auto (Docker)",
+  "data": {
+    "SERVER_WEBPORT": {
+      "type": "integer",
+      "value": 22005,
+      "display": "HTTP Port",
+      "desc": "Port of the built-in web resource server",
+      "required": true,
+      "userEdit": false
+    },
+    "port": {
+      "type": "integer",
+      "value": 22003,
+      "display": "Port",
+      "desc": "UDP port the game server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://linux.multitheftauto.com/dl/multitheftauto_linux_x64.tar.gz",
+        "https://linux.multitheftauto.com/dl/baseconfig.tar.gz",
+        "https://mirror.multitheftauto.com/mtasa/resources/mtasa-resources-latest.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "multitheftauto_linux_x64.tar.gz",
+      "destination": "server-files"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'cp -rf server-files/multitheftauto_linux_x64/* ./'",
+        "rm -rf server-files multitheftauto_linux_x64.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "mods/deathmatch/resources"
+    },
+    {
+      "type": "extract",
+      "source": "mtasa-resources-latest.zip",
+      "destination": "mods/deathmatch/resources"
+    },
+    {
+      "type": "extract",
+      "source": "baseconfig.tar.gz",
+      "destination": "baseconfig-tmp"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'cp -rf baseconfig-tmp/baseconfig/* mods/deathmatch/'",
+        "rm -rf baseconfig-tmp baseconfig.tar.gz mtasa-resources-latest.zip",
+        "chmod +x ./mta-server64"
+      ]
+    },
+    {
+      "if": "!file_exists('x64/libmysqlclient.so.16')",
+      "type": "download",
+      "files": [
+        "http://nightly.mtasa.com/files/libmysqlclient.so.16"
+      ]
+    },
+    {
+      "if": "file_exists('libmysqlclient.so.16')",
+      "type": "move",
+      "source": "libmysqlclient.so.16",
+      "target": "x64/libmysqlclient.so.16"
+    }
+  ],
+  "run": {
+    "command": "./mta-server64 --port ${port} --httpport ${SERVER_WEBPORT} -n",
+    "stop": "shutdown",
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:mta",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${SERVER_WEBPORT}:${SERVER_WEBPORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:mta",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${SERVER_WEBPORT}:${SERVER_WEBPORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

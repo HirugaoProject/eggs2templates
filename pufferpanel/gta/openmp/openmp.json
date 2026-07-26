@@ -1,0 +1,101 @@
+{
+  "type": "openmp",
+  "display": "open.mp (Docker)",
+  "data": {
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password used for RCON, written to config.json",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to config.json",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/openmultiplayer/open.mp/releases/latest/download/open.mp-linux-x86-dynssl.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "open.mp-linux-x86-dynssl.tar.gz",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/*/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted open.mp-linux-x86-dynssl.tar.gz",
+        "chmod +x ./omp-server"
+      ]
+    },
+    {
+      "if": "!file_exists('config.json')",
+      "type": "writefile",
+      "target": "config.json",
+      "text": "{\n  \"name\": \"open.mp server\",\n  \"max_players\": 50,\n  \"network\": {\n    \"port\": ${port},\n    \"bind\": \"0.0.0.0\"\n  },\n  \"rcon\": {\n    \"enable\": true,\n    \"password\": \"${RCON_PASSWORD}\"\n  },\n  \"pawn\": {\n    \"main_scripts\": [\n      \"test 1\"\n    ],\n    \"legacy_plugins\": [],\n    \"side_scripts\": []\n  }\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./omp-server",
+    "stop": "exit",
+    "pre": [
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"port\"\\s*:\\s*[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"password\": \"${RCON_PASSWORD}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:samp",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:samp",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
