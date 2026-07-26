@@ -1,0 +1,231 @@
+{
+  "type": "ksplmp",
+  "display": "Kerbal Space Program - LunaMultiplayer (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Admin password for the server. Leave empty to disallow admin logins.",
+      "required": false,
+      "userEdit": true
+    },
+    "GameDifficulty": {
+      "type": "option",
+      "value": "Easy",
+      "display": "Game Difficulty",
+      "desc": "Gameplay difficulty of the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Easy",
+          "display": "Easy"
+        },
+        {
+          "value": "Normal",
+          "display": "Normal"
+        },
+        {
+          "value": "Moderate",
+          "display": "Moderate"
+        },
+        {
+          "value": "Hard",
+          "display": "Hard"
+        },
+        {
+          "value": "Custom",
+          "display": "Custom"
+        }
+      ]
+    },
+    "GameMode": {
+      "type": "option",
+      "value": "Sandbox",
+      "display": "Game Mode",
+      "desc": "Game mode of the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Sandbox",
+          "display": "Sandbox"
+        },
+        {
+          "value": "Career",
+          "display": "Career"
+        },
+        {
+          "value": "Science",
+          "display": "Science"
+        }
+      ]
+    },
+    "LMP_VERSION": {
+      "type": "string",
+      "value": "latest",
+      "display": "LMP Version",
+      "desc": "Release tag of LunaMultiplayer to install, or latest for the newest release",
+      "required": true,
+      "userEdit": true
+    },
+    "MaxPlayers": {
+      "type": "integer",
+      "value": 20,
+      "display": "Max Players",
+      "desc": "Maximum number of players that can join the server",
+      "required": true,
+      "userEdit": true
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Password",
+      "desc": "Password for the server. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 30 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 8800,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to LMPServer/Config/ConnectionSettings.xml",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "if": "LMP_VERSION == 'latest'",
+      "type": "download",
+      "files": [
+        "https://github.com/LunaMultiplayer/LunaMultiplayer/releases/latest/download/LunaMultiplayer-Server-Release.zip"
+      ]
+    },
+    {
+      "if": "LMP_VERSION != 'latest'",
+      "type": "download",
+      "files": [
+        "https://github.com/LunaMultiplayer/LunaMultiplayer/releases/download/${LMP_VERSION}/LunaMultiplayer-Server-Release.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "LunaMultiplayer-Server-Release.zip",
+      "destination": "."
+    },
+    {
+      "if": "file_exists('LMPServer/Server')",
+      "type": "command",
+      "commands": [
+        "bash -c 'mv -f LMPServer/Server/* LMPServer/'"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f LunaMultiplayer-Server-Release.zip"
+      ]
+    }
+  ],
+  "run": {
+    "command": "dotnet ./LMPServer/Server.dll",
+    "stopCode": 2,
+    "environmentVars": {
+      "DOTNET_NOLOGO": "1"
+    },
+    "pre": [
+      {
+        "if": "file_exists('LMPServer/Config/ConnectionSettings.xml')",
+        "type": "alterfile",
+        "file": "LMPServer/Config/ConnectionSettings.xml",
+        "search": "<Port>[^<]*</Port>",
+        "replace": "<Port>${port}</Port>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LMPServer/Config/GeneralSettings.xml')",
+        "type": "alterfile",
+        "file": "LMPServer/Config/GeneralSettings.xml",
+        "search": "<ServerName>[^<]*</ServerName>",
+        "replace": "<ServerName>${SERVER_NAME}</ServerName>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LMPServer/Config/GeneralSettings.xml')",
+        "type": "alterfile",
+        "file": "LMPServer/Config/GeneralSettings.xml",
+        "search": "<Password>[^<]*</Password>",
+        "replace": "<Password>${PASSWORD}</Password>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LMPServer/Config/GeneralSettings.xml')",
+        "type": "alterfile",
+        "file": "LMPServer/Config/GeneralSettings.xml",
+        "search": "<AdminPassword>[^<]*</AdminPassword>",
+        "replace": "<AdminPassword>${ADMIN_PASSWORD}</AdminPassword>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LMPServer/Config/GeneralSettings.xml')",
+        "type": "alterfile",
+        "file": "LMPServer/Config/GeneralSettings.xml",
+        "search": "<MaxPlayers>[^<]*</MaxPlayers>",
+        "replace": "<MaxPlayers>${MaxPlayers}</MaxPlayers>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LMPServer/Config/GameplaySettings.xml')",
+        "type": "alterfile",
+        "file": "LMPServer/Config/GameplaySettings.xml",
+        "search": "<GameDifficulty>[^<]*</GameDifficulty>",
+        "replace": "<GameDifficulty>${GameDifficulty}</GameDifficulty>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LMPServer/Config/GameplaySettings.xml')",
+        "type": "alterfile",
+        "file": "LMPServer/Config/GameplaySettings.xml",
+        "search": "<GameMode>[^<]*</GameMode>",
+        "replace": "<GameMode>${GameMode}</GameMode>",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

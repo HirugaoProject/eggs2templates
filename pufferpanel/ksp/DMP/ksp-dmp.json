@@ -1,0 +1,263 @@
+{
+  "type": "kspdmp",
+  "display": "Kerbal Space Program - DMP (Docker)",
+  "data": {
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "NORMAL",
+      "display": "Game Difficulty",
+      "desc": "Gameplay difficulty of the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "EASY",
+          "display": "Easy"
+        },
+        {
+          "value": "NORMAL",
+          "display": "Normal"
+        },
+        {
+          "value": "MODERATE",
+          "display": "Moderate"
+        },
+        {
+          "value": "HARD",
+          "display": "Hard"
+        },
+        {
+          "value": "CUSTOM",
+          "display": "Custom"
+        }
+      ]
+    },
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "https://d-mp.org/builds/release/v0.3.8.3/DMPServer.zip",
+      "display": "Download URL",
+      "desc": "Link to the DMP server archive. The current link is published on https://d-mp.org/downloads",
+      "required": true,
+      "userEdit": true
+    },
+    "GAMEMODE": {
+      "type": "option",
+      "value": "SANDBOX",
+      "display": "Game Mode",
+      "desc": "Game mode of the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "SANDBOX",
+          "display": "Sandbox"
+        },
+        {
+          "value": "SCIENCE",
+          "display": "Science"
+        },
+        {
+          "value": "CAREER",
+          "display": "Career"
+        }
+      ]
+    },
+    "MODPACKMODE": {
+      "type": "option",
+      "value": "NONE",
+      "display": "Mod Pack Mode",
+      "desc": "How the server handles mod packs",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "NONE",
+          "display": "None"
+        },
+        {
+          "value": "BLACKLIST",
+          "display": "Blacklist"
+        },
+        {
+          "value": "WHITELIST",
+          "display": "Whitelist"
+        }
+      ]
+    },
+    "SERVERNAME": {
+      "type": "string",
+      "value": "DMP Server",
+      "display": "Server Name",
+      "desc": "Name of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "WARPMODE": {
+      "type": "option",
+      "value": "SUBSPACE",
+      "display": "Warp Mode",
+      "desc": "Time warp mode used by the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "SUBSPACE",
+          "display": "Subspace"
+        },
+        {
+          "value": "MCW_LOWEST",
+          "display": "Master controlled, lowest"
+        },
+        {
+          "value": "MCW_VOTE",
+          "display": "Master controlled, vote"
+        },
+        {
+          "value": "MCW_FORCE",
+          "display": "Master controlled, forced"
+        },
+        {
+          "value": "NONE",
+          "display": "None"
+        }
+      ]
+    },
+    "WHITELIST": {
+      "type": "option",
+      "value": "False",
+      "display": "Whitelisted",
+      "desc": "Only allow whitelisted players to join",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "False",
+          "display": "Disabled"
+        },
+        {
+          "value": "True",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 6702,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to Config/Settings.txt",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "DMPServer.zip",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/DMPServer/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted DMPServer.zip"
+      ]
+    }
+  ],
+  "run": {
+    "command": "mono DMPServer.exe",
+    "stop": "/exit",
+    "pre": [
+      {
+        "if": "file_exists('Config/Settings.txt')",
+        "type": "alterfile",
+        "file": "Config/Settings.txt",
+        "search": "^port\\s*=.*$",
+        "replace": "port = ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Config/Settings.txt')",
+        "type": "alterfile",
+        "file": "Config/Settings.txt",
+        "search": "^modpackMode\\s*=.*$",
+        "replace": "modpackMode = ${MODPACKMODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Config/Settings.txt')",
+        "type": "alterfile",
+        "file": "Config/Settings.txt",
+        "search": "^warpMode\\s*=.*$",
+        "replace": "warpMode = ${WARPMODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Config/Settings.txt')",
+        "type": "alterfile",
+        "file": "Config/Settings.txt",
+        "search": "^gameMode\\s*=.*$",
+        "replace": "gameMode = ${GAMEMODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Config/Settings.txt')",
+        "type": "alterfile",
+        "file": "Config/Settings.txt",
+        "search": "^gameDifficulty\\s*=.*$",
+        "replace": "gameDifficulty = ${DIFFICULTY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Config/Settings.txt')",
+        "type": "alterfile",
+        "file": "Config/Settings.txt",
+        "search": "^whitelisted\\s*=.*$",
+        "replace": "whitelisted = ${WHITELIST}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Config/Settings.txt')",
+        "type": "alterfile",
+        "file": "Config/Settings.txt",
+        "search": "^serverName\\s*=.*$",
+        "replace": "serverName = ${SERVERNAME}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:mono_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:mono_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}

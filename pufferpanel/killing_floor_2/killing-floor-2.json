@@ -1,0 +1,249 @@
+{
+  "type": "killingfloor2",
+  "display": "Killing Floor 2 (Docker)",
+  "data": {
+    "ADMIN_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Administrator password for the server",
+      "required": false,
+      "userEdit": true
+    },
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "0",
+      "display": "Server Difficulty",
+      "desc": "Difficulty the server runs at",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Normal"
+        },
+        {
+          "value": "1",
+          "display": "Hard"
+        },
+        {
+          "value": "2",
+          "display": "Suicidal"
+        },
+        {
+          "value": "3",
+          "display": "Hell on Earth"
+        }
+      ]
+    },
+    "EXTRA_FLAGS": {
+      "type": "string",
+      "value": "",
+      "display": "Extra SteamCMD Flags",
+      "desc": "Extra SteamCMD flags, only needed in specific situations",
+      "required": false,
+      "userEdit": true
+    },
+    "MAP_NAME": {
+      "type": "string",
+      "value": "kf-bioticslab",
+      "display": "Map Name",
+      "desc": "Map loaded when the server starts",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Port Steam uses to query the server",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Name displayed to players and in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "232130",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Killing Floor 2 dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WEB_ADMIN": {
+      "type": "option",
+      "value": "false",
+      "display": "Enable WebAdmin",
+      "desc": "Enable the beta web administration panel",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Disabled"
+        },
+        {
+          "value": "true",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "WEB_ADMIN_PORT": {
+      "type": "integer",
+      "value": 8089,
+      "display": "Web Admin Port",
+      "desc": "TCP port of the web administration panel",
+      "required": true,
+      "userEdit": false
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} ${EXTRA_FLAGS} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./Binaries/Win64/KFGameSteamServer.bin.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "./Binaries/Win64/KFGameSteamServer.bin.x86_64 ${MAP_NAME}?Port=${port}?QueryPort=${QUERY_PORT}?AdminPassword=${ADMIN_PASS}?Difficulty=${DIFFICULTY}??WebAdminPort=${WEB_ADMIN_PORT}",
+        "if": "WEB_ADMIN == 'true'"
+      },
+      {
+        "command": "./Binaries/Win64/KFGameSteamServer.bin.x86_64 ${MAP_NAME}?Port=${port}?QueryPort=${QUERY_PORT}?AdminPassword=${ADMIN_PASS}?Difficulty=${DIFFICULTY}"
+      }
+    ],
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} ${EXTRA_FLAGS} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('KFGame/Config/KFWeb.ini')",
+        "type": "alterfile",
+        "file": "KFGame/Config/KFWeb.ini",
+        "search": "^bEnabled=.*$",
+        "replace": "bEnabled=${WEB_ADMIN}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('KFGame/Config/KFWeb.ini')",
+        "type": "alterfile",
+        "file": "KFGame/Config/KFWeb.ini",
+        "search": "^ListenPort=.*$",
+        "replace": "ListenPort=${WEB_ADMIN_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('KFGame/Config/LinuxServer-KFGame.ini')",
+        "type": "alterfile",
+        "file": "KFGame/Config/LinuxServer-KFGame.ini",
+        "search": "^AdminPassword=.*$",
+        "replace": "AdminPassword=${ADMIN_PASS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('KFGame/Config/LinuxServer-KFGame.ini')",
+        "type": "alterfile",
+        "file": "KFGame/Config/LinuxServer-KFGame.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${WEB_ADMIN_PORT}:${WEB_ADMIN_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${WEB_ADMIN_PORT}:${WEB_ADMIN_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

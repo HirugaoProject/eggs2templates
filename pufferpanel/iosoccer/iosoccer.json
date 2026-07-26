@@ -1,0 +1,160 @@
+{
+  "type": "srcds",
+  "display": "IOSoccer (Docker)",
+  "data": {
+    "MAP": {
+      "type": "string",
+      "value": "8v8_vienna",
+      "display": "Map",
+      "desc": "Map the server loads on boot",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_FPS": {
+      "type": "integer",
+      "value": 500,
+      "display": "Max FPS",
+      "desc": "Frame rate limit of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password used for RCON",
+      "required": false,
+      "userEdit": true
+    },
+    "SLOTS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Number of player slots",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "673990",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the IOSoccer dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "TICKRATE": {
+      "type": "integer",
+      "value": 100,
+      "display": "Tickrate",
+      "desc": "Server tick rate",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./srcds_run"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./srcds_run -console -game iosoccer -condebug -port ${port} +maxplayers ${SLOTS} +fps_max ${MAX_FPS} -tickrate ${TICKRATE} +map ${MAP} +rcon_password ${RCON} +ip 0.0.0.0",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

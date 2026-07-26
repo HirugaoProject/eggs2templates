@@ -1,0 +1,261 @@
+{
+  "type": "jc3mp",
+  "display": "Just Cause 3 Multiplayer (Docker)",
+  "data": {
+    "HTTP_PORT": {
+      "type": "integer",
+      "value": 4203,
+      "display": "HTTP Port",
+      "desc": "TCP port of the built-in web server",
+      "required": true,
+      "userEdit": false
+    },
+    "MAX_PLAYER": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 4201,
+      "display": "Query Port",
+      "desc": "Port used to query the server",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_DESCRIPTION": {
+      "type": "string",
+      "value": "A Just Cause 3 Multiplayer server hosted with PufferPanel",
+      "display": "Server Description",
+      "desc": "Description shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel JC3:MP Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password players must enter to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "619960",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Just Cause 3 Multiplayer server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PORT": {
+      "type": "integer",
+      "value": 4202,
+      "display": "Steam Port",
+      "desc": "Port used for Steam communication",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account used to download the server. Anonymous login cannot be used.",
+      "required": true,
+      "userEdit": false
+    },
+    "TICK_RATE": {
+      "type": "integer",
+      "value": 60,
+      "display": "Tick Rate",
+      "desc": "Maximum frame rate of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 4200,
+      "display": "Port",
+      "desc": "UDP port the server binds to, written to config.json",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./Server"
+      ]
+    },
+    {
+      "if": "!file_exists('config.json')",
+      "type": "writefile",
+      "target": "config.json",
+      "text": "{\n    \"announce\": true,\n    \"description\": \"${SERVER_DESCRIPTION}\",\n    \"host\": \"0.0.0.0\",\n    \"bind\": \"0.0.0.0\",\n    \"httpPort\": ${HTTP_PORT},\n    \"logLevel\": 7,\n    \"logo\": \"\",\n    \"maxPlayers\": ${MAX_PLAYER},\n    \"maxTickRate\": ${TICK_RATE},\n    \"name\": \"${SERVER_NAME}\",\n    \"password\": \"${SERVER_PASSWORD}\",\n    \"port\": ${port},\n    \"queryPort\": ${QUERY_PORT},\n    \"steamPort\": ${STEAM_PORT}\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./Server --maxPlayers=${MAX_PLAYER} --password=${SERVER_PASSWORD} --maxTickRate=${TICK_RATE}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"bind\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"bind\": \"0.0.0.0\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"port\"\\s*:\\s*[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"queryPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"queryPort\": ${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"httpPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"httpPort\": ${HTTP_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"steamPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"steamPort\": ${STEAM_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"name\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"description\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"description\": \"${SERVER_DESCRIPTION}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${STEAM_PORT}:${STEAM_PORT}/udp",
+      "0.0.0.0:${HTTP_PORT}:${HTTP_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${STEAM_PORT}:${STEAM_PORT}/udp",
+        "0.0.0.0:${HTTP_PORT}:${HTTP_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
