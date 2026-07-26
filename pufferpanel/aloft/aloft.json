@@ -1,0 +1,301 @@
+{
+  "type": "aloft",
+  "display": "Aloft (Docker)",
+  "data": {
+    "ADMIN_IDS": {
+      "type": "string",
+      "value": "",
+      "display": "Admin IDs",
+      "desc": "One or more Steam64 IDs, separated by spaces",
+      "required": false,
+      "userEdit": true
+    },
+    "CREATIVE_MODE": {
+      "type": "option",
+      "value": "0",
+      "display": "Creative Mode",
+      "desc": "Whether the game runs in creative mode. Only applies when the world is first generated.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Survival"
+        },
+        {
+          "value": "1",
+          "display": "Creative"
+        }
+      ]
+    },
+    "IS_VISIBLE": {
+      "type": "option",
+      "value": "true",
+      "display": "Is Visible",
+      "desc": "Whether the server is listed in the lobby browser or only reachable through a code",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Visible in browser"
+        },
+        {
+          "value": "false",
+          "display": "Code only"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Number of players allowed on the server at any one time. The game supports a maximum of 8.",
+      "required": true,
+      "userEdit": true
+    },
+    "NUM_ISLANDS": {
+      "type": "integer",
+      "value": 500,
+      "display": "Number of Islands",
+      "desc": "The number of islands in the map. Only applies when the world is first generated.",
+      "required": true,
+      "userEdit": true
+    },
+    "PRIVATE_ISLANDS": {
+      "type": "option",
+      "value": "false",
+      "display": "Private Islands",
+      "desc": "Whether home island spawning is protected in game",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "No"
+        },
+        {
+          "value": "true",
+          "display": "Yes"
+        }
+      ]
+    },
+    "SAVE_NAME": {
+      "type": "string",
+      "value": "Aloft",
+      "display": "Save Name",
+      "desc": "Name of the map and save file to create. Letters and digits only, no spaces.",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_PATH": {
+      "type": "string",
+      "value": ".wine/drive_c/users/container/AppData/LocalLow/Astrolabe Interactive/Aloft/Data01/Saves",
+      "display": "Save Path",
+      "desc": "Location of the save files inside the Wine prefix. Used to decide whether a new world has to be generated.",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A_PufferPanel_Hosted_Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list. The game does not support spaces here.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1660080",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Aloft dedicated server (Windows build, run through Wine)",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account used to install the server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Aloft. The dedicated server is not available to anonymous Steam users.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SERVER_NAME",
+        "port",
+        "MAX_PLAYERS",
+        "IS_VISIBLE",
+        "PRIVATE_ISLANDS",
+        "ADMIN_IDS"
+      ],
+      "order": 1
+    },
+    {
+      "display": "World",
+      "description": "World generation settings, only used when the save does not exist yet",
+      "variables": [
+        "SAVE_NAME",
+        "NUM_ISLANDS",
+        "CREATIVE_MODE",
+        "SAVE_PATH"
+      ],
+      "order": 2
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Steam credentials and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "STEAM_USER",
+        "STEAM_PASS",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 3
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://dl.winehq.org/wine/wine-mono/9.1.0/wine-mono-9.1.0-x86.msi"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "wine msiexec /i wine-mono-9.1.0-x86.msi /qn /quiet /norestart",
+        "winetricks -q vcrun2022 wmp11 mf sound=disabled",
+        "rm -f wine-mono-9.1.0-x86.msi"
+      ]
+    }
+  ],
+  "run": {
+    "command": "wine Aloft.exe -batchmode -nographics -server load#${SAVE_NAME}# servername#${SERVER_NAME}# log#ERROR# isvisible#${IS_VISIBLE}# privateislands#${PRIVATE_ISLANDS}# playercount#${MAX_PLAYERS}# serverport#${port}# admin#${ADMIN_IDS}#",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "!file_exists(SAVE_PATH + '/w_' + SAVE_NAME)",
+        "type": "command",
+        "commands": [
+          "wine Aloft.exe -batchmode -nographics -server create#${SAVE_NAME}#${NUM_ISLANDS}#${CREATIVE_MODE}# log#ERROR#"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

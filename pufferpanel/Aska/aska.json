@@ -1,0 +1,252 @@
+{
+  "type": "aska",
+  "display": "Aska (Docker)",
+  "data": {
+    "DISPLAY_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Server",
+      "display": "Display Name",
+      "desc": "The name the session displays in the session list for new saves. For old saves the name is taken from the save itself.",
+      "required": true,
+      "userEdit": true
+    },
+    "KEEP_SERVER_WORLD_ALIVE": {
+      "type": "option",
+      "value": "false",
+      "display": "Keep Server World Alive",
+      "desc": "When true the world keeps updating even without players. When false the world loads when the first player joins and unloads when the last player leaves.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "No"
+        },
+        {
+          "value": "true",
+          "display": "Yes"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Server",
+      "display": "Server Name",
+      "desc": "Override for the host name that is displayed in the session list. Leave blank to use the machine default.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "The password this session will have",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_REGION": {
+      "type": "string",
+      "value": "default",
+      "display": "Server Region",
+      "desc": "The region to open this session on. Options: default, asia, japan, europe, south america, south korea, usa east, usa west, australia, canada east, hong kong, india, turkey, united arab emirates, usa south central. Leave default to ping the best region.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3246670",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Aska dedicated server (Windows build, run through Wine)",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_GSLT": {
+      "type": "string",
+      "value": "",
+      "display": "Game Server Login Token",
+      "desc": "Token used to authenticate the game server against the Steam network. Create one at https://steamcommunity.com/dev/managegameservers using App ID 1898300.",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Steam query/game port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "DISPLAY_NAME",
+        "SERVER_NAME",
+        "SERVER_PASSWORD",
+        "SERVER_REGION",
+        "KEEP_SERVER_WORLD_ALIVE",
+        "STEAM_GSLT",
+        "port"
+      ],
+      "order": 1
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Installation and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 2
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c \"Xvfb :0 -screen 0 1024x768x16 & exec wine ./AskaServer.exe -propertiesPath 'server properties.txt'\"",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "SteamAppId": "1898300",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('server properties.txt')",
+        "type": "alterfile",
+        "file": "server properties.txt",
+        "search": "^display name\\s*=.*$",
+        "replace": "display name = ${DISPLAY_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server properties.txt')",
+        "type": "alterfile",
+        "file": "server properties.txt",
+        "search": "^server name\\s*=.*$",
+        "replace": "server name = ${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server properties.txt')",
+        "type": "alterfile",
+        "file": "server properties.txt",
+        "search": "^password\\s*=.*$",
+        "replace": "password = ${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server properties.txt')",
+        "type": "alterfile",
+        "file": "server properties.txt",
+        "search": "^region\\s*=.*$",
+        "replace": "region = ${SERVER_REGION}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server properties.txt')",
+        "type": "alterfile",
+        "file": "server properties.txt",
+        "search": "^keep server world alive\\s*=.*$",
+        "replace": "keep server world alive = ${KEEP_SERVER_WORLD_ALIVE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server properties.txt')",
+        "type": "alterfile",
+        "file": "server properties.txt",
+        "search": "^authentication token\\s*=.*$",
+        "replace": "authentication token = ${STEAM_GSLT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

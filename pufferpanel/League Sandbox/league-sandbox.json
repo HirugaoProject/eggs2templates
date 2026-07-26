@@ -1,0 +1,60 @@
+{
+  "type": "leaguesandbox",
+  "display": "LeagueSandbox (Docker)",
+  "data": {
+    "port": {
+      "type": "integer",
+      "value": 5119,
+      "display": "Port",
+      "desc": "Port the game server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "git clone --depth 1 https://github.com/LeagueSandbox/GameServer.git GameServer",
+        "git -C GameServer submodule update --init --recursive --depth 1",
+        "dotnet build GameServer/GameServer.sln -c Debug",
+        "cp -r GameServer/GameServerConsole/bin/Debug/net6.0/. ./",
+        "cp -r GameServer/Content ./Content"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./GameServerConsole --port ${port}",
+    "stopCode": 2,
+    "environmentVars": {
+      "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+      "DOTNET_NOLOGO": "1"
+    },
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "mcr.microsoft.com/dotnet/sdk:6.0",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "mcr.microsoft.com/dotnet/sdk:6.0",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

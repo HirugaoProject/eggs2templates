@@ -1,0 +1,294 @@
+{
+  "type": "ark",
+  "display": "Ark: Survival Evolved (Docker)",
+  "data": {
+    "ARGS": {
+      "type": "string",
+      "value": "",
+      "display": "Additional Arguments",
+      "desc": "Additional launch flags such as -crossplay. Each flag needs its leading dash and flags are separated by spaces, for example: -crossplay -exclusivejoin",
+      "required": false,
+      "userEdit": true
+    },
+    "ARK_ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "PleaseChangeMe",
+      "display": "Admin Password",
+      "desc": "Password players provide through the in-game console to gain administrator access. It is also the RCON password PufferPanel uses for the server console, so it must not be empty.",
+      "required": true,
+      "userEdit": true
+    },
+    "ARK_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "If set, players must provide this password to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "BATTLE_EYE": {
+      "type": "option",
+      "value": "",
+      "display": "Battle Eye",
+      "desc": "Enable the BattleEye anti-cheat",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Enabled"
+        },
+        {
+          "value": "-NoBattlEye",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 12,
+      "display": "Max Players",
+      "desc": "Maximum number of players able to join the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MOD_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Mods",
+      "desc": "Order and selection of mods to load. Mod IDs are comma separated, for example ModID1,ModID2",
+      "required": false,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Query port used by the Steam and ARK server browsers",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 27020,
+      "display": "RCON Port",
+      "desc": "RCON port. PufferPanel connects to it on the container loopback interface to provide the server console, so it does not need to be reachable from outside.",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_MAP": {
+      "type": "string",
+      "value": "TheIsland",
+      "display": "Server Map",
+      "desc": "Available maps: TheIsland, TheCenter, Ragnarok, ScorchedEarth_P, Aberration_P, Extinction, Valguero_P, Genesis, CrystalIsles, Gen2, Fjordur",
+      "required": true,
+      "userEdit": true
+    },
+    "SESSION_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted ARK Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "376030",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the ARK dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Beta Branch",
+      "desc": "Installs a beta branch if specified",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "Primary game port. ARK also uses the next UDP port as its raw socket port.",
+      "required": true,
+      "userEdit": false
+    },
+    "port_raw": {
+      "type": "integer",
+      "value": 7778,
+      "display": "Raw Socket Port",
+      "desc": "Raw UDP socket port used by ARK. It must be the game port + 1.",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SESSION_NAME",
+        "SERVER_MAP",
+        "MAX_PLAYERS",
+        "ARK_PASSWORD",
+        "ARK_ADMIN_PASSWORD",
+        "BATTLE_EYE",
+        "MOD_ID",
+        "ARGS"
+      ],
+      "order": 1
+    },
+    {
+      "display": "Network",
+      "description": "Ports used by the server",
+      "variables": [
+        "port",
+        "port_raw",
+        "QUERY_PORT",
+        "RCON_PORT"
+      ],
+      "order": 2
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Installation and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "SRCDS_BETAID",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 3
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Engine/Binaries/ThirdParty/SteamCMD/Linux"
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "Engine/Binaries/ThirdParty/SteamCMD/Linux"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "ln -sf ../../../../../Steam/steamapps Engine/Binaries/ThirdParty/SteamCMD/Linux/steamapps",
+        "chmod +x ShooterGame/Binaries/Linux/ShooterGameServer",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c \"cd ShooterGame/Binaries/Linux && exec ./ShooterGameServer ${SERVER_MAP}?listen?SessionName='${SESSION_NAME}'?ServerPassword=${ARK_PASSWORD}?ServerAdminPassword=${ARK_ADMIN_PASSWORD}?Port=${port}?RCONPort=${RCON_PORT}?QueryPort=${QUERY_PORT}?RCONEnabled=True?MaxPlayers=${MAX_PLAYERS}?GameModIds='${MOD_ID}' ${BATTLE_EYE} -server -automanagedmods ${ARGS} -log\"",
+    "stop": "DoExit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "rcon",
+      "ip": "127.0.0.1",
+      "port": "${RCON_PORT}",
+      "password": "${ARK_ADMIN_PASSWORD}"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port_raw}:${port_raw}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port_raw}:${port_raw}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

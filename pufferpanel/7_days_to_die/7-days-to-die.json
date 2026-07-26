@@ -1,0 +1,236 @@
+{
+  "type": "7daystodie",
+  "display": "7 Days To Die (Docker)",
+  "data": {
+    "GAME_DIFFICULTY": {
+      "type": "integer",
+      "value": 2,
+      "display": "Game Difficulty",
+      "desc": "0 - 5, 0 = easiest, 5 = hardest",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum concurrent players",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_DISABLED_NETWORK_PROTOCOLS": {
+      "type": "string",
+      "value": "",
+      "display": "Disabled Network Protocols",
+      "desc": "Networking protocols that should NOT be used, separated by comma. Possible values: LiteNetLib, SteamNetworking. Dedicated servers should disable SteamNetworking when there is no NAT router between users and the server, or when port forwarding is set up correctly.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "294420",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id used to install and update the server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Beta Branch",
+      "desc": "Installs a beta branch if specified, for example latest_experimental. Requires a reinstall to switch branches properly.",
+      "required": false,
+      "userEdit": true
+    },
+    "TELNET_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Telnet Password",
+      "desc": "Telnet is used by PufferPanel to send console commands to the server. It only listens on the container loopback interface, so a password is optional.",
+      "required": false,
+      "userEdit": true
+    },
+    "TELNET_PORT": {
+      "type": "integer",
+      "value": 8081,
+      "display": "Telnet Port",
+      "desc": "Port the server listens on for telnet console connections. PufferPanel connects to this port to provide the server console.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 26900,
+      "display": "Game Port",
+      "desc": "Primary game port. The server additionally uses the two following UDP ports.",
+      "required": true,
+      "userEdit": false
+    },
+    "port_udp_2": {
+      "type": "integer",
+      "value": 26901,
+      "display": "Game Port +1 (UDP)",
+      "desc": "Second UDP port used by the game, must be the game port + 1",
+      "required": true,
+      "userEdit": false
+    },
+    "port_udp_3": {
+      "type": "integer",
+      "value": 26902,
+      "display": "Game Port +2 (UDP)",
+      "desc": "Third UDP port used by the game, must be the game port + 2",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "port",
+        "port_udp_2",
+        "port_udp_3",
+        "MAX_PLAYERS",
+        "GAME_DIFFICULTY",
+        "SERVER_DISABLED_NETWORK_PROTOCOLS"
+      ],
+      "order": 1
+    },
+    {
+      "display": "Console",
+      "description": "Telnet console used by PufferPanel to talk to the server",
+      "variables": [
+        "TELNET_PORT",
+        "TELNET_PASSWORD"
+      ],
+      "order": 2
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Installation and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "SRCDS_BETAID",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 3
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./7DaysToDieServer.x86_64 -configfile=serverconfig.xml -quit -batchmode -nographics -dedicated -ServerPort=${port} -ServerDisabledNetworkProtocols=${SERVER_DISABLED_NETWORK_PROTOCOLS} -ServerMaxPlayerCount=${MAX_PLAYERS} -GameDifficulty=${GAME_DIFFICULTY} -ControlPanelEnabled=false -TelnetEnabled=true -TelnetPort=${TELNET_PORT} -TelnetPassword=${TELNET_PASSWORD}",
+    "stop": "shutdown",
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "."
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "telnet",
+      "ip": "127.0.0.1",
+      "port": "${TELNET_PORT}"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port_udp_2}:${port_udp_2}/udp",
+      "0.0.0.0:${port_udp_3}:${port_udp_3}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port_udp_2}:${port_udp_2}/udp",
+        "0.0.0.0:${port_udp_3}:${port_udp_3}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "type": "bettercrewlink",
+  "display": "BetterCrewLink Server (Docker)",
+  "data": {
+    "BRANCH": {
+      "type": "string",
+      "value": "master",
+      "display": "GitHub Branch",
+      "desc": "Branch of the BetterCrewLink-server repository to install",
+      "required": true,
+      "userEdit": true
+    },
+    "HOSTNAME": {
+      "type": "string",
+      "value": "",
+      "display": "Domain",
+      "desc": "Domain or IP address clients use to reach this server",
+      "required": false,
+      "userEdit": true
+    },
+    "HTTPS": {
+      "type": "string",
+      "value": "",
+      "display": "Use HTTPS",
+      "desc": "Set to true to enable HTTPS. privkey.pem and fullchain.pem must be placed in the server root, or in the SSL path below.",
+      "required": false,
+      "userEdit": true
+    },
+    "NAME": {
+      "type": "string",
+      "value": "A PufferPanel BetterCrewLink Server",
+      "display": "Server Name",
+      "desc": "Name of the BetterCrewLink server",
+      "required": true,
+      "userEdit": true
+    },
+    "SSLPATH": {
+      "type": "string",
+      "value": "",
+      "display": "Path To SSL",
+      "desc": "Alternate path to the SSL certificates",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 9736,
+      "display": "Port",
+      "desc": "Port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "git clone --single-branch --branch ${BRANCH} https://github.com/OhMyGuus/BetterCrewLink-server.git ./repo",
+        "cp -a ./repo/. ./",
+        "rm -rf ./repo",
+        "yarn install"
+      ]
+    }
+  ],
+  "run": {
+    "command": "yarn start",
+    "stopCode": 2,
+    "environmentVars": {
+      "HOSTNAME": "${HOSTNAME}",
+      "HTTPS": "${HTTPS}",
+      "NAME": "${NAME}",
+      "PORT": "${port}",
+      "SSLPATH": "${SSLPATH}"
+    },
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "node:16-bookworm",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "node:16-bookworm",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}

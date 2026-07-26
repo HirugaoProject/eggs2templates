@@ -1,0 +1,372 @@
+{
+  "type": "archean",
+  "display": "Archean (Docker)",
+  "data": {
+    "AUTOSAVE_INTERVAL": {
+      "type": "integer",
+      "value": 30,
+      "display": "Autosave Interval",
+      "desc": "Time in seconds between automatic server saves",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_MODE": {
+      "type": "option",
+      "value": "0",
+      "display": "Game Mode",
+      "desc": "Switches the server between creative and adventure mode",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Creative"
+        },
+        {
+          "value": "1",
+          "display": "Adventure"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "The maximum amount of players that can join the server at one time",
+      "required": true,
+      "userEdit": true
+    },
+    "ONLINE_MODE": {
+      "type": "option",
+      "value": "0",
+      "display": "Online Mode",
+      "desc": "Whether the server is publicly discoverable or not",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Private"
+        },
+        {
+          "value": "1",
+          "display": "Public"
+        }
+      ]
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Password",
+      "desc": "The password players need to enter to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "PHYSICS_UPDATES_PER_UPDATE": {
+      "type": "integer",
+      "value": 8,
+      "display": "Physics Steps Per Update",
+      "desc": "Advanced. Changes how often physics are calculated per game update.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "The server name that is, among others, displayed on the public server page",
+      "required": true,
+      "userEdit": true
+    },
+    "SPAWN_PLANET": {
+      "type": "option",
+      "value": "earth",
+      "display": "Spawn Planet",
+      "desc": "The planet players will initially spawn on",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "earth",
+          "display": "Earth"
+        },
+        {
+          "value": "moon",
+          "display": "Moon"
+        }
+      ]
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3557220",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id used to install and update the server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATES_PER_SECOND": {
+      "type": "integer",
+      "value": 25,
+      "display": "Updates Per Second",
+      "desc": "Advanced. Changes the amount of times the server updates per second.",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "world",
+      "display": "World Name",
+      "desc": "The name of the world directory to use",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Port the server listens on. Written to Archean-data/server/server.ini as networking.listen_port.",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SERVER_NAME",
+        "port",
+        "MAX_PLAYERS",
+        "PASSWORD",
+        "GAME_MODE",
+        "ONLINE_MODE"
+      ],
+      "order": 1
+    },
+    {
+      "display": "World",
+      "description": "World and simulation settings",
+      "variables": [
+        "WORLD_NAME",
+        "SPAWN_PLANET",
+        "AUTOSAVE_INTERVAL",
+        "UPDATES_PER_SECOND",
+        "PHYSICS_UPDATES_PER_UPDATE"
+      ],
+      "order": 2
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Installation and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 3
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Archean-data/server"
+    },
+    {
+      "if": "!file_exists('Archean-data/server/server.ini')",
+      "type": "writefile",
+      "target": "Archean-data/server/server.ini",
+      "text": "[server]\nserver_public_name = ${SERVER_NAME}\ngame_mode = ${GAME_MODE}\nserver_online = ${ONLINE_MODE}\nmax_simultaneous_players = ${MAX_PLAYERS}\npassword = ${PASSWORD}\naccept_remote_connections = yes\n\n[networking]\nlisten_port = ${port}\n\n[game]\nspawn = ${SPAWN_PLANET}\nworld = ${WORLD_NAME}\nauto_save_interval_seconds = ${AUTOSAVE_INTERVAL}\nupdates_per_second = ${UPDATES_PER_SECOND}\nphysics_steps_per_update = ${PHYSICS_UPDATES_PER_UPDATE}\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c \"cd Archean-game && exec ./Archean_server\"",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "type": "command",
+        "commands": [
+          "chmod +x Archean-game/Archean_server"
+        ]
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*server_public_name\\s*=.*$",
+        "replace": "server_public_name = ${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*game_mode\\s*=.*$",
+        "replace": "game_mode = ${GAME_MODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*server_online\\s*=.*$",
+        "replace": "server_online = ${ONLINE_MODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*max_simultaneous_players\\s*=.*$",
+        "replace": "max_simultaneous_players = ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*password\\s*=.*$",
+        "replace": "password = ${PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*accept_remote_connections\\s*=.*$",
+        "replace": "accept_remote_connections = yes",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*listen_port\\s*=.*$",
+        "replace": "listen_port = ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*spawn\\s*=.*$",
+        "replace": "spawn = ${SPAWN_PLANET}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*world\\s*=.*$",
+        "replace": "world = ${WORLD_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*auto_save_interval_seconds\\s*=.*$",
+        "replace": "auto_save_interval_seconds = ${AUTOSAVE_INTERVAL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*updates_per_second\\s*=.*$",
+        "replace": "updates_per_second = ${UPDATES_PER_SECOND}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Archean-data/server/server.ini')",
+        "type": "alterfile",
+        "file": "Archean-data/server/server.ini",
+        "search": "^\\s*physics_steps_per_update\\s*=.*$",
+        "replace": "physics_steps_per_update = ${PHYSICS_UPDATES_PER_UPDATE}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:ubuntu",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:ubuntu",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "type": "impostor",
+  "display": "Among Us - Impostor Server (Docker)",
+  "data": {
+    "PUBLIC_IP": {
+      "type": "string",
+      "value": "127.0.0.1",
+      "display": "Public IP",
+      "desc": "Public IP address clients use to reach this server. It is written to config.json as Server.PublicIp and must be reachable from the internet for public servers.",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "1.10.6",
+      "display": "Impostor Version",
+      "desc": "Release of Impostor to install, without the leading v. Releases are listed at https://github.com/Impostor/Impostor/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 22023,
+      "display": "Port",
+      "desc": "UDP port the matchmaker listens on. It is written to config.json as both Server.ListenPort and Server.PublicPort.",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/Impostor/Impostor/releases/download/v${VERSION}/Impostor-Server_${VERSION}_linux-x64.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "Impostor-Server_${VERSION}_linux-x64.tar.gz",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./Impostor.Server",
+        "rm -f Impostor-Server_${VERSION}_linux-x64.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('config.json')",
+      "type": "writefile",
+      "target": "config.json",
+      "text": "{\n  \"Server\": {\n    \"PublicIp\": \"${PUBLIC_IP}\",\n    \"PublicPort\": ${port},\n    \"ListenIp\": \"0.0.0.0\",\n    \"ListenPort\": ${port}\n  },\n  \"AntiCheat\": {\n    \"Enabled\": true,\n    \"BanIpFromGame\": true\n  },\n  \"Debug\": {\n    \"GameRecorderEnabled\": false\n  }\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./Impostor.Server",
+    "stopCode": 2,
+    "environmentVars": {
+      "DOTNET_NOLOGO": "1"
+    },
+    "pre": [
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"ListenPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"ListenPort\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"PublicPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"PublicPort\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"PublicIp\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"PublicIp\": \"${PUBLIC_IP}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

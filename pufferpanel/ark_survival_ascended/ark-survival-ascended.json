@@ -1,0 +1,302 @@
+{
+  "type": "arkascended",
+  "display": "ARK: Survival Ascended (Docker)",
+  "data": {
+    "ARGS_FLAGS": {
+      "type": "string",
+      "value": "",
+      "display": "Additional Arguments (flags)",
+      "desc": "Flags such as -ForceAllowCaveFlyers, separated by spaces, for example: -crossplay -ForceAllowCaveFlyers",
+      "required": false,
+      "userEdit": true
+    },
+    "ARGS_PARAMS": {
+      "type": "string",
+      "value": "",
+      "display": "Additional Arguments (params)",
+      "desc": "Question mark parameters appended to the map string. They must touch each other, for example: ?AllowCrateSpawnsOnTopOfStructures=True?PreventOfflinePvP=True",
+      "required": false,
+      "userEdit": true
+    },
+    "ARK_ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "PleaseChangeMe",
+      "display": "Server Admin Password",
+      "desc": "Used for RCON, for the in-browser console and for the in-game EnableCheats command. PufferPanel uses it as the RCON password, so it must not be empty.",
+      "required": true,
+      "userEdit": true
+    },
+    "BATTLE_EYE": {
+      "type": "option",
+      "value": "",
+      "display": "Battle Eye",
+      "desc": "Enable the BattleEye anti-cheat",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Enabled"
+        },
+        {
+          "value": "-NoBattlEye",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 70,
+      "display": "Max Players",
+      "desc": "Maximum number of players able to join the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MOD_IDS": {
+      "type": "string",
+      "value": "",
+      "display": "Mod IDs",
+      "desc": "CurseForge project ids, comma separated without spaces, for example 1234,1235,1236. Leave blank to disable mods.",
+      "required": false,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 37015,
+      "display": "RCON Port",
+      "desc": "RCON port used for console commands and for a clean shutdown. PufferPanel connects to it on the container loopback interface, so it does not need to be reachable from outside.",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_MAP": {
+      "type": "string",
+      "value": "TheIsland_WP",
+      "display": "Server Map",
+      "desc": "Map to load, for example TheIsland_WP",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to enter the server. Leave blank for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_PVE": {
+      "type": "option",
+      "value": "?ServerPVE=True",
+      "display": "Server PvE",
+      "desc": "Player versus Environment or Player versus Player",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "?ServerPVE=True",
+          "display": "PvE"
+        },
+        {
+          "value": "",
+          "display": "PvP"
+        }
+      ]
+    },
+    "SESSION_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Unofficial dedicated server name shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2430930",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the ARK: Survival Ascended dedicated server (Windows build, run through Proton)",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SESSION_NAME",
+        "SERVER_MAP",
+        "MAX_PLAYERS",
+        "SERVER_PASSWORD",
+        "ARK_ADMIN_PASSWORD",
+        "SERVER_PVE",
+        "BATTLE_EYE",
+        "MOD_IDS",
+        "ARGS_PARAMS",
+        "ARGS_FLAGS"
+      ],
+      "order": 1
+    },
+    {
+      "display": "Network",
+      "description": "Ports used by the server",
+      "variables": [
+        "port",
+        "RCON_PORT"
+      ],
+      "order": 2
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Installation and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 3
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+    },
+    {
+      "type": "mkdir",
+      "target": "ShooterGame/Saved/Logs"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -rf ShooterGame/Content/Movies",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "proton run ./ShooterGame/Binaries/Win64/ArkAscendedServer.exe ${SERVER_MAP}?listen?MaxPlayers=${MAX_PLAYERS}?SessionName='${SESSION_NAME}'?Port=${port}?RCONPort=${RCON_PORT}?RCONEnabled=True${SERVER_PVE}?ServerPassword='${SERVER_PASSWORD}'${ARGS_PARAMS}?ServerAdminPassword='${ARK_ADMIN_PASSWORD}' -WinLiveMaxPlayers=${MAX_PLAYERS} -oldconsole -servergamelog -mods=${MOD_IDS} ${BATTLE_EYE} -Port=${port} ${ARGS_FLAGS}",
+        "if": "MOD_IDS != ''"
+      },
+      {
+        "command": "proton run ./ShooterGame/Binaries/Win64/ArkAscendedServer.exe ${SERVER_MAP}?listen?MaxPlayers=${MAX_PLAYERS}?SessionName='${SESSION_NAME}'?Port=${port}?RCONPort=${RCON_PORT}?RCONEnabled=True${SERVER_PVE}?ServerPassword='${SERVER_PASSWORD}'${ARGS_PARAMS}?ServerAdminPassword='${ARK_ADMIN_PASSWORD}' -WinLiveMaxPlayers=${MAX_PLAYERS} -oldconsole -servergamelog ${BATTLE_EYE} -Port=${port} ${ARGS_FLAGS}"
+      }
+    ],
+    "stop": "DoExit",
+    "environmentVars": {
+      "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",
+      "STEAM_COMPAT_DATA_PATH": "/pufferpanel/.steam/steam/steamapps/compatdata/${SRCDS_APPID}",
+      "WINEDEBUG": "-all"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "type": "mkdir",
+        "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+      },
+      {
+        "if": "file_exists('ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini')",
+        "type": "alterfile",
+        "file": "ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini')",
+        "type": "alterfile",
+        "file": "ShooterGame/Saved/Config/WindowsServer/GameUserSettings.ini",
+        "search": "^ServerAdminPassword=.*$",
+        "replace": "ServerAdminPassword=${ARK_ADMIN_PASSWORD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "rcon",
+      "ip": "127.0.0.1",
+      "port": "${RCON_PORT}",
+      "password": "${ARK_ADMIN_PASSWORD}"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

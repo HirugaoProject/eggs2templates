@@ -1,0 +1,251 @@
+{
+  "type": "nightingale",
+  "display": "Nightingale (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "letmein",
+      "display": "Admin Password",
+      "desc": "Players who authenticate in game with this password can kick and ban other players",
+      "required": true,
+      "userEdit": true
+    },
+    "CHEATS": {
+      "type": "boolean",
+      "value": true,
+      "display": "Cheats Mode",
+      "desc": "Allow the cheat/debug menu and commands. Players must authenticate with the admin password to use them.",
+      "required": false,
+      "userEdit": true
+    },
+    "Difficulty": {
+      "type": "option",
+      "value": "easy",
+      "display": "Starting Difficulty",
+      "desc": "Difficulty of the very first map, when one is not supplied by an imported character",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "easy",
+          "display": "Easy"
+        },
+        {
+          "value": "medium",
+          "display": "Medium"
+        },
+        {
+          "value": "hard",
+          "display": "Hard"
+        },
+        {
+          "value": "extreme",
+          "display": "Extreme"
+        }
+      ]
+    },
+    "MAX_PLAYER": {
+      "type": "integer",
+      "value": 6,
+      "display": "Max Players",
+      "desc": "Nightingale supports six players in a realm by default. Raising this is unsupported by the game and may cause unintended behaviour.",
+      "required": true,
+      "userEdit": true
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "changeme",
+      "display": "Server Password",
+      "desc": "Password required for players to connect. Setting one is recommended.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3796810",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Nightingale dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account. The Nightingale dedicated server is not available to anonymous Steam users.",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Nightingale. This is required and cannot be anonymous. Accounts with Steam Guard enabled must be authorised on this machine first, otherwise SteamCMD will time out.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "port",
+        "MAX_PLAYER",
+        "PASSWORD",
+        "ADMIN_PASSWORD",
+        "Difficulty",
+        "CHEATS"
+      ],
+      "order": 1
+    },
+    {
+      "display": "SteamCMD",
+      "description": "Steam credentials and update settings",
+      "variables": [
+        "SRCDS_APPID",
+        "STEAM_USER",
+        "STEAM_PASS",
+        "UPDATE_ON_BOOT"
+      ],
+      "order": 2
+    }
+  ],
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x NWX/Binaries/Linux/NWXServer-Linux-Shipping"
+      ]
+    },
+    {
+      "if": "!file_exists('NWX/Config/ServerSettings.ini')",
+      "type": "move",
+      "source": "NWX/Config/ExampleServerSettings.ini",
+      "target": "NWX/Config/ServerSettings.ini"
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "./NWX/Binaries/Linux/NWXServer-Linux-Shipping NWX -ini:Game:[/Script/Engine.GameSession]:MaxPlayers=${MAX_PLAYER} -EnableCheats -port=${port} -multihome=0.0.0.0",
+        "if": "CHEATS"
+      },
+      {
+        "command": "./NWX/Binaries/Linux/NWXServer-Linux-Shipping NWX -ini:Game:[/Script/Engine.GameSession]:MaxPlayers=${MAX_PLAYER} -port=${port} -multihome=0.0.0.0"
+      }
+    ],
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('NWX/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "NWX/Config/ServerSettings.ini",
+        "search": "^StartingDifficulty=.*$",
+        "replace": "StartingDifficulty=${Difficulty}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NWX/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "NWX/Config/ServerSettings.ini",
+        "search": "^AdminPassword=.*$",
+        "replace": "AdminPassword=${ADMIN_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NWX/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "NWX/Config/ServerSettings.ini",
+        "search": "^Password=.*$",
+        "replace": "Password=${PASSWORD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu_24.04",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu_24.04",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

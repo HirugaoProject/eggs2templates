@@ -1,0 +1,126 @@
+{
+  "type": "nzp",
+  "display": "Nazi Zombies: Portable (Docker)",
+  "data": {
+    "GAME_ARGS": {
+      "type": "string",
+      "value": "",
+      "display": "Additional Game Arguments",
+      "desc": "Extra arguments passed to the engine, in the form `+cvar value`",
+      "required": false,
+      "userEdit": true
+    },
+    "MAP": {
+      "type": "string",
+      "value": "ndu",
+      "display": "Map",
+      "desc": "The map to load. A list is available in the console via `listmaps`. The default map is ndu, also known as Nacht der Untoten.",
+      "required": true,
+      "userEdit": true
+    },
+    "PROTOCOL": {
+      "type": "option",
+      "value": "NZP-REBOOT",
+      "display": "Protocol",
+      "desc": "NZP-REBOOT for native clients, NZP-REBOOT-WEB for web clients. Native clients connect with `connect ip:port`, web clients with `connect ws://ip:port`.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "NZP-REBOOT",
+          "display": "Native clients (NZP-REBOOT)"
+        },
+        {
+          "value": "NZP-REBOOT-WEB",
+          "display": "Web clients (NZP-REBOOT-WEB)"
+        }
+      ]
+    },
+    "TICKRATE": {
+      "type": "string",
+      "value": "0.045",
+      "display": "Tickrate",
+      "desc": "Seconds between server frames. The default 0.045 is roughly 22 fps. 30 fps is ~0.0333, 60 fps is ~0.0166. Zombies are bandwidth heavy in later rounds, so raise this with care.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27500,
+      "display": "Port",
+      "desc": "Port used for both the UDP game protocol and the TCP/WebSocket listener",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://www.fteqw.org/dl/fteqw_linux64.zip",
+        "https://github.com/nzp-team/assets/releases/latest/download/pc-nzp-assets.zip",
+        "https://github.com/nzp-team/quakec/releases/latest/download/fte-nzp-qc.zip",
+        "https://github.com/nzp-team/quakec/releases/latest/download/standard-nzp-qc.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "fteqw_linux64.zip",
+      "destination": "."
+    },
+    {
+      "type": "extract",
+      "source": "pc-nzp-assets.zip",
+      "destination": "."
+    },
+    {
+      "type": "extract",
+      "source": "fte-nzp-qc.zip",
+      "destination": "nzp"
+    },
+    {
+      "type": "extract",
+      "source": "standard-nzp-qc.zip",
+      "destination": "nzp"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./fteqw-sv64",
+        "rm -f fteqw_linux64.zip pc-nzp-assets.zip fte-nzp-qc.zip standard-nzp-qc.zip"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./fteqw-sv64 -dedicated +sv_port ${port} +sv_port_tcp ${port} +com_protocolname ${PROTOCOL} +sv_mintic ${TICKRATE} +map ${MAP} ${GAME_ARGS}",
+    "stop": "quit",
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:ubuntu",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:ubuntu",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

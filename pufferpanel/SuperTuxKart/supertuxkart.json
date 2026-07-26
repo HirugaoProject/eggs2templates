@@ -1,0 +1,192 @@
+{
+  "type": "supertuxkart",
+  "display": "SuperTuxKart (Docker)",
+  "data": {
+    "CONFIG_NAME": {
+      "type": "string",
+      "value": "config.xml",
+      "display": "Config File Name",
+      "desc": "Name of the server configuration file. It is created by the server on first start and can then be edited in the file manager.",
+      "required": true,
+      "userEdit": true
+    },
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "0",
+      "display": "Difficulty",
+      "desc": "Race difficulty of the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Novice"
+        },
+        {
+          "value": "1",
+          "display": "Intermediate"
+        },
+        {
+          "value": "2",
+          "display": "Expert"
+        },
+        {
+          "value": "3",
+          "display": "SuperTux"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MODE": {
+      "type": "option",
+      "value": "0",
+      "display": "Mode",
+      "desc": "Game mode the server hosts",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Normal race (grand prix)"
+        },
+        {
+          "value": "1",
+          "display": "Time trial (grand prix)"
+        },
+        {
+          "value": "3",
+          "display": "Normal race"
+        },
+        {
+          "value": "4",
+          "display": "Time trial"
+        },
+        {
+          "value": "6",
+          "display": "Soccer"
+        }
+      ]
+    },
+    "MOTD": {
+      "type": "string",
+      "value": "",
+      "display": "Message of the Day",
+      "desc": "Message shown to players when they join",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel_Server",
+      "display": "Server Name",
+      "desc": "Name of the server as shown in the server list. Spaces are not supported by the --lan-server argument.",
+      "required": true,
+      "userEdit": true
+    },
+    "STK_VERSION": {
+      "type": "string",
+      "value": "1.5",
+      "display": "SuperTuxKart Version",
+      "desc": "Version of the official SuperTuxKart Linux release to install",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 2759,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "groups": [
+    {
+      "display": "Server",
+      "description": "General server settings",
+      "variables": [
+        "SERVER_NAME",
+        "port",
+        "MAX_PLAYERS",
+        "MODE",
+        "DIFFICULTY",
+        "MOTD",
+        "CONFIG_NAME"
+      ],
+      "order": 1
+    },
+    {
+      "display": "Installation",
+      "description": "Which SuperTuxKart build to install",
+      "variables": [
+        "STK_VERSION"
+      ],
+      "order": 2
+    }
+  ],
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/supertuxkart/stk-code/releases/download/${STK_VERSION}/SuperTuxKart-${STK_VERSION}-linux-x86_64.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "SuperTuxKart-${STK_VERSION}-linux-x86_64.tar.gz",
+      "destination": "."
+    },
+    {
+      "type": "move",
+      "source": "SuperTuxKart-${STK_VERSION}-linux-x86_64/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf SuperTuxKart-${STK_VERSION}-linux-x86_64 SuperTuxKart-${STK_VERSION}-linux-x86_64.tar.gz",
+        "chmod +x ./bin/supertuxkart"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./bin/supertuxkart --server-config=${CONFIG_NAME} --lan-server=${SERVER_NAME} --network-console --port=${port} --difficulty=${DIFFICULTY} --mode=${MODE} --max-players=${MAX_PLAYERS} --motd=${MOTD}",
+    "stop": "quit",
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "./lib"
+    },
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
