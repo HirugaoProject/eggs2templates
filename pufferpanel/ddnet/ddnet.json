@@ -1,0 +1,237 @@
+{
+  "type": "ddnet",
+  "display": "DDNet (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 64,
+      "display": "Max Players",
+      "desc": "Maximum number of clients allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "PUBLIC_SERVER": {
+      "type": "option",
+      "value": "0",
+      "display": "Public Server",
+      "desc": "Register the server on the public master server list",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Private"
+        },
+        {
+          "value": "1",
+          "display": "Public"
+        }
+      ]
+    },
+    "SERVER_MAP": {
+      "type": "string",
+      "value": "Sunny Side Up",
+      "display": "Server Map",
+      "desc": "Map loaded on startup. See https://ddnet.org/settingscommands/#server-settings",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel DDNet Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "412220",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of DDNet",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account used to download DDNet. Anonymous login cannot be used.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 8303,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to ddnet/data/autoexec_server.cfg",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./ddnet/DDNet-Server"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "ddnet/data"
+    },
+    {
+      "if": "!file_exists('ddnet/data/autoexec_server.cfg')",
+      "type": "writefile",
+      "target": "ddnet/data/autoexec_server.cfg",
+      "text": "sv_port ${port}\nsv_name \"${SERVER_NAME}\"\npassword \"${SERVER_PASS}\"\nsv_map \"${SERVER_MAP}\"\nsv_register ${PUBLIC_SERVER}\nsv_max_clients ${MAX_PLAYERS}\n"
+    }
+  ],
+  "run": {
+    "command": "./ddnet/DDNet-Server",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('ddnet/data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "ddnet/data/autoexec_server.cfg",
+        "search": "^#?sv_port .*$",
+        "replace": "sv_port ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ddnet/data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "ddnet/data/autoexec_server.cfg",
+        "search": "^sv_name .*$",
+        "replace": "sv_name \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ddnet/data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "ddnet/data/autoexec_server.cfg",
+        "search": "^sv_map .*$",
+        "replace": "sv_map \"${SERVER_MAP}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ddnet/data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "ddnet/data/autoexec_server.cfg",
+        "search": "^sv_register .*$",
+        "replace": "sv_register ${PUBLIC_SERVER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ddnet/data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "ddnet/data/autoexec_server.cfg",
+        "search": "^sv_max_clients .*$",
+        "replace": "sv_max_clients ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ddnet/data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "ddnet/data/autoexec_server.cfg",
+        "search": "^password .*$",
+        "replace": "password \"${SERVER_PASS}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

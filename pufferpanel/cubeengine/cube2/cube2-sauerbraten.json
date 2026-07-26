@@ -1,0 +1,127 @@
+{
+  "type": "sauerbraten",
+  "display": "Cube 2: Sauerbraten (Docker)",
+  "data": {
+    "CUBE_ADMINPASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password used to claim admin on the server",
+      "required": false,
+      "userEdit": true
+    },
+    "CUBE_MASTERSERVER": {
+      "type": "string",
+      "value": "sauerbraten.org",
+      "display": "Master Server",
+      "desc": "Master server the server registers with",
+      "required": true,
+      "userEdit": true
+    },
+    "CUBE_MAXPLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "Maximum number of clients. Raising this beyond the default can hurt performance.",
+      "required": true,
+      "userEdit": true
+    },
+    "CUBE_SERVERDESCRIPTION": {
+      "type": "string",
+      "value": "A PufferPanel Sauerbraten Server",
+      "display": "Server Description",
+      "desc": "Description shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "https://downloads.sourceforge.net/project/sauerbraten/sauerbraten/2020_11_29/sauerbraten_2020_12_29_linux.tar.bz2",
+      "display": "Download URL",
+      "desc": "Link to the Linux Sauerbraten release archive",
+      "required": true,
+      "userEdit": true
+    },
+    "ARCHIVE_NAME": {
+      "type": "string",
+      "value": "sauerbraten_2020_12_29_linux.tar.bz2",
+      "display": "Archive Name",
+      "desc": "File name of the archive from the download URL above",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 28785,
+      "display": "Port",
+      "desc": "UDP port the server listens on. Sauerbraten also uses the following UDP port for its info service.",
+      "required": true,
+      "userEdit": false
+    },
+    "port_info": {
+      "type": "integer",
+      "value": 28786,
+      "display": "Info Port",
+      "desc": "UDP info port, must be the game port + 1",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${ARCHIVE_NAME}",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/*/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted ${ARCHIVE_NAME}",
+        "chmod +x ./bin_unix/linux_64_server"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./bin_unix/linux_64_server -j${port} -n\"${CUBE_SERVERDESCRIPTION}\" -c${CUBE_MAXPLAYERS} -m${CUBE_MASTERSERVER} -p${CUBE_ADMINPASSWORD}",
+    "stopCode": 2,
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port_info}:${port_info}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port_info}:${port_info}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

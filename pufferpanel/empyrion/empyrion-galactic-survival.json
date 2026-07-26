@@ -1,0 +1,451 @@
+{
+  "type": "empyrion",
+  "display": "Empyrion: Galactic Survival (Docker)",
+  "data": {
+    "ALLOWED_BLUEPRINTS": {
+      "type": "option",
+      "value": "All",
+      "display": "Allowed Blueprints",
+      "desc": "Which blueprints may be produced or spawned",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "All",
+          "display": "All"
+        },
+        {
+          "value": "StockOnly",
+          "display": "Stock only"
+        },
+        {
+          "value": "None",
+          "display": "None"
+        }
+      ]
+    },
+    "CUSTOM_SCENARIO": {
+      "type": "string",
+      "value": "Default Multiplayer",
+      "display": "Custom Scenario",
+      "desc": "Name of the scenario from the Content/Scenarios folder",
+      "required": true,
+      "userEdit": true
+    },
+    "EAC_ACTIVE": {
+      "type": "option",
+      "value": "true",
+      "display": "EAC Active",
+      "desc": "Enable the Easy Anti-Cheat system",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "GAME_MODE": {
+      "type": "option",
+      "value": "Survival",
+      "display": "Game Mode",
+      "desc": "Game mode of the save",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Survival",
+          "display": "Survival"
+        },
+        {
+          "value": "Creative",
+          "display": "Creative"
+        }
+      ]
+    },
+    "GAME_NAME": {
+      "type": "string",
+      "value": "DediGame",
+      "display": "Save Name",
+      "desc": "Name of the save game",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_SEED": {
+      "type": "integer",
+      "value": 1011345,
+      "display": "Seed",
+      "desc": "Seed used to procedurally generate the world",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_ALLOWED_SIZE_CLASS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Allowed Size Class",
+      "desc": "Largest blueprint size class allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_DESCRIPTION": {
+      "type": "string",
+      "value": "An Empyrion Galactic Survival server hosted on PufferPanel.",
+      "display": "Server Description",
+      "desc": "Server info text. BBCode such as [b]bold[/b] is supported.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_HEARTBEAT": {
+      "type": "integer",
+      "value": 15,
+      "display": "Server Heartbeat",
+      "desc": "Seconds after which a playfield server process is killed",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to enter the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_PUBLIC": {
+      "type": "option",
+      "value": "true",
+      "display": "Public",
+      "desc": "List the server in the server browser",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Public"
+        },
+        {
+          "value": "false",
+          "display": "Hidden"
+        }
+      ]
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "530870",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Empyrion dedicated server (Windows build, run through Wine)",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Beta Branch",
+      "desc": "Installs a beta branch if specified",
+      "required": false,
+      "userEdit": true
+    },
+    "TELNET_PORT": {
+      "type": "integer",
+      "value": 1030,
+      "display": "Telnet Port",
+      "desc": "Console port PufferPanel connects to on the container loopback interface. Do not expose it to the internet.",
+      "required": true,
+      "userEdit": false
+    },
+    "TIMEOUT_BOOTING_PF_SERVER": {
+      "type": "integer",
+      "value": 90,
+      "display": "Timeout Booting Playfield Server",
+      "desc": "Seconds after which a booting playfield server process is killed",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 30000,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": "Logs/server"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'cd DedicatedServer && exec wine EmpyrionDedicated.exe -batchmode -nographics'",
+    "stop": "saveandexit 0",
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Srv_Port:.*$",
+        "replace": "  Srv_Port: ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Srv_Name:.*$",
+        "replace": "  Srv_Name: \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Srv_MaxPlayers:.*$",
+        "replace": "  Srv_MaxPlayers: ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Srv_Description:.*$",
+        "replace": "  Srv_Description: \"${SERVER_DESCRIPTION}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Srv_Public:.*$",
+        "replace": "  Srv_Public: ${SERVER_PUBLIC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Srv_Password:.*$",
+        "replace": "  Srv_Password: \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Tel_Enabled:.*$",
+        "replace": "  Tel_Enabled: true",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Tel_Port:.*$",
+        "replace": "  Tel_Port: ${TELNET_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Seed:.*$",
+        "replace": "  Seed: ${GAME_SEED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)GameName:.*$",
+        "replace": "  GameName: ${GAME_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)Mode:.*$",
+        "replace": "  Mode: ${GAME_MODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)CustomScenario:.*$",
+        "replace": "  CustomScenario: \"${CUSTOM_SCENARIO}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)AllowedBlueprints:.*$",
+        "replace": "  AllowedBlueprints: ${ALLOWED_BLUEPRINTS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)MaxAllowedSizeClass:.*$",
+        "replace": "  MaxAllowedSizeClass: ${MAX_ALLOWED_SIZE_CLASS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)EACActive:.*$",
+        "replace": "  EACActive: ${EAC_ACTIVE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)ServerHeartbeatTimeout:.*$",
+        "replace": "  ServerHeartbeatTimeout: ${SERVER_HEARTBEAT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated.yaml')",
+        "type": "alterfile",
+        "file": "dedicated.yaml",
+        "search": "^(\\s*)TimeoutBootingPfServer:.*$",
+        "replace": "  TimeoutBootingPfServer: ${TIMEOUT_BOOTING_PF_SERVER}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "telnet",
+      "ip": "127.0.0.1",
+      "port": "${TELNET_PORT}"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

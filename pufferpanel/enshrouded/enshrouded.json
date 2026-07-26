@@ -1,0 +1,215 @@
+{
+  "type": "enshrouded",
+  "display": "Enshrouded (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2278520",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Enshrouded dedicated server (Windows build, run through Proton)",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_NAME": {
+      "type": "string",
+      "value": "My Enshrouded Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW": {
+      "type": "string",
+      "value": "ChangeMe1",
+      "display": "Admin Group Password",
+      "desc": "Password for the Admin user group, which has full permissions",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW2": {
+      "type": "string",
+      "value": "ChangeMe2",
+      "display": "Friend Group Password",
+      "desc": "Password for the Friend user group",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW3": {
+      "type": "string",
+      "value": "ChangeMe3",
+      "display": "Guest Group Password",
+      "desc": "Password for the Guest user group",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW4": {
+      "type": "string",
+      "value": "ChangeMe4",
+      "display": "Visitor Group Password",
+      "desc": "Password for the Visitor user group",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 15637,
+      "display": "Port",
+      "desc": "UDP query port the server binds to, written to enshrouded_server.json",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": "logs"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('enshrouded_server.json')",
+      "type": "writefile",
+      "target": "enshrouded_server.json",
+      "text": "{\n  \"name\": \"${SRV_NAME}\",\n  \"saveDirectory\": \"./savegame\",\n  \"logDirectory\": \"./logs\",\n  \"ip\": \"0.0.0.0\",\n  \"gamePort\": ${port},\n  \"queryPort\": ${port},\n  \"slotCount\": ${MAX_PLAYERS},\n  \"userGroups\": [\n    {\n      \"name\": \"Admin\",\n      \"password\": \"${SRV_PW}\",\n      \"canKickBan\": true,\n      \"canAccessInventories\": true,\n      \"canEditBase\": true,\n      \"canExtendBase\": true,\n      \"reservedSlots\": 0\n    },\n    {\n      \"name\": \"Friend\",\n      \"password\": \"${SRV_PW2}\",\n      \"canKickBan\": false,\n      \"canAccessInventories\": true,\n      \"canEditBase\": true,\n      \"canExtendBase\": true,\n      \"reservedSlots\": 0\n    },\n    {\n      \"name\": \"Guest\",\n      \"password\": \"${SRV_PW3}\",\n      \"canKickBan\": false,\n      \"canAccessInventories\": false,\n      \"canEditBase\": false,\n      \"canExtendBase\": true,\n      \"reservedSlots\": 0\n    },\n    {\n      \"name\": \"Visitor\",\n      \"password\": \"${SRV_PW4}\",\n      \"canKickBan\": false,\n      \"canAccessInventories\": false,\n      \"canEditBase\": false,\n      \"canExtendBase\": false,\n      \"reservedSlots\": 0\n    }\n  ]\n}\n"
+    }
+  ],
+  "run": {
+    "command": "proton run ./enshrouded_server.exe",
+    "stopCode": 2,
+    "environmentVars": {
+      "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",
+      "STEAM_COMPAT_DATA_PATH": "/pufferpanel/.steam/steam/steamapps/compatdata/${SRCDS_APPID}",
+      "WINEDEBUG": "-all"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "type": "mkdir",
+        "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+      },
+      {
+        "if": "file_exists('enshrouded_server.json')",
+        "type": "alterfile",
+        "file": "enshrouded_server.json",
+        "search": "\"name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"name\": \"${SRV_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('enshrouded_server.json')",
+        "type": "alterfile",
+        "file": "enshrouded_server.json",
+        "search": "\"queryPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"queryPort\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('enshrouded_server.json')",
+        "type": "alterfile",
+        "file": "enshrouded_server.json",
+        "search": "\"gamePort\"\\s*:\\s*[0-9]+",
+        "replace": "\"gamePort\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('enshrouded_server.json')",
+        "type": "alterfile",
+        "file": "enshrouded_server.json",
+        "search": "\"slotCount\"\\s*:\\s*[0-9]+",
+        "replace": "\"slotCount\": ${MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

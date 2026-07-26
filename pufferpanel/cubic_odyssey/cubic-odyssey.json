@@ -1,0 +1,230 @@
+{
+  "type": "cubicodyssey",
+  "display": "Cubic Odyssey (Docker)",
+  "data": {
+    "GALAXY_SEED": {
+      "type": "string",
+      "value": "21945875634",
+      "display": "Galaxy Seed",
+      "desc": "Seed used to generate the galaxy",
+      "required": true,
+      "userEdit": true
+    },
+    "GAMEMODE": {
+      "type": "option",
+      "value": "adventure",
+      "display": "Game Mode",
+      "desc": "Game mode the server runs",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "adventure",
+          "display": "Adventure"
+        },
+        {
+          "value": "creative",
+          "display": "Creative"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 20,
+      "display": "Max Players",
+      "desc": "Maximum number of allowed players",
+      "required": true,
+      "userEdit": true
+    },
+    "PRIVATE_SERVER": {
+      "type": "option",
+      "value": "FALSE",
+      "display": "Private Server",
+      "desc": "Whether the server is private or public",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "FALSE",
+          "display": "Public"
+        },
+        {
+          "value": "TRUE",
+          "display": "Private"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Cubic Odyssey Server",
+      "display": "Server Name",
+      "desc": "Name of the server as shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password players must enter to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3858450",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Cubic Odyssey server tool (Windows build, run through Wine)",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns the Cubic Odyssey server tool. Anonymous login cannot be used.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 20000,
+      "display": "Game Port",
+      "desc": "Port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    }
+  ],
+  "run": {
+    "command": "wine ./server/CubicOdysseyServer.exe -Port=${port} -Password=\"${SERVER_PASSWORD}\" -Gamemode=${GAMEMODE} -MaxNumPlayers=${MAX_PLAYERS}",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('config/server_config.txt')",
+        "type": "alterfile",
+        "file": "config/server_config.txt",
+        "search": "^\\s*serverName .*$",
+        "replace": "\t\tserverName \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/server_config.txt')",
+        "type": "alterfile",
+        "file": "config/server_config.txt",
+        "search": "^\\s*privateServer .*$",
+        "replace": "\t\tprivateServer ${PRIVATE_SERVER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/server_config.txt')",
+        "type": "alterfile",
+        "file": "config/server_config.txt",
+        "search": "^\\s*galaxySeed .*$",
+        "replace": "\t\tgalaxySeed ${GALAXY_SEED}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,382 @@
+{
+  "type": "dayz",
+  "display": "DayZ (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password used to log in as an admin on the server",
+      "required": false,
+      "userEdit": true
+    },
+    "CONFIG_URL": {
+      "type": "string",
+      "value": "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/dayz/serverDZ.cfg",
+      "display": "serverDZ.cfg URL",
+      "desc": "Default server configuration downloaded during installation when serverDZ.cfg is missing",
+      "required": true,
+      "userEdit": false
+    },
+    "DISABLE_THIRD": {
+      "type": "option",
+      "value": "0",
+      "display": "Disable Third Person",
+      "desc": "Force first person view on the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Third person allowed"
+        },
+        {
+          "value": "1",
+          "display": "First person only"
+        }
+      ]
+    },
+    "DISABLE_VON": {
+      "type": "option",
+      "value": "0",
+      "display": "Disable Voice over Network",
+      "desc": "Disable in-game voice chat",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Voice chat enabled"
+        },
+        {
+          "value": "1",
+          "display": "Voice chat disabled"
+        }
+      ]
+    },
+    "ENFORCE_BUILD": {
+      "type": "option",
+      "value": "1",
+      "display": "Enforce Game Version",
+      "desc": "Only allow clients running the same game version as the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enforced"
+        },
+        {
+          "value": "0",
+          "display": "Not enforced"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 64,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed to join the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MODIFICATIONS": {
+      "type": "string",
+      "value": "",
+      "display": "Client Mods",
+      "desc": "Semicolon separated list of mod folders in the server root loaded with -mod. Mod folders have to be uploaded or downloaded manually; this template does not manage Steam Workshop downloads.",
+      "required": false,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Steam Query Port",
+      "desc": "UDP port used for the Steam server list",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 2305,
+      "display": "RCON Port",
+      "desc": "BattlEye RCON port used by external management tools",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVERMODS": {
+      "type": "string",
+      "value": "",
+      "display": "Server-Side Only Mods",
+      "desc": "Semicolon separated list of mod folders loaded with -serverMod",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_BINARY": {
+      "type": "string",
+      "value": "DayZServer",
+      "display": "Server Binary",
+      "desc": "Name of the server executable",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_HOSTNAME": {
+      "type": "string",
+      "value": "DayZ Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join the server. Leave blank for no password.",
+      "required": false,
+      "userEdit": true
+    },
+    "STARTUP_PARAMS": {
+      "type": "string",
+      "value": "-dologs -adminlog -netlog -freezecheck",
+      "display": "Extra Startup Parameters",
+      "desc": "See https://community.bistudio.com/wiki/DayZ:Server_Configuration for the available launch parameters",
+      "required": false,
+      "userEdit": true
+    },
+    "STEAMCMD_APPID": {
+      "type": "string",
+      "value": "223350",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the DayZ dedicated server. 223350 is the stable branch.",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account. Steam Guard must be turned off completely.",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "A real Steam account is required to download the DayZ dedicated server. The account does not need to own DayZ, but anonymous login cannot be used.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "VERIFY_SIGNATURES": {
+      "type": "integer",
+      "value": 2,
+      "display": "Verify Signatures",
+      "desc": "Ensures clients run exactly the mods and addons the server runs",
+      "required": true,
+      "userEdit": true
+    },
+    "VON_QUALITY": {
+      "type": "integer",
+      "value": 20,
+      "display": "VoN Quality",
+      "desc": "Voice over Network codec quality between 0 and 30, higher is better",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 2302,
+      "display": "Port",
+      "desc": "UDP game port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": "profiles"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${STEAMCMD_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./${SERVER_BINARY}"
+      ]
+    },
+    {
+      "if": "!file_exists('serverDZ.cfg')",
+      "type": "download",
+      "files": [
+        "${CONFIG_URL}"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./${SERVER_BINARY} -port=${port} -profiles=profiles -bepath=./ -config=serverDZ.cfg -mod=${MODIFICATIONS} -serverMod=${SERVERMODS} ${STARTUP_PARAMS}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +app_update ${STEAMCMD_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*hostname\\s*=.*$",
+        "replace": "hostname = \"${SERVER_HOSTNAME}\";",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*password\\s*=.*$",
+        "replace": "password = \"${SERVER_PASSWORD}\";",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*passwordAdmin\\s*=.*$",
+        "replace": "passwordAdmin = \"${ADMIN_PASSWORD}\";",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*maxPlayers\\s*=.*$",
+        "replace": "maxPlayers = ${MAX_PLAYERS};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*verifySignatures\\s*=.*$",
+        "replace": "verifySignatures = ${VERIFY_SIGNATURES};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*forceSameBuild\\s*=.*$",
+        "replace": "forceSameBuild = ${ENFORCE_BUILD};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*disableVoN\\s*=.*$",
+        "replace": "disableVoN = ${DISABLE_VON};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*vonCodecQuality\\s*=.*$",
+        "replace": "vonCodecQuality = ${VON_QUALITY};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*disable3rdPerson\\s*=.*$",
+        "replace": "disable3rdPerson = ${DISABLE_THIRD};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverDZ.cfg')",
+        "type": "alterfile",
+        "file": "serverDZ.cfg",
+        "search": "^\\s*steamQueryPort\\s*=.*$",
+        "replace": "steamQueryPort = ${QUERY_PORT};",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:dayz",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:dayz",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

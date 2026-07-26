@@ -1,0 +1,183 @@
+{
+  "type": "ddnet",
+  "display": "DDRaceNetwork (Docker)",
+  "data": {
+    "ARCHIVE_NAME": {
+      "type": "string",
+      "value": "DDNet-19.2.1-linux_x86_64.tar.xz",
+      "display": "Archive Name",
+      "desc": "File name of the archive from the download URL above",
+      "required": true,
+      "userEdit": true
+    },
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "https://ddnet.org/downloads/DDNet-19.2.1-linux_x86_64.tar.xz",
+      "display": "Download URL",
+      "desc": "Link to the Linux x86_64 DDNet release archive. The current link is published on https://ddnet.org/downloads/",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MAP": {
+      "type": "string",
+      "value": "Tutorial",
+      "display": "Server Map",
+      "desc": "Map the server starts with",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "My DDNet server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join the server. Leave blank for no password.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_REGISTER": {
+      "type": "option",
+      "value": "0",
+      "display": "Register Server",
+      "desc": "Register the server on the public server list",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "ipv4",
+          "display": "Enabled, listening on IPv4"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 8303,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to data/autoexec_server.cfg",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${ARCHIVE_NAME}",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/*/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted ${ARCHIVE_NAME}",
+        "chmod +x ./DDNet-Server"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "data"
+    },
+    {
+      "if": "!file_exists('data/autoexec_server.cfg')",
+      "type": "writefile",
+      "target": "data/autoexec_server.cfg",
+      "text": "sv_port ${port}\nsv_name \"${SERVER_NAME}\"\npassword \"${SERVER_PASSWORD}\"\nsv_map \"${SERVER_MAP}\"\nsv_register ${SERVER_REGISTER}\n"
+    }
+  ],
+  "run": {
+    "command": "./DDNet-Server",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "data/autoexec_server.cfg",
+        "search": "^#?sv_port .*$",
+        "replace": "sv_port ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "data/autoexec_server.cfg",
+        "search": "^sv_name .*$",
+        "replace": "sv_name \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "data/autoexec_server.cfg",
+        "search": "^password .*$",
+        "replace": "password \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "data/autoexec_server.cfg",
+        "search": "^sv_map .*$",
+        "replace": "sv_map \"${SERVER_MAP}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('data/autoexec_server.cfg')",
+        "type": "alterfile",
+        "file": "data/autoexec_server.cfg",
+        "search": "^sv_register .*$",
+        "replace": "sv_register ${SERVER_REGISTER}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

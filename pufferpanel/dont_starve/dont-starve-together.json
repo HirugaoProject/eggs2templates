@@ -1,0 +1,303 @@
+{
+  "type": "dontstarvetogether",
+  "display": "Don't Starve Together (Docker)",
+  "data": {
+    "CAVES_PORT": {
+      "type": "integer",
+      "value": 11000,
+      "display": "Caves Shard Port",
+      "desc": "UDP port used by the Caves shard",
+      "required": true,
+      "userEdit": false
+    },
+    "CAVES_WORLDGEN": {
+      "type": "string",
+      "value": "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/dont_starve/worldgenoverride.caves.lua",
+      "display": "Caves Worldgen Override",
+      "desc": "Lua file used to generate the caves map. Only used during installation.",
+      "required": true,
+      "userEdit": false
+    },
+    "CLUSTER_DESC": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Cluster Description",
+      "desc": "Description shown in the server details on the Browse Games screen",
+      "required": true,
+      "userEdit": true
+    },
+    "CLUSTER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Server",
+      "display": "Cluster Name",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_MODE": {
+      "type": "option",
+      "value": "survival",
+      "display": "Game Mode",
+      "desc": "Game mode of the cluster",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "survival",
+          "display": "Survival"
+        },
+        {
+          "value": "endless",
+          "display": "Endless"
+        },
+        {
+          "value": "wilderness",
+          "display": "Wilderness"
+        }
+      ]
+    },
+    "MASTER_WORLDGEN": {
+      "type": "string",
+      "value": "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/dont_starve/worldgenoverride.master.lua",
+      "display": "Master Worldgen Override",
+      "desc": "Lua file used to generate the master map. Only used during installation.",
+      "required": true,
+      "userEdit": false
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed to join the game",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_TOKEN": {
+      "type": "string",
+      "value": "",
+      "display": "Server Token",
+      "desc": "Cluster token required to run a public server. Generate it from inside the game.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "343050",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Don't Starve Together dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 10999,
+      "display": "Port",
+      "desc": "UDP port used by the Master shard",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "DoNotStarveTogether/config/server/Master"
+    },
+    {
+      "type": "mkdir",
+      "target": "DoNotStarveTogether/config/server/Caves"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./bin64/dontstarve_dedicated_server_nullrenderer_x64"
+      ]
+    },
+    {
+      "if": "!file_exists('DoNotStarveTogether/config/server/cluster_token.txt')",
+      "type": "writefile",
+      "target": "DoNotStarveTogether/config/server/cluster_token.txt",
+      "text": "${SERVER_TOKEN}\n"
+    },
+    {
+      "if": "!file_exists('DoNotStarveTogether/config/server/cluster.ini')",
+      "type": "writefile",
+      "target": "DoNotStarveTogether/config/server/cluster.ini",
+      "text": "[GAMEPLAY]\ngame_mode = ${GAME_MODE}\nmax_players = ${MAX_PLAYERS}\npvp = false\npause_when_empty = true\n\n[NETWORK]\ncluster_name = ${CLUSTER_NAME}\ncluster_description = ${CLUSTER_DESC}\ncluster_intention = cooperative\nlan_only_cluster = false\ncluster_password =\n\n[MISC]\nconsole_enabled = true\n\n[SHARD]\nshard_enabled = true\nbind_ip = 127.0.0.1\nmaster_ip = 127.0.0.1\nmaster_port = 11001\ncluster_key = defaultPass\n"
+    },
+    {
+      "if": "!file_exists('DoNotStarveTogether/config/server/Master/server.ini')",
+      "type": "writefile",
+      "target": "DoNotStarveTogether/config/server/Master/server.ini",
+      "text": "[NETWORK]\nserver_port = ${port}\n\n[SHARD]\nis_master = true\n\n[STEAM]\nmaster_server_port = 27016\nauthentication_port = 8766\n"
+    },
+    {
+      "if": "!file_exists('DoNotStarveTogether/config/server/Caves/server.ini')",
+      "type": "writefile",
+      "target": "DoNotStarveTogether/config/server/Caves/server.ini",
+      "text": "[NETWORK]\nserver_port = ${CAVES_PORT}\n\n[SHARD]\nis_master = false\nname = Caves\n\n[STEAM]\nmaster_server_port = 27017\nauthentication_port = 8767\n"
+    },
+    {
+      "if": "!file_exists('DoNotStarveTogether/config/server/Master/worldgenoverride.lua')",
+      "type": "download",
+      "files": [
+        "${MASTER_WORLDGEN}"
+      ]
+    },
+    {
+      "if": "file_exists('worldgenoverride.master.lua')",
+      "type": "move",
+      "source": "worldgenoverride.master.lua",
+      "target": "DoNotStarveTogether/config/server/Master/worldgenoverride.lua"
+    },
+    {
+      "if": "!file_exists('DoNotStarveTogether/config/server/Caves/worldgenoverride.lua')",
+      "type": "download",
+      "files": [
+        "${CAVES_WORLDGEN}"
+      ]
+    },
+    {
+      "if": "file_exists('worldgenoverride.caves.lua')",
+      "type": "move",
+      "source": "worldgenoverride.caves.lua",
+      "target": "DoNotStarveTogether/config/server/Caves/worldgenoverride.lua"
+    }
+  ],
+  "run": {
+    "command": "bash -c 'cd bin64 && ./dontstarve_dedicated_server_nullrenderer_x64 -bind_ip 0.0.0.0 -port ${CAVES_PORT} -persistent_storage_root /pufferpanel/DoNotStarveTogether -conf_dir config -cluster server -players ${MAX_PLAYERS} -shard Caves & exec ./dontstarve_dedicated_server_nullrenderer_x64 -bind_ip 0.0.0.0 -port ${port} -persistent_storage_root /pufferpanel/DoNotStarveTogether -conf_dir config -cluster server -players ${MAX_PLAYERS} -shard Master'",
+    "stop": "c_shutdown()",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('DoNotStarveTogether/config/server/cluster.ini')",
+        "type": "alterfile",
+        "file": "DoNotStarveTogether/config/server/cluster.ini",
+        "search": "^game_mode\\s*=.*$",
+        "replace": "game_mode = ${GAME_MODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DoNotStarveTogether/config/server/cluster.ini')",
+        "type": "alterfile",
+        "file": "DoNotStarveTogether/config/server/cluster.ini",
+        "search": "^max_players\\s*=.*$",
+        "replace": "max_players = ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DoNotStarveTogether/config/server/cluster.ini')",
+        "type": "alterfile",
+        "file": "DoNotStarveTogether/config/server/cluster.ini",
+        "search": "^cluster_name\\s*=.*$",
+        "replace": "cluster_name = ${CLUSTER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DoNotStarveTogether/config/server/cluster.ini')",
+        "type": "alterfile",
+        "file": "DoNotStarveTogether/config/server/cluster.ini",
+        "search": "^cluster_description\\s*=.*$",
+        "replace": "cluster_description = ${CLUSTER_DESC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DoNotStarveTogether/config/server/Master/server.ini')",
+        "type": "alterfile",
+        "file": "DoNotStarveTogether/config/server/Master/server.ini",
+        "search": "^server_port\\s*=.*$",
+        "replace": "server_port = ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DoNotStarveTogether/config/server/Caves/server.ini')",
+        "type": "alterfile",
+        "file": "DoNotStarveTogether/config/server/Caves/server.ini",
+        "search": "^server_port\\s*=.*$",
+        "replace": "server_port = ${CAVES_PORT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${CAVES_PORT}:${CAVES_PORT}/udp",
+      "0.0.0.0:27016:27016/udp",
+      "0.0.0.0:27017:27017/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${CAVES_PORT}:${CAVES_PORT}/udp",
+        "0.0.0.0:27016:27016/udp",
+        "0.0.0.0:27017:27017/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

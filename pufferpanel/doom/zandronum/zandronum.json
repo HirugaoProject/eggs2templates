@@ -1,0 +1,199 @@
+{
+  "type": "zandronum",
+  "display": "Zandronum (Docker)",
+  "data": {
+    "ARCHIVE_NAME": {
+      "type": "string",
+      "value": "zandronum3.2-linux-x86_64.tar.bz2",
+      "display": "Archive Name",
+      "desc": "File name of the archive from the download URL above",
+      "required": true,
+      "userEdit": true
+    },
+    "COMPATFLAGS": {
+      "type": "string",
+      "value": "0",
+      "display": "compatflags",
+      "desc": "Compatibility flags, see https://wiki.zandronum.com/DMFlags",
+      "required": true,
+      "userEdit": true
+    },
+    "COMPATFLAGS2": {
+      "type": "string",
+      "value": "0",
+      "display": "compatflags2",
+      "desc": "Compatibility flags, see https://wiki.zandronum.com/DMFlags",
+      "required": true,
+      "userEdit": true
+    },
+    "DMFLAGS": {
+      "type": "string",
+      "value": "0",
+      "display": "dmflags",
+      "desc": "Gameplay flags, see https://wiki.zandronum.com/DMFlags",
+      "required": true,
+      "userEdit": true
+    },
+    "DMFLAGS2": {
+      "type": "string",
+      "value": "0",
+      "display": "dmflags2",
+      "desc": "Gameplay flags, see https://wiki.zandronum.com/DMFlags",
+      "required": true,
+      "userEdit": true
+    },
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "https://zandronum.com/downloads/zandronum3.2-linux-x86_64.tar.bz2",
+      "display": "Download URL",
+      "desc": "Link to the Linux x86_64 Zandronum server archive. The current link is published on https://zandronum.com/downloads/",
+      "required": true,
+      "userEdit": true
+    },
+    "IWAD": {
+      "type": "string",
+      "value": "freedoom1.wad",
+      "display": "IWAD",
+      "desc": "Main resource file for the Doom engine game, loaded from the IWAD directory",
+      "required": true,
+      "userEdit": true
+    },
+    "IWAD_URL": {
+      "type": "string",
+      "value": "https://github.com/freedoom/freedoom/releases/latest/download/freedoom-0.13.0.zip",
+      "display": "IWAD Archive URL",
+      "desc": "Archive containing the IWAD files installed into the IWAD directory",
+      "required": true,
+      "userEdit": true
+    },
+    "MAP": {
+      "type": "string",
+      "value": "e1m1",
+      "display": "Map",
+      "desc": "Map the server starts with",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "PWADS": {
+      "type": "string",
+      "value": "",
+      "display": "PWADs",
+      "desc": "PWAD files loaded from the PWAD directory. Separate multiple files with spaces.",
+      "required": false,
+      "userEdit": true
+    },
+    "SKILL": {
+      "type": "integer",
+      "value": 3,
+      "display": "Skill",
+      "desc": "Difficulty of the game, 1 to 5",
+      "required": true,
+      "userEdit": true
+    },
+    "ZACOMPATFLAGS": {
+      "type": "string",
+      "value": "0",
+      "display": "zacompatflags",
+      "desc": "Zandronum specific compatibility flags",
+      "required": true,
+      "userEdit": true
+    },
+    "ZADMFLAGS": {
+      "type": "string",
+      "value": "0",
+      "display": "zadmflags",
+      "desc": "Zandronum specific gameplay flags",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 10666,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "IWAD"
+    },
+    {
+      "type": "mkdir",
+      "target": "PWAD"
+    },
+    {
+      "type": "download",
+      "files": [
+        "${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${ARCHIVE_NAME}",
+      "destination": "."
+    },
+    {
+      "if": "!file_exists('IWAD/' + IWAD)",
+      "type": "download",
+      "files": [
+        "${IWAD_URL}"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f ${ARCHIVE_NAME}",
+        "chmod +x ./zandronum-server"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "./zandronum-server -port ${port} -config /pufferpanel/zandronum.ini +set dmflags ${DMFLAGS} +set dmflags2 ${DMFLAGS2} +set zadmflags ${ZADMFLAGS} +set compatflags ${COMPATFLAGS} +set compatflags2 ${COMPATFLAGS2} +set zacompatflags ${ZACOMPATFLAGS} -iwad IWAD/${IWAD} -file PWAD/${PWADS} -host ${MAX_PLAYERS} +map ${MAP} -skill ${SKILL} -netmode 1",
+        "if": "PWADS != ''"
+      },
+      {
+        "command": "./zandronum-server -port ${port} -config /pufferpanel/zandronum.ini +set dmflags ${DMFLAGS} +set dmflags2 ${DMFLAGS2} +set zadmflags ${ZADMFLAGS} +set compatflags ${COMPATFLAGS} +set compatflags2 ${COMPATFLAGS2} +set zacompatflags ${ZACOMPATFLAGS} -iwad IWAD/${IWAD} -host ${MAX_PLAYERS} +map ${MAP} -skill ${SKILL} -netmode 1"
+      }
+    ],
+    "stop": "quit",
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:ubuntu",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:ubuntu",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

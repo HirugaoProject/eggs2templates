@@ -1,0 +1,275 @@
+{
+  "type": "eco",
+  "display": "Eco (Docker)",
+  "data": {
+    "DEDES": {
+      "type": "string",
+      "value": "",
+      "display": "Detailed Description",
+      "desc": "Long form description shown when players click the server in the browser",
+      "required": false,
+      "userEdit": true
+    },
+    "DISCORD_SRV": {
+      "type": "string",
+      "value": "",
+      "display": "Discord Server",
+      "desc": "Invite link id of a Discord server, the part after discord.gg/",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_CON": {
+      "type": "integer",
+      "value": -1,
+      "display": "Max Connections",
+      "desc": "Maximum number of concurrent players. -1 means no limit.",
+      "required": true,
+      "userEdit": true
+    },
+    "PUB_SRV": {
+      "type": "option",
+      "value": "false",
+      "display": "Public Server",
+      "desc": "List the server in the Eco client server browser",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Private"
+        },
+        {
+          "value": "true",
+          "display": "Public"
+        }
+      ]
+    },
+    "SLG_PW": {
+      "type": "string",
+      "value": "",
+      "display": "SLG Password",
+      "desc": "Password of the Strange Loop Games account the server authenticates with",
+      "required": false,
+      "userEdit": true
+    },
+    "SLG_USER": {
+      "type": "string",
+      "value": "",
+      "display": "SLG Username",
+      "desc": "Strange Loop Games account the server authenticates with",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "739590",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Eco dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_NAME": {
+      "type": "string",
+      "value": "Hosted by PufferPanel",
+      "display": "Server Name",
+      "desc": "Name of the server in the client server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join. Leave blank for an open server.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WEB_PORT": {
+      "type": "integer",
+      "value": 3001,
+      "display": "Web Server Port",
+      "desc": "TCP port of the built-in web server",
+      "required": true,
+      "userEdit": false
+    },
+    "port": {
+      "type": "integer",
+      "value": 3000,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./EcoServer"
+      ]
+    },
+    {
+      "if": "!file_exists('Configs/Network.eco')",
+      "type": "command",
+      "commands": [
+        "cp Configs/Network.eco.template Configs/Network.eco"
+      ]
+    },
+    {
+      "if": "!file_exists('Configs/Localization.eco')",
+      "type": "command",
+      "commands": [
+        "cp Configs/Localization.eco.template Configs/Localization.eco"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./EcoServer --username=\"${SLG_USER}\" --password=\"${SLG_PW}\"",
+    "stop": "exit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Configs/Network.eco')",
+        "type": "alterfile",
+        "file": "Configs/Network.eco",
+        "search": "\"GameServerPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"GameServerPort\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/Network.eco')",
+        "type": "alterfile",
+        "file": "Configs/Network.eco",
+        "search": "\"WebServerPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"WebServerPort\": ${WEB_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/Network.eco')",
+        "type": "alterfile",
+        "file": "Configs/Network.eco",
+        "search": "\"PublicServer\"\\s*:\\s*(true|false)",
+        "replace": "\"PublicServer\": ${PUB_SRV}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/Network.eco')",
+        "type": "alterfile",
+        "file": "Configs/Network.eco",
+        "search": "\"Password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Password\": \"${SRV_PW}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/Network.eco')",
+        "type": "alterfile",
+        "file": "Configs/Network.eco",
+        "search": "\"Description\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Description\": \"${SRV_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/Network.eco')",
+        "type": "alterfile",
+        "file": "Configs/Network.eco",
+        "search": "\"DetailedDescription\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"DetailedDescription\": \"${DEDES}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/Network.eco')",
+        "type": "alterfile",
+        "file": "Configs/Network.eco",
+        "search": "\"MaxConnections\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"MaxConnections\": ${MAX_CON}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/Network.eco')",
+        "type": "alterfile",
+        "file": "Configs/Network.eco",
+        "search": "\"DiscordAddress\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"DiscordAddress\": \"${DISCORD_SRV}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:dotnet",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${WEB_PORT}:${WEB_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:dotnet",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${WEB_PORT}:${WEB_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

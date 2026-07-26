@@ -1,0 +1,98 @@
+{
+  "type": "stayintarkov",
+  "display": "Stay In Tarkov (Docker)",
+  "data": {
+    "SIT_NAME": {
+      "type": "string",
+      "value": "SITCoop.tar.gz",
+      "display": "Release Asset Name",
+      "desc": "File name of the Linux release asset of the SIT server mod",
+      "required": true,
+      "userEdit": true
+    },
+    "SIT_PACKAGE": {
+      "type": "string",
+      "value": "stayintarkov/SIT.Aki-Server-Mod",
+      "display": "GitHub Repository",
+      "desc": "GitHub repository the SIT Aki co-op server mod is downloaded from",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 6969,
+      "display": "Port",
+      "desc": "TCP port the server listens on, written to Aki_Data/Server/configs/http.json",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/${SIT_PACKAGE}/releases/latest/download/${SIT_NAME}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${SIT_NAME}",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f ${SIT_NAME}",
+        "chmod +x ./Aki.Server.exe"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Aki.Server.exe",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('Aki_Data/Server/configs/http.json')",
+        "type": "alterfile",
+        "file": "Aki_Data/Server/configs/http.json",
+        "search": "\"ip\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"ip\": \"0.0.0.0\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Aki_Data/Server/configs/http.json')",
+        "type": "alterfile",
+        "file": "Aki_Data/Server/configs/http.json",
+        "search": "\"port\"\\s*:\\s*[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
