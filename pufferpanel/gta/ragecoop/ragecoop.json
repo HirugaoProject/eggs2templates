@@ -1,0 +1,80 @@
+{
+  "type": "ragecoop",
+  "display": "RageCOOP (Docker)",
+  "data": {
+    "port": {
+      "type": "integer",
+      "value": 4499,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to Settings.xml",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/RAGECOOP/RAGECOOP-V/releases/latest/download/RageCoop.Server-linux-x64.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "RageCoop.Server-linux-x64.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f RageCoop.Server-linux-x64.zip",
+        "chmod +x ./RageCoop.Server"
+      ]
+    },
+    {
+      "if": "!file_exists('Settings.xml')",
+      "type": "writefile",
+      "target": "Settings.xml",
+      "text": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Settings xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n  <Port>${port}</Port>\n  <MaxPlayers>32</MaxPlayers>\n  <Name>A PufferPanel RageCOOP Server</Name>\n  <Website>https://ragecoop.com/</Website>\n  <Description>RAGECOOP server</Description>\n  <GameMode />\n  <Language>English</Language>\n  <MasterServer>https://masterserver.ragecoop.com/</MasterServer>\n  <AnnounceSelf>false</AnnounceSelf>\n  <UseP2P>true</UseP2P>\n  <Password />\n</Settings>\n"
+    }
+  ],
+  "run": {
+    "command": "./RageCoop.Server",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('Settings.xml')",
+        "type": "alterfile",
+        "file": "Settings.xml",
+        "search": "<Port>[^<]*</Port>",
+        "replace": "<Port>${port}</Port>",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

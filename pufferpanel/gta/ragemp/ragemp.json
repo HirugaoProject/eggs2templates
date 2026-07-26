@@ -1,0 +1,124 @@
+{
+  "type": "ragemp",
+  "display": "RAGE:MP (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 50,
+      "display": "Max Players",
+      "desc": "Maximum number of players the server holds, at most 100",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "RAGE:MP Unofficial server",
+      "display": "Server Name",
+      "desc": "Name reported to the master server, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 22005,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to conf.json",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://cdn.rage.mp/updater/prerelease/server-files/linux_x64.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "linux_x64.tar.gz",
+      "destination": "tmp"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'mv -f tmp/ragemp-srv/* ./'",
+        "rm -rf tmp linux_x64.tar.gz",
+        "chmod +x ./ragemp-server"
+      ]
+    },
+    {
+      "if": "!file_exists('conf.json')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/gta/ragemp/conf.json"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./ragemp-server",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('conf.json')",
+        "type": "alterfile",
+        "file": "conf.json",
+        "search": "\"port\"\\s*:\\s*[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('conf.json')",
+        "type": "alterfile",
+        "file": "conf.json",
+        "search": "\"bind\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"bind\": \"0.0.0.0\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('conf.json')",
+        "type": "alterfile",
+        "file": "conf.json",
+        "search": "\"name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"name\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('conf.json')",
+        "type": "alterfile",
+        "file": "conf.json",
+        "search": "\"maxplayers\"\\s*:\\s*[0-9]+",
+        "replace": "\"maxplayers\": ${MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

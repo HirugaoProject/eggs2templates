@@ -1,7 +1,15 @@
 {
-  "type": "fivem",
-  "display": "FiveM (Docker)",
+  "type": "redm",
+  "display": "RedM (Docker)",
   "data": {
+    "CFX_LICENSE": {
+      "type": "string",
+      "value": "",
+      "display": "FiveM License Key",
+      "desc": "Required to start the server. Keys are issued at https://portal.cfx.re/",
+      "required": true,
+      "userEdit": true
+    },
     "DOWNLOAD_URL": {
       "type": "string",
       "value": "",
@@ -10,17 +18,9 @@
       "required": true,
       "userEdit": true
     },
-    "FIVEM_LICENSE": {
-      "type": "string",
-      "value": "",
-      "display": "FiveM License Key",
-      "desc": "Required to start the server. Keys are issued at https://portal.cfx.re/",
-      "required": true,
-      "userEdit": true
-    },
     "GAME_TYPE": {
       "type": "option",
-      "value": "gta5",
+      "value": "rdr3",
       "display": "Game Type",
       "desc": "gta5 for FiveM, rdr3 for RedM",
       "required": true,
@@ -38,7 +38,7 @@
     },
     "MAX_PLAYERS": {
       "type": "integer",
-      "value": 48,
+      "value": 32,
       "display": "Max Players",
       "desc": "Maximum number of players on the server",
       "required": true,
@@ -88,7 +88,7 @@
     },
     "TXHOST_GAME_NAME": {
       "type": "string",
-      "value": "fivem",
+      "value": "redm",
       "display": "txAdmin Game Name",
       "desc": "Restricts txAdmin to running either FiveM or RedM servers",
       "required": true,
@@ -155,20 +155,19 @@
       "if": "!file_exists('server.cfg')",
       "type": "writefile",
       "target": "server.cfg",
-      "text": "endpoint_add_tcp \"0.0.0.0:${port}\"\nendpoint_add_udp \"0.0.0.0:${port}\"\n\nsv_hostname \"${SERVER_HOSTNAME}\"\nsv_maxclients ${MAX_PLAYERS}\nsets sv_projectName \"${SERVER_HOSTNAME}\"\nsets sv_projectDesc \"A FiveM server hosted with PufferPanel\"\n\nset sv_licenseKey ${FIVEM_LICENSE}\nset steam_webApiKey ${STEAM_WEBAPIKEY}\nsv_scriptHookAllowed 0\n\nensure mapmanager\nensure chat\nensure spawnmanager\nensure sessionmanager\nensure basic-gamemode\nensure hardcap\nensure rconlog\n"
+      "text": "endpoint_add_tcp \"0.0.0.0:${port}\"\nendpoint_add_udp \"0.0.0.0:${port}\"\n\nsv_hostname \"${SERVER_HOSTNAME}\"\nsv_maxclients ${MAX_PLAYERS}\nsets sv_projectName \"${SERVER_HOSTNAME}\"\nsets sv_projectDesc \"A RedM server hosted with PufferPanel\"\n\nset sv_licenseKey ${CFX_LICENSE}\nset steam_webApiKey ${STEAM_WEBAPIKEY}\nsv_scriptHookAllowed 0\n\nensure mapmanager\nensure chat\nensure spawnmanager\nensure sessionmanager\nensure basic-gamemode\nensure hardcap\nensure rconlog\n"
     }
   ],
   "run": {
     "command": [
       {
-        "command": "bash -c 'exec ./alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"/pufferpanel/alpine/usr/lib/v8/:/pufferpanel/alpine/lib/:/pufferpanel/alpine/usr/lib/\" -- /pufferpanel/alpine/opt/cfx-server/FXServer +set citizen_dir /pufferpanel/alpine/opt/cfx-server/citizen/ +set sv_licenseKey ${FIVEM_LICENSE} +set steam_webApiKey ${STEAM_WEBAPIKEY} +set sv_maxplayers ${MAX_PLAYERS}'",
+        "command": "bash -c 'exec ./alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"/pufferpanel/alpine/usr/lib/v8/:/pufferpanel/alpine/lib/:/pufferpanel/alpine/usr/lib/\" -- /pufferpanel/alpine/opt/cfx-server/FXServer +set citizen_dir /pufferpanel/alpine/opt/cfx-server/citizen/ +set sv_licenseKey ${CFX_LICENSE} +set steam_webApiKey ${STEAM_WEBAPIKEY} +set sv_maxplayers ${MAX_PLAYERS}' +set gamename rdr3",
         "if": "TXADMIN_ENABLE == '1'"
       },
       {
-        "command": "bash -c 'exec ./alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"/pufferpanel/alpine/usr/lib/v8/:/pufferpanel/alpine/lib/:/pufferpanel/alpine/usr/lib/\" -- /pufferpanel/alpine/opt/cfx-server/FXServer +set citizen_dir /pufferpanel/alpine/opt/cfx-server/citizen/ +set sv_licenseKey ${FIVEM_LICENSE} +set steam_webApiKey ${STEAM_WEBAPIKEY} +set sv_maxplayers ${MAX_PLAYERS} +exec server.cfg'"
+        "command": "bash -c 'exec ./alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"/pufferpanel/alpine/usr/lib/v8/:/pufferpanel/alpine/lib/:/pufferpanel/alpine/usr/lib/\" -- /pufferpanel/alpine/opt/cfx-server/FXServer +set citizen_dir /pufferpanel/alpine/opt/cfx-server/citizen/ +set sv_licenseKey ${CFX_LICENSE} +set steam_webApiKey ${STEAM_WEBAPIKEY} +set sv_maxplayers ${MAX_PLAYERS} +exec server.cfg' +set gamename rdr3"
       }
     ],
-    "stop": "quit",
     "environmentVars": {
       "TXHOST_DATA_PATH": "${TXHOST_DATA_PATH}",
       "TXHOST_GAME_NAME": "${TXHOST_GAME_NAME}",
@@ -205,7 +204,7 @@
         "type": "alterfile",
         "file": "server.cfg",
         "search": "^set sv_licenseKey.*$",
-        "replace": "set sv_licenseKey ${FIVEM_LICENSE}",
+        "replace": "set sv_licenseKey ${CFX_LICENSE}",
         "regex": true
       },
       {
@@ -222,7 +221,8 @@
     },
     "autostart": false,
     "autorecover": false,
-    "autorestart": false
+    "autorestart": false,
+    "stopCode": 2
   },
   "environment": {
     "type": "docker",
