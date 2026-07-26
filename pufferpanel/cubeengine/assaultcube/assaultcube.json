@@ -1,0 +1,151 @@
+{
+  "type": "assaultcube",
+  "display": "AssaultCube (Docker)",
+  "data": {
+    "ASSAULT_SERVER_ADMINPASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password used to claim admin on the server",
+      "required": false,
+      "userEdit": true
+    },
+    "ASSAULT_SERVER_DESCRIPTION": {
+      "type": "string",
+      "value": "A PufferPanel AssaultCube Server",
+      "display": "Server Description",
+      "desc": "Description shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "ASSAULT_SERVER_KEY": {
+      "type": "string",
+      "value": "",
+      "display": "Server Auth Key",
+      "desc": "Key used to register the server on the master server. Generate one as described at https://assault.cubers.net",
+      "required": false,
+      "userEdit": true
+    },
+    "ASSAULT_SERVER_MASTERSERVER": {
+      "type": "string",
+      "value": "ms.cubers.net",
+      "display": "Master Server",
+      "desc": "Hostname or IP of the master server the server registers with",
+      "required": true,
+      "userEdit": true
+    },
+    "ASSAULT_SERVER_MAXPLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Number of players allowed to join, at most 16",
+      "required": true,
+      "userEdit": true
+    },
+    "ASSAULT_SERVER_MOTD": {
+      "type": "string",
+      "value": "",
+      "display": "Message Of The Day",
+      "desc": "Message shown to joining players",
+      "required": false,
+      "userEdit": true
+    },
+    "ASSAULT_SERVER_PLAYERPASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Player Password",
+      "desc": "Password required to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "ARCHIVE_NAME": {
+      "type": "string",
+      "value": "AssaultCube_v1.3.0.2_LockdownEdition_RC1.tar.bz2",
+      "display": "Release Archive",
+      "desc": "File name of the Linux release archive to install. Releases are listed at https://github.com/assaultcube/AC/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "v1.3.0.2",
+      "display": "Version",
+      "desc": "Git tag of the AssaultCube release to install",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 28763,
+      "display": "Port",
+      "desc": "UDP port the server listens on. AssaultCube also uses the following UDP port for its info service.",
+      "required": true,
+      "userEdit": false
+    },
+    "port_info": {
+      "type": "integer",
+      "value": 28764,
+      "display": "Info Port",
+      "desc": "UDP info port, must be the game port + 1",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/assaultcube/AC/releases/download/${VERSION}/${ARCHIVE_NAME}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${ARCHIVE_NAME}",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/*/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted ${ARCHIVE_NAME} bin_win32",
+        "chmod +x ./bin_unix/linux_64_server"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./bin_unix/linux_64_server -Y${ASSAULT_SERVER_KEY} -n\"${ASSAULT_SERVER_DESCRIPTION}\" -o\"${ASSAULT_SERVER_MOTD}\" -c${ASSAULT_SERVER_MAXPLAYERS} -x${ASSAULT_SERVER_ADMINPASSWORD} -f${port} -p${ASSAULT_SERVER_PLAYERPASSWORD} -m${ASSAULT_SERVER_MASTERSERVER}",
+    "stopCode": 2,
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${port_info}:${port_info}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${port_info}:${port_info}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

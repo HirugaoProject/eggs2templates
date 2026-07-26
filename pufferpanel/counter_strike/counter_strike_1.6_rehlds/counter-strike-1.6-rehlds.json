@@ -1,0 +1,225 @@
+{
+  "type": "hlds",
+  "display": "Counter-Strike 1.6 - ReHLDS (Docker)",
+  "data": {
+    "HLDS_GAME": {
+      "type": "string",
+      "value": "cstrike",
+      "display": "Game Name",
+      "desc": "Mod directory HLDS loads",
+      "required": true,
+      "userEdit": false
+    },
+    "HOSTNAME": {
+      "type": "string",
+      "value": "Counter-Strike 1.6 Server",
+      "display": "Server Hostname",
+      "desc": "Hostname shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "REGAMEDLL_VERSION": {
+      "type": "string",
+      "value": "5.30.0.814",
+      "display": "ReGameDLL_CS Version",
+      "desc": "Release of ReGameDLL_CS to install. Releases are listed at https://github.com/s1lentq/ReGameDLL_CS/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "REHLDS_VERSION": {
+      "type": "string",
+      "value": "3.15.0.896",
+      "display": "ReHLDS Version",
+      "desc": "Release of ReHLDS to install. Releases are listed at https://github.com/rehlds/ReHLDS/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "90",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Half-Life dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "steam_legacy",
+      "display": "Beta Branch",
+      "desc": "ReHLDS needs the legacy HLDS build, so steam_legacy is used by default",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_MAP": {
+      "type": "string",
+      "value": "de_dust2",
+      "display": "Map",
+      "desc": "Map the server loads on boot",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start. Off by default because SteamCMD overwrites the ReHLDS binaries.",
+      "required": false,
+      "userEdit": true
+    },
+    "VAC_PORT": {
+      "type": "integer",
+      "value": 26900,
+      "display": "VAC Port",
+      "desc": "Port used for VAC",
+      "required": true,
+      "userEdit": false
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_set_config 90 mod ${HLDS_GAME} +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_set_config 90 mod ${HLDS_GAME} +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/rehlds/ReHLDS/releases/download/${REHLDS_VERSION}/rehlds-bin-${REHLDS_VERSION}.zip",
+        "https://github.com/s1lentq/ReGameDLL_CS/releases/download/${REGAMEDLL_VERSION}/regamedll-bin-${REGAMEDLL_VERSION}.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "rehlds-bin-${REHLDS_VERSION}.zip",
+      "destination": "rehlds-install"
+    },
+    {
+      "type": "extract",
+      "source": "regamedll-bin-${REGAMEDLL_VERSION}.zip",
+      "destination": "regamedll-install"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp -a rehlds-install/bin/linux32/. ./",
+        "cp -a regamedll-install/bin/linux32/. ./",
+        "rm -rf rehlds-install regamedll-install",
+        "rm -f rehlds-bin-${REHLDS_VERSION}.zip regamedll-bin-${REGAMEDLL_VERSION}.zip",
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./hlds_run ./hlds_linux"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "cstrike/addons/amxmodx/data"
+    },
+    {
+      "if": "!file_exists('cstrike/listip.cfg')",
+      "type": "writefile",
+      "target": "cstrike/listip.cfg",
+      "text": "// Banned IPs\n"
+    },
+    {
+      "if": "!file_exists('cstrike/banned.cfg')",
+      "type": "writefile",
+      "target": "cstrike/banned.cfg",
+      "text": "// Banned IDs\n"
+    }
+  ],
+  "run": {
+    "command": "./hlds_run -console -game ${HLDS_GAME} -port ${port} -sport ${VAC_PORT} +map ${SRCDS_MAP} +hostname \"${HOSTNAME}\" +ip 0.0.0.0 -strictportbind -norestart +maxplayers 32 +pingboost 2 +sys_ticrate 1200",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_set_config 90 mod ${HLDS_GAME} +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_set_config 90 mod ${HLDS_GAME} +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${VAC_PORT}:${VAC_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${VAC_PORT}:${VAC_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "type": "corekeeper",
+  "display": "Core Keeper (Docker)",
+  "data": {
+    "GAME_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Game ID",
+      "desc": "Game id clients use to join. It must be at least 28 alphanumeric characters. Leave blank to let the server generate one and print it to the console.",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 100,
+      "display": "Max Players",
+      "desc": "Maximum number of players allowed to connect, up to 100",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1963720",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Core Keeper dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_INDEX": {
+      "type": "integer",
+      "value": 0,
+      "display": "World Index",
+      "desc": "Which world slot the server uses",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_MODE": {
+      "type": "option",
+      "value": "0",
+      "display": "World Mode",
+      "desc": "Difficulty of the world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Normal"
+        },
+        {
+          "value": "1",
+          "display": "Hard"
+        }
+      ]
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "Core Keeper Server",
+      "display": "World Name",
+      "desc": "Name used for the server world",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_SEED": {
+      "type": "integer",
+      "value": 0,
+      "display": "World Seed",
+      "desc": "Seed used for a new world. Set to 0 to generate a random seed.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./CoreKeeperServer"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "bash -c 'Xvfb :0 -screen 0 1x1x24 -ac -nolisten tcp & exec ./CoreKeeperServer -batchmode -logfile /dev/stdout -world ${WORLD_INDEX} -worldname \"${WORLD_NAME}\" -worldseed ${WORLD_SEED} -gameid ${GAME_ID} -maxplayers ${MAX_PLAYERS} -worldmode ${WORLD_MODE} -port ${port}'",
+        "if": "GAME_ID != ''"
+      },
+      {
+        "command": "bash -c 'Xvfb :0 -screen 0 1x1x24 -ac -nolisten tcp & exec ./CoreKeeperServer -batchmode -logfile /dev/stdout -world ${WORLD_INDEX} -worldname \"${WORLD_NAME}\" -worldseed ${WORLD_SEED} -maxplayers ${MAX_PLAYERS} -worldmode ${WORLD_MODE} -port ${port}'"
+      }
+    ],
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

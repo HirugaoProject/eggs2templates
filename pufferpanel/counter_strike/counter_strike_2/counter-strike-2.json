@@ -1,0 +1,228 @@
+{
+  "type": "srcds",
+  "display": "Counter-Strike 2 (Docker)",
+  "data": {
+    "GAME_MODE": {
+      "type": "integer",
+      "value": 1,
+      "display": "Game Mode",
+      "desc": "Game mode set at the start of the next round. Combined with game type: competitive is type 0 mode 1, casual is type 0 mode 0, wingman is type 0 mode 2, deathmatch is type 1 mode 2.",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_TYPE": {
+      "type": "integer",
+      "value": 0,
+      "display": "Game Type",
+      "desc": "Game type set at the start of the next round",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 12,
+      "display": "Max Players",
+      "desc": "Maximum number of players able to join the server",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_ENABLED": {
+      "type": "option",
+      "value": "",
+      "display": "Enable RCON",
+      "desc": "Enable RCON so external tools can send commands",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Disabled"
+        },
+        {
+          "value": "-usercon",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password granting access to administrator commands on the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel hosted CS2 Server",
+      "display": "Server Name",
+      "desc": "Server name shown in the Steam server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "If set, players must provide this password to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "730",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Counter-Strike 2 dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_MAP": {
+      "type": "string",
+      "value": "de_dust2",
+      "display": "Map",
+      "desc": "Default map, for example de_dust2, de_mirage, de_nuke or de_overpass",
+      "required": true,
+      "userEdit": true
+    },
+    "STEAM_GSLT": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Game Server Login Token",
+      "desc": "Token required for the server to be listed publicly. Create one at https://steamcommunity.com/dev/managegameservers",
+      "required": false,
+      "userEdit": true
+    },
+    "TV_PORT": {
+      "type": "integer",
+      "value": 27020,
+      "display": "SourceTV Port",
+      "desc": "Port used to spectate games on the server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "VAC_ENABLED": {
+      "type": "option",
+      "value": "",
+      "display": "Enable VAC",
+      "desc": "Enable Valve Anti-Cheat on the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Enabled"
+        },
+        {
+          "value": "-insecure",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./game/bin/linuxsteamrt64/cs2"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./game/bin/linuxsteamrt64/cs2 -dedicated ${VAC_ENABLED} -ip 0.0.0.0 -port ${port} -tv_port ${TV_PORT} -maxplayers ${MAX_PLAYERS} ${RCON_ENABLED} +game_mode ${GAME_MODE} +game_type ${GAME_TYPE} +map ${SRCDS_MAP} +hostname \"${SERVER_NAME}\" +sv_password \"${SERVER_PASSWORD}\" +rcon_password \"${RCON_PASSWORD}\" +sv_setsteamaccount ${STEAM_GSLT}",
+    "stop": "quit",
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel/game/bin/linuxsteamrt64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:sniper",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${TV_PORT}:${TV_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:sniper",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${TV_PORT}:${TV_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
