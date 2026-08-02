@@ -1,0 +1,257 @@
+{
+  "type": "sunkenland",
+  "display": "Sunkenland (Docker)",
+  "data": {
+    "MAX_PLAYER": {
+      "type": "integer",
+      "value": 3,
+      "display": "Max Players",
+      "desc": "Players allowed on the server (3-15)",
+      "required": true,
+      "userEdit": true
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "12345678",
+      "display": "Server Password",
+      "desc": "Join password, at most 8 ASCII characters. Non-ASCII characters break password verification.",
+      "required": true,
+      "userEdit": true
+    },
+    "REGION": {
+      "type": "option",
+      "value": "asia",
+      "display": "Region",
+      "desc": "Region the server is advertised in",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "asia",
+          "display": "Asia"
+        },
+        {
+          "value": "cn",
+          "display": "Chinese Mainland"
+        },
+        {
+          "value": "jp",
+          "display": "Japan"
+        },
+        {
+          "value": "eu",
+          "display": "Europe"
+        },
+        {
+          "value": "sa",
+          "display": "South America"
+        },
+        {
+          "value": "kr",
+          "display": "South Korea"
+        },
+        {
+          "value": "us",
+          "display": "USA, East"
+        },
+        {
+          "value": "usw",
+          "display": "USA, West"
+        }
+      ]
+    },
+    "SERVER_IP": {
+      "type": "string",
+      "value": "",
+      "display": "Public IP",
+      "desc": "Address the server advertises to clients",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel World",
+      "display": "World Name",
+      "desc": "Name in front of the tilde in the save folder",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2667530",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Sunkenland dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_GUID": {
+      "type": "string",
+      "value": "11223344-5566-7788-99aa-bbccddeeff00",
+      "display": "World GUID",
+      "desc": "Part of the save folder name after the tilde. The server refuses to start when no save with this GUID exists. The default GUID gets the starter world installed for it.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q mono vcrun2022"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}"
+    },
+    {
+      "if": "WORLD_GUID == '11223344-5566-7788-99aa-bbccddeeff00' && !file_exists('.wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}/world.json')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/sunkenland/world_files/Worlds/World~11223344-5566-7788-99aa-bbccddeeff00/StartGameConfig.json",
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/sunkenland/world_files/Worlds/World~11223344-5566-7788-99aa-bbccddeeff00/WorldSetting.json",
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/sunkenland/world_files/Worlds/World~11223344-5566-7788-99aa-bbccddeeff00/world.json"
+      ]
+    },
+    {
+      "if": "file_exists('world.json')",
+      "type": "move",
+      "source": "world.json",
+      "target": ".wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}/world.json"
+    },
+    {
+      "if": "file_exists('WorldSetting.json')",
+      "type": "move",
+      "source": "WorldSetting.json",
+      "target": ".wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}/WorldSetting.json"
+    },
+    {
+      "if": "file_exists('StartGameConfig.json')",
+      "type": "move",
+      "source": "StartGameConfig.json",
+      "target": ".wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}/StartGameConfig.json"
+    },
+    {
+      "if": "!file_exists('.wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}/AdminSteamIDs.txt')",
+      "type": "writefile",
+      "target": ".wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}/AdminSteamIDs.txt",
+      "text": ""
+    },
+    {
+      "if": "!file_exists('.wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}/BanSteamIDs.txt')",
+      "type": "writefile",
+      "target": ".wine/drive_c/users/container/AppData/LocalLow/Vector3 Studio/Sunkenland/Worlds/${SERVER_NAME}~${WORLD_GUID}/BanSteamIDs.txt",
+      "text": ""
+    }
+  ],
+  "run": {
+    "command": "wine ./Sunkenland-DedicatedServer.exe -nographics -batchmode -worldGuid ${WORLD_GUID} -region ${REGION} -password ${PASSWORD} -maxPlayerCapacity ${MAX_PLAYER} -publicIP ${SERVER_IP} -publicPort ${port}",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

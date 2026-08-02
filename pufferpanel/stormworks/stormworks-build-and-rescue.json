@@ -1,0 +1,246 @@
+{
+  "type": "stormworks",
+  "display": "Stormworks: Build and Rescue (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (1-32)",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel Stormworks",
+      "display": "Server Name",
+      "desc": "Name of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "DefaultPassword",
+      "display": "Server Password",
+      "desc": "Join password, at most 30 characters. Strongly recommended.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "573090",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Stormworks: Build and Rescue dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM64_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Admin SteamID64",
+      "desc": "17 digit SteamID64 granted admin on the server",
+      "required": false,
+      "userEdit": true
+    },
+    "STEAM_AUTH": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Guard Code",
+      "desc": "Steam Guard code. Only needed when the account has two-factor enabled.",
+      "required": false,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of that Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Stormworks. The server files ship with the base game, so an anonymous install is not possible.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_SEED": {
+      "type": "integer",
+      "value": 0,
+      "display": "World Seed",
+      "desc": "Seed of the generated world. 0 draws a random one on install.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 25564,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "server_data"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "wineboot --init"
+      ]
+    },
+    {
+      "if": "!file_exists('server_data/server_config.xml')",
+      "type": "writefile",
+      "target": "server_data/server_config.xml",
+      "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<server_data port=\"${port}\" name=\"${SERVER_NAME}\" seed=\"${WORLD_SEED}\" save_name=\"autosave_server\" max_players=\"${MAX_PLAYERS}\" password=\"${SERVER_PASSWORD}\" day_length=\"30\" night_length=\"30\" infinite_resources=\"false\" unlock_all_islands=\"false\" settings_menu=\"false\" base_island=\"data/tiles/island12.xml\" settings_menu_lock=\"false\" infinite_batteries=\"false\" infinite_fuel=\"false\" engine_overheating=\"false\" ceasefire=\"false\" infinite_ammo=\"false\" no_clip=\"false\" map_teleport=\"false\" vehicle_spawn=\"false\" photo_mode=\"false\" respawning=\"false\" cleanup_vehicle=\"false\" clear_fow=\"false\" third_person=\"true\" third_person_vehicle=\"true\" vehicle_damage=\"false\" player_damage=\"false\" npc_damage=\"false\" aggressive_animals=\"false\" sea_monsters=\"false\" lightning=\"true\" teleport_vehicle=\"true\" fast_travel=\"true\" starting_currency=\"201111\" despawn_on_leave=\"false\" map_show_players=\"false\" map_show_vehicles=\"false\" show_3d_waypoints=\"false\" show_name_plates=\"false\" override_weather=\"false\" override_time=\"false\" override_wind=\"false\" physics_timestep=\"0\" wildlife_enabled=\"true\" unlock_components=\"true\" dlc_weapons=\"false\" dlc_arid=\"false\" dlc_space=\"false\">\n\t<admins>\n\t\t<id value=\"${STEAM64_ID}\"/>\n\t</admins>\n\t<authorized/>\n\t<blacklist/>\n\t<whitelist/>\n\t<playlists>\n\t\t<path path=\"rom/data/missions/default_ai\"/>\n\t\t<path path=\"rom/data/missions/default_ai_aircraft\"/>\n\t\t<path path=\"rom/data/missions/default_cargo\"/>\n\t\t<path path=\"rom/data/missions/default_dock_bollards\"/>\n\t\t<path path=\"rom/data/missions/default_elevators\"/>\n\t\t<path path=\"rom/data/missions/default_forest_fire_missions\"/>\n\t\t<path path=\"rom/data/missions/default_resource_storage\"/>\n\t\t<path path=\"rom/data/missions/default_mission_locations\"/>\n\t\t<path path=\"rom/data/missions/default_mission_transport_locations\"/>\n\t\t<path path=\"rom/data/missions/default_mission_zones_arctic\"/>\n\t\t<path path=\"rom/data/missions/default_mission_zones_building\"/>\n\t\t<path path=\"rom/data/missions/default_mission_zones_delivery\"/>\n\t\t<path path=\"rom/data/missions/default_mission_zones_main\"/>\n\t\t<path path=\"rom/data/missions/default_mission_zones_sawyer\"/>\n\t\t<path path=\"rom/data/missions/default_natural_disasters\"/>\n\t\t<path path=\"rom/data/missions/default_paths\"/>\n\t\t<path path=\"rom/data/missions/default_resource_trading\"/>\n\t\t<path path=\"rom/data/missions/default_tutorial\"/>\n\t\t<path path=\"rom/data/missions/dlc_weapons_ai\"/>\n\t\t<path path=\"rom/data/missions/default_mission_zones_underwater\"/>\n\t\t<path path=\"rom/data/missions/default_mission_zones_arid\"/>\n\t\t<path path=\"rom/data/missions/default_railroad_signals\"/>\n\t\t<path path=\"rom/data/missions/default_landmarks\"/>\n\t\t<path path=\"rom/data/missions/default_oil_survey\"/>\n\t\t<path path=\"rom/data/missions/default_mission_zones_moon\"/>\n\t\t<path path=\"rom/data/missions/default_fish_survey\"/>\n\t</playlists>\n\t<mods/>\n</server_data>\n"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'grep -q \"seed=\\\"0\\\"\" server_data/server_config.xml && sed -i \"s/seed=\\\"0\\\"/seed=\\\"$(shuf -i 1-999999999 -n 1)\\\"/\" server_data/server_config.xml; true'"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'exec xvfb-run wine server64.exe +server_dir /pufferpanel/server_data'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('server_data/server_config.xml')",
+        "type": "alterfile",
+        "file": "server_data/server_config.xml",
+        "search": "port=\"[^\"]*\"",
+        "replace": "port=\"${port}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_data/server_config.xml')",
+        "type": "alterfile",
+        "file": "server_data/server_config.xml",
+        "search": "name=\"[^\"]*\"",
+        "replace": "name=\"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_data/server_config.xml')",
+        "type": "alterfile",
+        "file": "server_data/server_config.xml",
+        "search": "max_players=\"[^\"]*\"",
+        "replace": "max_players=\"${MAX_PLAYERS}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_data/server_config.xml')",
+        "type": "alterfile",
+        "file": "server_data/server_config.xml",
+        "search": "password=\"[^\"]*\"",
+        "replace": "password=\"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_data/server_config.xml')",
+        "type": "alterfile",
+        "file": "server_data/server_config.xml",
+        "search": "<id value=\"[^\"]*\"/>",
+        "replace": "<id value=\"${STEAM64_ID}\"/>",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

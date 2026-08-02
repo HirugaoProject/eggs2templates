@@ -1,0 +1,442 @@
+{
+  "type": "subnauticanitrox",
+  "display": "Subnautica - Nitrox (Docker)",
+  "data": {
+    "APPID": {
+      "type": "string",
+      "value": "264710",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Subnautica dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "DEFAULT_PERMISSION": {
+      "type": "option",
+      "value": "PLAYER",
+      "display": "Default Permission",
+      "desc": "Permission level new players get",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "PLAYER",
+          "display": "Player"
+        },
+        {
+          "value": "MODERATOR",
+          "display": "Moderator"
+        },
+        {
+          "value": "ADMIN",
+          "display": "Admin"
+        },
+        {
+          "value": "CONSOLE",
+          "display": "Console"
+        }
+      ]
+    },
+    "DISABLE_CONSOLE": {
+      "type": "option",
+      "value": "False",
+      "display": "Disable Console",
+      "desc": "Turn off the in-game console commands",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "False",
+          "display": "Console enabled"
+        },
+        {
+          "value": "True",
+          "display": "Console disabled"
+        }
+      ]
+    },
+    "MAX_CONNECTIONS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "NITROX_VERSION": {
+      "type": "string",
+      "value": "1.8.1.0",
+      "display": "Nitrox Version",
+      "desc": "Nitrox release to install. Release assets carry the version in their name, so this has to be a concrete version rather than 'latest'.",
+      "required": true,
+      "userEdit": true
+    },
+    "PORTFORWARD_ENABLE": {
+      "type": "option",
+      "value": "False",
+      "display": "Auto Port Forward",
+      "desc": "Ask the router to forward the port. Leave this off in Docker.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "False",
+          "display": "Disabled"
+        },
+        {
+          "value": "True",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "SAVE_DISABLE": {
+      "type": "option",
+      "value": "False",
+      "display": "Disable Auto Save",
+      "desc": "Stop the server saving on its own",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "False",
+          "display": "Auto save on"
+        },
+        {
+          "value": "True",
+          "display": "Auto save off"
+        }
+      ]
+    },
+    "SAVE_INTERVAL": {
+      "type": "integer",
+      "value": 120000,
+      "display": "Save Interval",
+      "desc": "Milliseconds between automatic saves",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_NAME": {
+      "type": "string",
+      "value": "nitrox_world",
+      "display": "Save Name",
+      "desc": "Name of the save the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "SERIALIZER_MODE": {
+      "type": "option",
+      "value": "JSON",
+      "display": "Serializer Mode",
+      "desc": "Format the world is saved in",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "JSON",
+          "display": "JSON"
+        },
+        {
+          "value": "PROTOBUF",
+          "display": "Protobuf"
+        }
+      ]
+    },
+    "SERVER_MODE": {
+      "type": "option",
+      "value": "SURVIVAL",
+      "display": "Game Mode",
+      "desc": "Game mode of the save",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "SURVIVAL",
+          "display": "Survival"
+        },
+        {
+          "value": "FREEDOM",
+          "display": "Freedom"
+        },
+        {
+          "value": "HARDCORE",
+          "display": "Hardcore"
+        },
+        {
+          "value": "CREATIVE",
+          "display": "Creative"
+        }
+      ]
+    },
+    "STEAM_GUARDCODE": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Guard Code",
+      "desc": "Steam Guard code for that account. SteamCMD cannot log in without it when Steam Guard is on.",
+      "required": false,
+      "userEdit": false
+    },
+    "STEAM_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of that Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USERNAME": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Subnautica. Nitrox needs the game files.",
+      "required": true,
+      "userEdit": false
+    },
+    "SUBNAUTICA_ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "PleaseChangeMe",
+      "display": "Admin Password",
+      "desc": "Password for the admin commands",
+      "required": true,
+      "userEdit": true
+    },
+    "SUBNAUTICA_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start. A Subnautica update usually needs a matching Nitrox update, so this is off by default.",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 11000,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "mkdir",
+      "target": "subnautica"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel/subnautica +@sSteamCmdForcePlatformType windows +set_steam_guard_code ${STEAM_GUARDCODE} +login ${STEAM_USERNAME} ${STEAM_PASSWORD} +app_update ${APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "rm -rf nitrox"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "nitrox"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/SubnauticaNitrox/Nitrox/releases/download/${NITROX_VERSION}/Nitrox_${NITROX_VERSION}_linux_x64.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "Nitrox_${NITROX_VERSION}_linux_x64.zip",
+      "destination": "nitrox"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f Nitrox_${NITROX_VERSION}_linux_x64.zip",
+        "chmod +x ./nitrox/server"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "NitroxData/saves/${SAVE_NAME}"
+    },
+    {
+      "type": "mkdir",
+      "target": ".config"
+    },
+    {
+      "if": "!file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+      "type": "writefile",
+      "target": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+      "text": "ServerPort=${port}\nSaveInterval=${SAVE_INTERVAL}\nDisableAutoSave=${SAVE_DISABLE}\nServerPassword=${SUBNAUTICA_PASSWORD}\nAdminPassword=${SUBNAUTICA_ADMIN_PASSWORD}\nGameMode=${SERVER_MODE}\nAutoPortForward=${PORTFORWARD_ENABLE}\nSerializerMode=${SERIALIZER_MODE}\nMaxConnections=${MAX_CONNECTIONS}\nDefaultPlayerPerm=${DEFAULT_PERMISSION}\nDisableConsole=${DISABLE_CONSOLE}\n"
+    }
+  ],
+  "run": {
+    "command": "./nitrox/server --save ${SAVE_NAME} --data-path /pufferpanel/NitroxData",
+    "stopCode": 2,
+    "environmentVars": {
+      "SUBNAUTICA_INSTALLATION_PATH": "/pufferpanel/subnautica",
+      "XDG_CONFIG_HOME": "/pufferpanel/.config",
+      "DOTNET_NOLOGO": "1"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel/subnautica +@sSteamCmdForcePlatformType windows +set_steam_guard_code ${STEAM_GUARDCODE} +login ${STEAM_USERNAME} ${STEAM_PASSWORD} +app_update ${APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^ServerPort=.*$",
+        "replace": "ServerPort=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^SaveInterval=.*$",
+        "replace": "SaveInterval=${SAVE_INTERVAL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^DisableAutoSave=.*$",
+        "replace": "DisableAutoSave=${SAVE_DISABLE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${SUBNAUTICA_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^AdminPassword=.*$",
+        "replace": "AdminPassword=${SUBNAUTICA_ADMIN_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^GameMode=.*$",
+        "replace": "GameMode=${SERVER_MODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^AutoPortForward=.*$",
+        "replace": "AutoPortForward=${PORTFORWARD_ENABLE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^SerializerMode=.*$",
+        "replace": "SerializerMode=${SERIALIZER_MODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^MaxConnections=.*$",
+        "replace": "MaxConnections=${MAX_CONNECTIONS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^DefaultPlayerPerm=.*$",
+        "replace": "DefaultPlayerPerm=${DEFAULT_PERMISSION}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('NitroxData/saves/${SAVE_NAME}/server.cfg')",
+        "type": "alterfile",
+        "file": "NitroxData/saves/${SAVE_NAME}/server.cfg",
+        "search": "^DisableConsole=.*$",
+        "replace": "DisableConsole=${DISABLE_CONSOLE}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_9",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_9",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

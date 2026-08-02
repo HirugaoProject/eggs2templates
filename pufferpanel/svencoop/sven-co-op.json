@@ -1,0 +1,221 @@
+{
+  "type": "svencoop",
+  "display": "Sven Co-op (Docker)",
+  "data": {
+    "SC_MAP": {
+      "type": "string",
+      "value": "svencoop1",
+      "display": "Default Map",
+      "desc": "Map the server loads on start",
+      "required": true,
+      "userEdit": true
+    },
+    "SC_NAME": {
+      "type": "string",
+      "value": "Sven Co-op server",
+      "display": "Server Name",
+      "desc": "Name in the in-game server list, at most 40 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SC_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Password",
+      "desc": "Join password. Leave empty to disable.",
+      "required": false,
+      "userEdit": true
+    },
+    "SC_PLAYERS": {
+      "type": "integer",
+      "value": 12,
+      "display": "Max Players",
+      "desc": "Players allowed at once (2-32)",
+      "required": true,
+      "userEdit": true
+    },
+    "SC_REGION": {
+      "type": "option",
+      "value": "255",
+      "display": "Region",
+      "desc": "Region reported to the Steam server browser. It does not restrict who can connect.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "-1",
+          "display": "Not listed"
+        },
+        {
+          "value": "0",
+          "display": "USA east coast"
+        },
+        {
+          "value": "1",
+          "display": "USA west coast"
+        },
+        {
+          "value": "2",
+          "display": "South America"
+        },
+        {
+          "value": "3",
+          "display": "Europe"
+        },
+        {
+          "value": "4",
+          "display": "Asia"
+        },
+        {
+          "value": "5",
+          "display": "Oceania"
+        },
+        {
+          "value": "6",
+          "display": "Middle East"
+        },
+        {
+          "value": "7",
+          "display": "Africa"
+        },
+        {
+          "value": "255",
+          "display": "International"
+        }
+      ]
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "276060",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Sven Co-op dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x svends_run"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./svends_run -console -port ${port} +maxplayers ${SC_PLAYERS} +map ${SC_MAP} +ip 0.0.0.0 -strictportbind -norestart",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('svencoop/server.cfg')",
+        "type": "alterfile",
+        "file": "svencoop/server.cfg",
+        "search": "^hostname .*$",
+        "replace": "hostname \"${SC_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('svencoop/server.cfg')",
+        "type": "alterfile",
+        "file": "svencoop/server.cfg",
+        "search": "^(//)?sv_password .*$",
+        "replace": "sv_password \"${SC_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('svencoop/server.cfg')",
+        "type": "alterfile",
+        "file": "svencoop/server.cfg",
+        "search": "^sv_region .*$",
+        "replace": "sv_region ${SC_REGION}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
