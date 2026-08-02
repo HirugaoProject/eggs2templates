@@ -1,0 +1,293 @@
+{
+  "type": "risingworldunity",
+  "display": "Rising World Unity (Docker)",
+  "data": {
+    "GAME_MODE": {
+      "type": "option",
+      "value": "Survival",
+      "display": "Game Mode",
+      "desc": "Game mode used when a new world is created",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Survival",
+          "display": "Survival"
+        },
+        {
+          "value": "Creative",
+          "display": "Creative"
+        }
+      ]
+    },
+    "RCON": {
+      "type": "option",
+      "value": "false",
+      "display": "Enable RCON",
+      "desc": "Run the RCON listener",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "RCON_PASS": {
+      "type": "string",
+      "value": "somepassword",
+      "display": "RCON Password",
+      "desc": "Password required to log in over RCON, at least 6 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 4253,
+      "display": "RCON Port",
+      "desc": "TCP port used for RCON connections",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "339010",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Rising World dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Beta Branch",
+      "desc": "Steam beta branch to install. Leave empty for the public branch.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRV_NAME": {
+      "type": "string",
+      "value": "PufferPanel hosted Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server list, at most 40 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "myworld",
+      "display": "World Name",
+      "desc": "World to load. A world with this name is created when it does not exist.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 4255,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x RisingWorldServer.x64"
+      ]
+    },
+    {
+      "if": "!file_exists('server.properties')",
+      "type": "move",
+      "source": "server.example.properties",
+      "target": "server.properties"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f linux_screen.sh linux_startscript.sh"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./RisingWorldServer.x64 +Server_Port=${port}",
+    "stopCode": 2,
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel/linux64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^Server_Name=.*$",
+        "replace": "Server_Name=${SRV_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^Server_Password=.*$",
+        "replace": "Server_Password=${SRV_PW}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^Password=.*$",
+        "replace": "Password=${SRV_PW}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^World_GameMode=.*$",
+        "replace": "World_GameMode=${GAME_MODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^World_Name=.*$",
+        "replace": "World_Name=${WORLD_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^RCON_Enabled=.*$",
+        "replace": "RCON_Enabled=${RCON}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^RCON_Password=.*$",
+        "replace": "RCON_Password=${RCON_PASS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^RCON_Port=.*$",
+        "replace": "RCON_Port=${RCON_PORT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

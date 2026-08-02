@@ -1,0 +1,218 @@
+{
+  "type": "risingworldlegacy",
+  "display": "Rising World Java Legacy (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "changeme",
+      "display": "RCON Password",
+      "desc": "Password used to log in over RCON",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 4253,
+      "display": "RCON Port",
+      "desc": "TCP port the RCON listener binds to",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_MEMORY": {
+      "type": "integer",
+      "value": 1024,
+      "display": "Server Memory",
+      "desc": "Megabytes of heap handed to the JVM with -Xmx",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Rising World Server",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 32 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "339010",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Rising World dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "legacy",
+      "display": "Steam Beta Branch",
+      "desc": "Branch carrying the legacy Java build",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 4255,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('server.properties')",
+      "type": "writefile",
+      "target": "server.properties",
+      "text": "rcon_enabled=true\nrcon_password=${RCON_PASSWORD}\nserver_password=${SERVER_PASSWORD}\n"
+    }
+  ],
+  "run": {
+    "command": "java -Xmx${SERVER_MEMORY}M -jar server.jar +maxplayer=${MAX_PLAYERS} +serverport=${port} +servername=\"${SERVER_NAME}\" +rconport ${RCON_PORT}",
+    "stop": "shutdown",
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel/linux64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^rcon_enabled\\s*=.*$",
+        "replace": "rcon_enabled=true",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^rcon_password\\s*=.*$",
+        "replace": "rcon_password=${RCON_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server_password\\s*=.*$",
+        "replace": "server_password=${SERVER_PASSWORD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:java_8",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:java_8",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

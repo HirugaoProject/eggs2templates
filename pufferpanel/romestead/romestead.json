@@ -1,0 +1,234 @@
+{
+  "type": "romestead",
+  "display": "Romestead (Docker)",
+  "data": {
+    "CHEATS": {
+      "type": "option",
+      "value": "false",
+      "display": "Enable Cheats",
+      "desc": "Allow cheat commands on the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (1-8)",
+      "required": true,
+      "userEdit": true
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "4763510",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Romestead dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "PufferPanel Server",
+      "display": "World Name",
+      "desc": "World started on boot, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_SIZE": {
+      "type": "integer",
+      "value": 1,
+      "display": "World Size",
+      "desc": "Size of a newly created world (1-10)",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".local/share"
+    },
+    {
+      "type": "mkdir",
+      "target": ".config"
+    },
+    {
+      "type": "mkdir",
+      "target": "logs"
+    },
+    {
+      "if": "!file_exists('config.json')",
+      "type": "writefile",
+      "target": "config.json",
+      "text": "{\n\"AutoStartWorldName\": \"${WORLD_NAME}\",\n\"AutoCreateAndLoadWorld\": true,\n\"AutoCreateWorldSize\": ${WORLD_SIZE},\n\"AutoCreateWorldSeed\": null,\n\"Password\": \"${PASSWORD}\",\n\"Port\": ${port},\n\"MaxPlayers\": ${MAX_PLAYERS},\n\"EnableCheats\": ${CHEATS},\n\"SleepThresholdMs\": 10\n}\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c \"dotnet Server.dll 2>&1 | stdbuf -oL tr '\\r' '\\n'\"",
+    "stop": "stop",
+    "environmentVars": {
+      "XDG_DATA_HOME": "/pufferpanel/.local/share",
+      "XDG_CONFIG_HOME": "/pufferpanel/.config",
+      "LD_LIBRARY_PATH": "/pufferpanel:/pufferpanel/linux64",
+      "DOTNET_NOLOGO": "1"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"AutoStartWorldName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"AutoStartWorldName\": \"${WORLD_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"Password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Password\": \"${PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"AutoCreateWorldSize\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"AutoCreateWorldSize\": ${WORLD_SIZE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"Port\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"Port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"MaxPlayers\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"MaxPlayers\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config.json')",
+        "type": "alterfile",
+        "file": "config.json",
+        "search": "\"EnableCheats\"\\s*:\\s*(true|false)",
+        "replace": "\"EnableCheats\": ${CHEATS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

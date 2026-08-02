@@ -1,0 +1,269 @@
+{
+  "type": "riskofrain2",
+  "display": "Risk of Rain 2 (Docker)",
+  "data": {
+    "ADVERTISE": {
+      "type": "option",
+      "value": "1",
+      "display": "Advertise Server",
+      "desc": "List the server in the public browser",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Listed"
+        },
+        {
+          "value": "0",
+          "display": "Unlisted"
+        }
+      ]
+    },
+    "HOSTNAME": {
+      "type": "string",
+      "value": "Risk of Rain 2 Dedicated Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser, at most 40 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty to disable.",
+      "required": false,
+      "userEdit": true
+    },
+    "PLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1180760",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Risk of Rain 2 dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM": {
+      "type": "integer",
+      "value": 27017,
+      "display": "Steam Port",
+      "desc": "Steam port, one above the query port",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel/steamworks_sdk +@sSteamCmdForcePlatformType windows +login anonymous +app_update 1007 +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q mono"
+      ]
+    },
+    {
+      "if": "!file_exists('Risk of Rain 2_Data/Config/server.cfg')",
+      "type": "command",
+      "commands": [
+        "cp \"Risk of Rain 2_Data/Config/server_startup.cfg\" \"Risk of Rain 2_Data/Config/server.cfg\""
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "touch \"Risk of Rain 2_Data/Config/server_pregame.cfg\""
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'exec xvfb-run wine \"./Risk of Rain 2.exe\"'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Risk of Rain 2_Data/Config/server.cfg')",
+        "type": "alterfile",
+        "file": "Risk of Rain 2_Data/Config/server.cfg",
+        "search": "^sv_password .*$",
+        "replace": "sv_password \"${PASSWORD}\";",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Risk of Rain 2_Data/Config/server.cfg')",
+        "type": "alterfile",
+        "file": "Risk of Rain 2_Data/Config/server.cfg",
+        "search": "^sv_hostname .*$",
+        "replace": "sv_hostname \"${HOSTNAME}\";",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Risk of Rain 2_Data/Config/server.cfg')",
+        "type": "alterfile",
+        "file": "Risk of Rain 2_Data/Config/server.cfg",
+        "search": "^sv_port .*$",
+        "replace": "sv_port ${port};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Risk of Rain 2_Data/Config/server.cfg')",
+        "type": "alterfile",
+        "file": "Risk of Rain 2_Data/Config/server.cfg",
+        "search": "^sv_maxplayers .*$",
+        "replace": "sv_maxplayers ${PLAYERS};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Risk of Rain 2_Data/Config/server.cfg')",
+        "type": "alterfile",
+        "file": "Risk of Rain 2_Data/Config/server.cfg",
+        "search": "^steam_server_heartbeat_enabled .*$",
+        "replace": "steam_server_heartbeat_enabled ${ADVERTISE};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Risk of Rain 2_Data/Config/server.cfg')",
+        "type": "alterfile",
+        "file": "Risk of Rain 2_Data/Config/server.cfg",
+        "search": "^steam_server_query_port .*$",
+        "replace": "steam_server_query_port ${QUERY};",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Risk of Rain 2_Data/Config/server.cfg')",
+        "type": "alterfile",
+        "file": "Risk of Rain 2_Data/Config/server.cfg",
+        "search": "^steam_server_steam_port .*$",
+        "replace": "steam_server_steam_port ${STEAM};",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY}:${QUERY}/udp",
+      "0.0.0.0:${STEAM}:${STEAM}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY}:${QUERY}/udp",
+        "0.0.0.0:${STEAM}:${STEAM}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
