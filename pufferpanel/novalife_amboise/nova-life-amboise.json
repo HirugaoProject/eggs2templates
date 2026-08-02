@@ -1,0 +1,184 @@
+{
+  "type": "novalifeamboise",
+  "display": "Nova-Life: Amboise (Docker)",
+  "data": {
+    "SERVER_LIST_NAME": {
+      "type": "string",
+      "value": "A PufferPanel server",
+      "display": "Server List Name",
+      "desc": "Name shown in the in-game server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "novalife",
+      "display": "Server Name",
+      "desc": "Folder name of the server under Servers/. Letters, digits, dashes and underscores only, and it has to match the name of the save you upload.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_SLOTS": {
+      "type": "integer",
+      "value": 25,
+      "display": "Max Players",
+      "desc": "Maximum number of players that can join (1-50)",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1665030",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Nova-Life: Amboise dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Servers/${SERVER_NAME}/Config"
+    },
+    {
+      "if": "!file_exists('Servers/${SERVER_NAME}/Config/server.json')",
+      "type": "writefile",
+      "target": "Servers/${SERVER_NAME}/Config/server.json",
+      "text": "{\n  \"serverName\": \"${SERVER_NAME}\",\n  \"serverListName\": \"${SERVER_LIST_NAME}\",\n  \"serverSlot\": ${SERVER_SLOTS},\n  \"serverPort\": ${port},\n  \"isPublicServer\": false,\n  \"useAdminPinAuth\": false,\n  \"tabletUrl\": \"\",\n  \"isWhitelisted\": false,\n  \"useWhitelistProtection\": false,\n  \"whitelist\": {\n    \"intro\": \"\",\n    \"questions\": [],\n    \"date\": \"\"\n  },\n  \"autoSaveIntervalSeconds\": 1800,\n  \"disconnectClientsBeforeStop\": true,\n  \"mapId\": 0,\n  \"serverFramerate\": 60,\n  \"hasShop\": false\n}\n"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./nova-life.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./nova-life.x86_64 -batchmode -nographics -startServer ${SERVER_NAME}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Servers/${SERVER_NAME}/Config/server.json')",
+        "type": "alterfile",
+        "file": "Servers/${SERVER_NAME}/Config/server.json",
+        "search": "\"serverName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"serverName\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Servers/${SERVER_NAME}/Config/server.json')",
+        "type": "alterfile",
+        "file": "Servers/${SERVER_NAME}/Config/server.json",
+        "search": "\"serverListName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"serverListName\": \"${SERVER_LIST_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Servers/${SERVER_NAME}/Config/server.json')",
+        "type": "alterfile",
+        "file": "Servers/${SERVER_NAME}/Config/server.json",
+        "search": "\"serverSlot\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"serverSlot\": ${SERVER_SLOTS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Servers/${SERVER_NAME}/Config/server.json')",
+        "type": "alterfile",
+        "file": "Servers/${SERVER_NAME}/Config/server.json",
+        "search": "\"serverPort\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"serverPort\": ${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

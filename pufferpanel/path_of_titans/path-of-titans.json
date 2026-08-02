@@ -1,0 +1,173 @@
+{
+  "type": "pathoftitans",
+  "display": "Path Of Titans (Docker)",
+  "data": {
+    "AG_AUTH_TOKEN": {
+      "type": "string",
+      "value": "",
+      "display": "Alderon Games Auth Token",
+      "desc": "Hosting token from https://alderongames.com/oauth/hosting-token. You need to own the game to generate one.",
+      "required": true,
+      "userEdit": true
+    },
+    "BETA_BRANCH": {
+      "type": "option",
+      "value": "production",
+      "display": "Branch",
+      "desc": "Game branch the launcher installs and reports",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "production",
+          "display": "Production"
+        },
+        {
+          "value": "demo-public-test",
+          "display": "Demo / public test"
+        }
+      ]
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 7778,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 7779,
+      "display": "RCON Port",
+      "desc": "TCP port the RCON listener binds to",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_DB": {
+      "type": "option",
+      "value": "Local",
+      "display": "Database Mode",
+      "desc": "Local keeps character data on this server, Remote shares it between servers",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Local",
+          "display": "Local"
+        },
+        {
+          "value": "Remote",
+          "display": "Remote"
+        }
+      ]
+    },
+    "SERVER_GUID": {
+      "type": "string",
+      "value": "",
+      "display": "Server GUID",
+      "desc": "Unique identifier for this server. Generate one at https://guidgenerator.com/",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MAP": {
+      "type": "string",
+      "value": "Island",
+      "display": "Map",
+      "desc": "Map the server loads on start",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MAX_PLAYERS": {
+      "type": "integer",
+      "value": 100,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (up to 200)",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 25 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://launcher-cdn.alderongames.com/AlderonGamesCmd-Linux-x64"
+      ]
+    },
+    {
+      "type": "move",
+      "source": "AlderonGamesCmd-Linux-x64",
+      "target": "AlderonGamesCmd-Linux"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./AlderonGamesCmd-Linux"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./AlderonGamesCmd-Linux --game path-of-titans --server true --beta-branch ${BETA_BRANCH} --auth-token ${AG_AUTH_TOKEN} --install-dir ./server/"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./server/PathOfTitansServer.sh ${SERVER_MAP}?listen?MaxPlayers=${SERVER_MAX_PLAYERS} -Port=${port} -QueryPort=${QUERY_PORT} -RconPort=${RCON_PORT} -nullRHI -ServerName=${SERVER_NAME} -ServerGUID=${SERVER_GUID} -BranchKey=${BETA_BRANCH} -Database=${SERVER_DB} -log",
+    "stopCode": 2,
+    "pre": [
+      {
+        "type": "command",
+        "commands": [
+          "./AlderonGamesCmd-Linux --game path-of-titans --server true --beta-branch ${BETA_BRANCH} --auth-token ${AG_AUTH_TOKEN} --install-dir ./server/"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,320 @@
+{
+  "type": "nightofthedead",
+  "display": "Night Of The Dead (Docker)",
+  "data": {
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "Normal",
+      "display": "Difficulty",
+      "desc": "Gameplay difficulty preset",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Peaceful",
+          "display": "Peaceful"
+        },
+        {
+          "value": "Easy",
+          "display": "Easy"
+        },
+        {
+          "value": "Normal",
+          "display": "Normal"
+        },
+        {
+          "value": "Hard",
+          "display": "Hard"
+        },
+        {
+          "value": "Survival",
+          "display": "Survival"
+        },
+        {
+          "value": "Challenge",
+          "display": "Challenge"
+        },
+        {
+          "value": "Legend",
+          "display": "Legend"
+        },
+        {
+          "value": "Custom",
+          "display": "Custom"
+        }
+      ]
+    },
+    "OTHER_ARGS": {
+      "type": "string",
+      "value": "",
+      "display": "Extra Arguments",
+      "desc": "Additional arguments appended to the server command line",
+      "required": false,
+      "userEdit": true
+    },
+    "PVP": {
+      "type": "option",
+      "value": "1",
+      "display": "Game Mode",
+      "desc": "PvE lets players cooperate, PvP allows player damage",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "PvE"
+        },
+        {
+          "value": "0",
+          "display": "PvP"
+        }
+      ]
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password for the in-game admin console",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_MOTD": {
+      "type": "string",
+      "value": "Welcome to the server.",
+      "display": "Message Of The Day",
+      "desc": "Message shown to players when they connect",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "Server Name",
+      "desc": "Name of the server in the browser, at most 32 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_SAVEGAME": {
+      "type": "string",
+      "value": "savedgame1",
+      "display": "Savegame Name",
+      "desc": "Save folder under LF/Saved/SaveGames used by this server",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1420710",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Night of the Dead dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "LF/Saved/SaveGames"
+    },
+    {
+      "type": "mkdir",
+      "target": "LF/Saved/Config"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q vcrun2022 corefonts"
+      ]
+    },
+    {
+      "if": "!file_exists('LF/Saved/Config/ServerSettings.ini')",
+      "type": "writefile",
+      "target": "LF/Saved/Config/ServerSettings.ini",
+      "text": "[ServerSettings]\nServerName=${SERVER_NAME}\nPassword=${SERVER_PASSWORD}\nMaxPlayers=16\n[SystemSettings]\nIngameAdminPassword=${SERVER_ADMIN_PASSWORD}\nDefaultMessageOfTheDay=${SERVER_MOTD}\n; INSTALL_DIR/Saved/SaveGames/SAVE_NAME\nSaveName=${SERVER_SAVEGAME}\n; In-game hour, integer, Default: 1 = 5 min(realtime).\nSaveIntervalHour=2\n[GameSettings]\n; Peaceful/Easy/Normal/Hard/Survival/Challenge/Legend/Custom\nDifficulty=${DIFFICULTY}\n[GameSettings/General]\n; 0=disable, 1=enbale\nNoWave=0 // No Wave\nNoSpawnBuildingBlocker=0 // Activate Building Forbidden Area\nNoZombieRespawn=0 // No Zombie Respawn\nNaturalObjectRespawn=0 // Natural Objects Respawn\nSyntheticObjectRespawn=0 // Synthetic Object Respawn\nNoGeneratorTrouble=0 // No Generator Breakdown\nNoDeathResearchDrop=0 // No Research Lost Upon Dying\nDropItemsOnExit=0 // Drop Items on Exit\nHardcore=0 // Hardcore\nNoTeamKill=0 // No Teamkill\nNoEnding=0 // No Ending\n; 0=PvP, 1=PvE\nMODSelect=${PVP} // Mode\n; It works only when the difficulty is Custom.\n[GameSettings/Basic]\n; 0 <= value <= 100\nNormalZombieHealth=17 // Light Zombie HP\nSpecialZombieHealth=17 // Heavy Zombie HP\nGiantZombieHealth=17 // Giant Zombie HP\nZombieDamage=18 // Zombie Damage\nZombieMovementSpeed=35 // Zombie Movement Speed\nWorldZombieSpawn=17 // World Zombie Spawn Amount\nWaveZombieHealth=25 // Wave Zombie HP\nWaveNormalZombieAmount=44 // Light Zombie Amount\nWaveSpecialZombieAmount=17 // Heavy Zombie Amount\nWaveGiantZombieAmount=21 // Giant Zombie Amount\nAnimalHealth=17 // Animal HP\nAnimalDamage=18 // Animal Attack Damage\n; 30 / 60 / 120 / 180 / 240\nWorldNormalZombieRespawnTime=120 // Light Zombie Respawn Time\n; 120 / 300 / 600 / 900 / 1200\nWorldSpecialZombieRespawnTime=600 // Heavy Zombie Respawn Time\n; 120 / 300 / 600 / 900 / 1200\nWorldGiantZombieRespawnTime=600 // Giant Zombie Respawn Time\n; It works only when the difficulty is Custom.\n[GameSettings/Advanced]\n; 0 = disable, 1 = enable\nNoExperienceLoss=0 // No EXP Lost Upon Dying\nNoDeathItemDrop=0 // No Items Drop Upon Dying\nNoDeathEquipmentItemDrop=0 // No Equipment Drop Upon Dying\n; 0 <= value <= 100\nResearchDataConsumption=50 // Research Data Consumption\nFishSpeed=66 // Fish Speed\nBuildingHit=90 // Building HP\nTrapDamage=66 // Trap Attack Damage\nResourcesReturnedAfterBuildingDestroyed=30 // Materials Return Rate After Building Destruction\nFishingGaugeDecrease=40 // Fish Power\nSuperiorOrHigherEquipmentGainMultiplier=40 // High-Grade Equipment Drop Rate\n; 1 / 2 / 3 / 4 / 5\nAmountOfExperienceGained=1 // Gain EXP Amount\n; 1 / 2 / 3\nResourceAcquisition=1 // Item Obtained Amount\n; 0 / 1 / 2 / 5 / 10 / 12 / 15\nInitialFoodAmount=10 // Initial Food Amount\n; 240 / 360 / 480 / 720 / 840 / 960 / 1200\nNaturalObjectRespawnTime=0 // Natural Objects Respawn Time\nSyntheticObjectRespawnTime=0 // Synthetic Objects Respawn Time\n; 1 / 1.25 / 1.5 / 1.75 / 2\nFarmResourceOutput=1.25 // Farm Resource Production Amount\n; 0.5 / 1 / 1.5 / 2 / 2.5\nMachineResourceOutput=1.25 // Machine Resource Production Amount\n; 0.5 / 1 / 1.5 / 2 / 2.5\nAnimalTrapTime=1 // Animal Trap Time\n; 0.5 / 1 / 1.5\nFarmResourceProductionTime=1 // Farm Resource Production Time\nMachineResourceProductionTime=1 // Machine Resource Production Time\n; 0.5 / 1 / 1.5 / 2 / 2.5\nElectricGeneration=1 // Power Generated\n; 0.5 / 1 / 1.5\nElectricConsumption=1 // Power Consumption\n; 0.5 / 1 / 1.5 / 2 / 2.5\nElectricOvercurrentLimit=1 // Power Limit\n; 0.5 / 1 / 1.5\nElectricStandbyPower=1 // Standby Power\n; It works only when the difficulty is Custom.\n[GameSettings/Detail]\n; 60 / 120 / 180 / 240 / 300\nOneDayTime=120 // Times per Day"
+    }
+  ],
+  "run": {
+    "command": "bash -c \"Xvfb :0 -screen 0 1024x768x16 & exec wine ./LF/Binaries/Win64/LFServer-Win64-Shipping.exe ?listen -Port=${port} -QueryPort=${QUERY_PORT} -console -log --CRASHREPORTS ${OTHER_ARGS}\"",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('LF/Saved/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "LF/Saved/Config/ServerSettings.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LF/Saved/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "LF/Saved/Config/ServerSettings.ini",
+        "search": "^Password=.*$",
+        "replace": "Password=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LF/Saved/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "LF/Saved/Config/ServerSettings.ini",
+        "search": "^IngameAdminPassword=.*$",
+        "replace": "IngameAdminPassword=${SERVER_ADMIN_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LF/Saved/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "LF/Saved/Config/ServerSettings.ini",
+        "search": "^DefaultMessageOfTheDay=.*$",
+        "replace": "DefaultMessageOfTheDay=${SERVER_MOTD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LF/Saved/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "LF/Saved/Config/ServerSettings.ini",
+        "search": "^SaveName=.*$",
+        "replace": "SaveName=${SERVER_SAVEGAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LF/Saved/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "LF/Saved/Config/ServerSettings.ini",
+        "search": "^Difficulty=.*$",
+        "replace": "Difficulty=${DIFFICULTY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('LF/Saved/Config/ServerSettings.ini')",
+        "type": "alterfile",
+        "file": "LF/Saved/Config/ServerSettings.ini",
+        "search": "^MODSelect=.*$",
+        "replace": "MODSelect=${PVP} // Mode",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

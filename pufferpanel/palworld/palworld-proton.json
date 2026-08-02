@@ -1,0 +1,339 @@
+{
+  "type": "palworldproton",
+  "display": "Palworld Proton (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password that unlocks the admin commands over chat and RCON. The console in PufferPanel talks to the server over RCON, so this has to be set.",
+      "required": false,
+      "userEdit": true
+    },
+    "ALLOW_CONNECT_PLATFORM": {
+      "type": "option",
+      "value": "Steam",
+      "display": "Connection Platform",
+      "desc": "Platform players are allowed to connect from",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Steam",
+          "display": "Steam"
+        },
+        {
+          "value": "Xbox",
+          "display": "Xbox"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (1-32)",
+      "required": true,
+      "userEdit": true
+    },
+    "PUBLIC_IP": {
+      "type": "string",
+      "value": "",
+      "display": "Public IP",
+      "desc": "Public address the server advertises. Only needed when the allocation is a private address.",
+      "required": false,
+      "userEdit": false
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 25575,
+      "display": "RCON Port",
+      "desc": "RCON port the console is driven through. It stays bound to localhost and does not need a public allocation.",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_DESCRIPTION": {
+      "type": "string",
+      "value": "",
+      "display": "Server Description",
+      "desc": "Description shown in the server browser, at most 128 characters",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel hosted Palworld Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the browser, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Letters, digits, dashes and underscores only. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2394010",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Palworld dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UE4SS_VERSION": {
+      "type": "string",
+      "value": "v3.0.1",
+      "display": "UE4SS Version",
+      "desc": "Release tag of RE-UE4SS installed next to the server so Windows mods can load. Leave empty to skip UE4SS entirely.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 8211,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Pal/Saved/Config/WindowsServer"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+    },
+    {
+      "if": "!file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+      "type": "command",
+      "commands": [
+        "cp DefaultPalWorldSettings.ini Pal/Saved/Config/WindowsServer/PalWorldSettings.ini"
+      ]
+    },
+    {
+      "if": "UE4SS_VERSION != ''",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/palworld/winmm.dll"
+      ]
+    },
+    {
+      "if": "UE4SS_VERSION != ''",
+      "type": "move",
+      "source": "winmm.dll",
+      "target": "Pal/Binaries/Win64/winmm.dll"
+    },
+    {
+      "if": "UE4SS_VERSION != ''",
+      "type": "download",
+      "files": [
+        "https://github.com/UE4SS-RE/RE-UE4SS/releases/download/${UE4SS_VERSION}/UE4SS_${UE4SS_VERSION}.zip"
+      ]
+    },
+    {
+      "if": "UE4SS_VERSION != ''",
+      "type": "extract",
+      "source": "UE4SS_${UE4SS_VERSION}.zip",
+      "destination": "Pal/Binaries/Win64"
+    },
+    {
+      "if": "UE4SS_VERSION != ''",
+      "type": "command",
+      "commands": [
+        "rm -f UE4SS_${UE4SS_VERSION}.zip"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "if": "SERVER_PASSWORD != ''",
+        "command": "proton run ./Pal/Binaries/Win64/PalServer-Win64-Shipping.exe Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=\"${SERVER_NAME}\" -players=${MAX_PLAYERS} -adminpassword=\"${ADMIN_PASSWORD}\" -rcon -serverpassword=\"${SERVER_PASSWORD}\""
+      },
+      {
+        "if": "SERVER_PASSWORD == ''",
+        "command": "proton run ./Pal/Binaries/Win64/PalServer-Win64-Shipping.exe Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=\"${SERVER_NAME}\" -players=${MAX_PLAYERS} -adminpassword=\"${ADMIN_PASSWORD}\" -rcon"
+      }
+    ],
+    "stop": "shutdown 5",
+    "environmentVars": {
+      "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",
+      "STEAM_COMPAT_DATA_PATH": "/pufferpanel/.steam/steam/steamapps/compatdata/${SRCDS_APPID}",
+      "WINEDEBUG": "-all"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "ServerName=\"[^\"]*\"",
+        "replace": "ServerName=\"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "ServerDescription=\"[^\"]*\"",
+        "replace": "ServerDescription=\"${SERVER_DESCRIPTION}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "AdminPassword=\"[^\"]*\"",
+        "replace": "AdminPassword=\"${ADMIN_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "ServerPassword=\"[^\"]*\"",
+        "replace": "ServerPassword=\"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "PublicIP=\"[^\"]*\"",
+        "replace": "PublicIP=\"${PUBLIC_IP}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "PublicPort=[0-9]+",
+        "replace": "PublicPort=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "RCONPort=[0-9]+",
+        "replace": "RCONPort=${RCON_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "RCONEnabled=[A-Za-z]+",
+        "replace": "RCONEnabled=True",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "ServerPlayerMaxNum=[0-9]+",
+        "replace": "ServerPlayerMaxNum=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pal/Saved/Config/WindowsServer/PalWorldSettings.ini')",
+        "type": "alterfile",
+        "file": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+        "search": "AllowConnectPlatform=[A-Za-z]+",
+        "replace": "AllowConnectPlatform=${ALLOW_CONNECT_PLATFORM}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "rcon",
+      "ip": "127.0.0.1",
+      "port": "${RCON_PORT}",
+      "password": "${ADMIN_PASSWORD}"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

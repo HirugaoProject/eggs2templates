@@ -1,0 +1,368 @@
+{
+  "type": "noonesurvived",
+  "display": "No One Survived (Docker)",
+  "data": {
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Server administrator password",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 32 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NEED_PASSWORD": {
+      "type": "option",
+      "value": "False",
+      "display": "Require Password",
+      "desc": "Whether joining players must supply the server password",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "False",
+          "display": "No password"
+        },
+        {
+          "value": "True",
+          "display": "Password required"
+        }
+      ]
+    },
+    "SERVER_NUM_ZOMBIES": {
+      "type": "integer",
+      "value": 50,
+      "display": "Zombie Wave Size",
+      "desc": "Zombies spawned by a corpse tide wave (25-100)",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Only takes effect when Require Password is enabled.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_PLAYERS": {
+      "type": "integer",
+      "value": 50,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (1-100)",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_REGION": {
+      "type": "option",
+      "value": "All",
+      "display": "Region",
+      "desc": "Region the server is advertised in",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "All",
+          "display": "Unregistered"
+        },
+        {
+          "value": "AF",
+          "display": "Africa"
+        },
+        {
+          "value": "AS",
+          "display": "Asia"
+        },
+        {
+          "value": "EU",
+          "display": "Europe"
+        },
+        {
+          "value": "NA",
+          "display": "North America"
+        },
+        {
+          "value": "OC",
+          "display": "Oceania"
+        },
+        {
+          "value": "SA",
+          "display": "South America"
+        }
+      ]
+    },
+    "SERVER_SAVE_NAME": {
+      "type": "string",
+      "value": "MySave",
+      "display": "Save Name",
+      "desc": "Name of the savegame, also the one loaded on boot",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2329680",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the No One Survived dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_NETWORKING": {
+      "type": "option",
+      "value": "False",
+      "display": "Steam Networking",
+      "desc": "Route traffic over Steam networking. Keep this disabled, the server fails to start with it enabled.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "False",
+          "display": "Disabled"
+        },
+        {
+          "value": "True",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "WRSH/Saved/Config/WindowsServer"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q vcrun2022 corefonts"
+      ]
+    },
+    {
+      "if": "!file_exists('WRSH/Saved/Config/WindowsServer/Engine.ini')",
+      "type": "writefile",
+      "target": "WRSH/Saved/Config/WindowsServer/Engine.ini",
+      "text": "[URL]\nPort=${port}\n\n[OnlineSubsystemSteam]\nbUseSteamNetworking=${STEAM_NETWORKING}\nGameServerQueryPort=${QUERY_PORT}\n"
+    },
+    {
+      "if": "!file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+      "type": "writefile",
+      "target": "WRSH/Saved/Config/WindowsServer/Game.ini",
+      "text": "[ServerSetting]\nSaveName=${SERVER_SAVE_NAME}\nServerName=${SERVER_NAME}\nNeedPassword=${SERVER_NEED_PASSWORD}\nPassword=${SERVER_PASSWORD}\nMaxPlayers=${SERVER_PLAYERS}\nNumOfZombieSpawn=${SERVER_NUM_ZOMBIES}\nRegion=${SERVER_REGION}\nAdminPassword=${SERVER_ADMIN_PASSWORD}\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c \"Xvfb :0 -screen 0 1024x768x16 & exec wine WRSHServer.exe -server -log -Port=${port} -QueryPort=${QUERY_PORT}\"",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Engine.ini",
+        "search": "^Port=.*$",
+        "replace": "Port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Engine.ini",
+        "search": "^bUseSteamNetworking=.*$",
+        "replace": "bUseSteamNetworking=${STEAM_NETWORKING}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Engine.ini",
+        "search": "^GameServerQueryPort=.*$",
+        "replace": "GameServerQueryPort=${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Game.ini",
+        "search": "^SaveName=.*$",
+        "replace": "SaveName=${SERVER_SAVE_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Game.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Game.ini",
+        "search": "^NeedPassword=.*$",
+        "replace": "NeedPassword=${SERVER_NEED_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Game.ini",
+        "search": "^Password=.*$",
+        "replace": "Password=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Game.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${SERVER_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Game.ini",
+        "search": "^NumOfZombieSpawn=.*$",
+        "replace": "NumOfZombieSpawn=${SERVER_NUM_ZOMBIES}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Game.ini",
+        "search": "^Region=.*$",
+        "replace": "Region=${SERVER_REGION}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('WRSH/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "WRSH/Saved/Config/WindowsServer/Game.ini",
+        "search": "^AdminPassword=.*$",
+        "replace": "AdminPassword=${SERVER_ADMIN_PASSWORD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

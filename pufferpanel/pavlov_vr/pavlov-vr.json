@@ -1,0 +1,258 @@
+{
+  "type": "pavlovvr",
+  "display": "Pavlov VR (Docker)",
+  "data": {
+    "API_KEY": {
+      "type": "string",
+      "value": "",
+      "display": "API Key",
+      "desc": "Key issued by Vankrupt that lets the server appear in the server list. Request one at https://pavlov-ms.vankrupt.com/servers/v1/key",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players. 10 for Shack, 24 is the hard limit on PC.",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "CHANGE_ME",
+      "display": "RCON Password",
+      "desc": "Password for the RCON listener, at most 20 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 8188,
+      "display": "RCON Port",
+      "desc": "TCP port the Pavlov RCON listener binds to",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "Server Name",
+      "desc": "Name of the server in the browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "622970",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Pavlov VR dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "option",
+      "value": "",
+      "display": "Beta Branch",
+      "desc": "Steam beta branch to install",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Public release"
+        },
+        {
+          "value": "beta_server",
+          "display": "beta_server"
+        }
+      ]
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Pavlov/Saved/Logs"
+    },
+    {
+      "type": "mkdir",
+      "target": "Pavlov/Saved/Config/LinuxServer"
+    },
+    {
+      "type": "mkdir",
+      "target": "Pavlov/Saved/maps"
+    },
+    {
+      "if": "!file_exists('Pavlov/Saved/Config/LinuxServer/Game.ini')",
+      "type": "writefile",
+      "target": "Pavlov/Saved/Config/LinuxServer/Game.ini",
+      "text": "[/Script/Pavlov.DedicatedServer]\nbEnabled=true\nServerName=\"${SERVER_NAME}\"\nMaxPlayers=${MAX_PLAYERS}     #Set this to 10 for Shack. 24 is the max for PC, setting it higher will not allow players to join. \nApiKey=\"${API_KEY}\"\nbSecured=true\nbCustomServer=true \nbVerboseLogging=false \nbCompetitive=false #This only works for SND\nbWhitelist=false \nRefreshListTime=120 \nLimitedAmmoType=0 \nTickRate=90\nTimeLimit=60\n#Password=0000 \n#BalanceTableURL=\"vankruptgames/BalancingTable/main\"\nMapRotation=(MapId=\"UGC1758245796\", GameMode=\"GUN\")\nMapRotation=(MapId=\"datacenter\", GameMode=\"SND\")\nMapRotation=(MapId=\"sand\", GameMode=\"DM\")\n"
+    },
+    {
+      "if": "!file_exists('Pavlov/Saved/Config/RconSettings.txt')",
+      "type": "writefile",
+      "target": "Pavlov/Saved/Config/RconSettings.txt",
+      "text": "Password=${RCON_PASSWORD}\nPort=${RCON_PORT}\n"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./Pavlov/Binaries/Linux/PavlovServer-Linux-Shipping",
+        "rm -f PavlovServer.sh"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Pavlov/Binaries/Linux/PavlovServer-Linux-Shipping Pavlov -PORT=${port} -KEY=\"${API_KEY}\"",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Pavlov/Saved/Config/RconSettings.txt')",
+        "type": "alterfile",
+        "file": "Pavlov/Saved/Config/RconSettings.txt",
+        "search": "^Password=.*$",
+        "replace": "Password=${RCON_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pavlov/Saved/Config/RconSettings.txt')",
+        "type": "alterfile",
+        "file": "Pavlov/Saved/Config/RconSettings.txt",
+        "search": "^Port=.*$",
+        "replace": "Port=${RCON_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pavlov/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Pavlov/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=\"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pavlov/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Pavlov/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ApiKey=.*$",
+        "replace": "ApiKey=\"${API_KEY}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Pavlov/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Pavlov/Saved/Config/LinuxServer/Game.ini",
+        "search": "^MaxPlayers=[0-9]*",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
