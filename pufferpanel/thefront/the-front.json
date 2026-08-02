@@ -1,0 +1,366 @@
+{
+  "type": "thefront",
+  "display": "The Front (Docker)",
+  "data": {
+    "ADMIN_LABEL": {
+      "type": "option",
+      "value": "false",
+      "display": "Label Admins",
+      "desc": "Show the admin icon in game",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "ANTI_CHEAT": {
+      "type": "option",
+      "value": "true",
+      "display": "Anti Cheat",
+      "desc": "Run the anti cheat",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "BEACON_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Beacon Port",
+      "desc": "Beacon port, normally the game port plus one",
+      "required": true,
+      "userEdit": false
+    },
+    "CFG_NAME": {
+      "type": "string",
+      "value": "new",
+      "display": "Config Name",
+      "desc": "Name of the save folder. No spaces or special characters.",
+      "required": true,
+      "userEdit": true
+    },
+    "DMGALLIES": {
+      "type": "option",
+      "value": "true",
+      "display": "Friendly Fire",
+      "desc": "Let squadmates damage each other",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "GAMEMODE": {
+      "type": "option",
+      "value": "0",
+      "display": "PvE",
+      "desc": "Fight mode of the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "PvP"
+        },
+        {
+          "value": "1",
+          "display": "PvE"
+        }
+      ]
+    },
+    "GREENHAND": {
+      "type": "option",
+      "value": "true",
+      "display": "Novice Protection",
+      "desc": "Give new characters novice protection",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Players allowed on the server (1-80)",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27017,
+      "display": "Query Port",
+      "desc": "Query port, normally the game port plus two",
+      "required": true,
+      "userEdit": false
+    },
+    "SELFDMG": {
+      "type": "option",
+      "value": "true",
+      "display": "Self Damage",
+      "desc": "Let players damage themselves",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SENSITIVE_WORDS": {
+      "type": "option",
+      "value": "true",
+      "display": "Profanity Filter",
+      "desc": "Block profanity in chat",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SERVER_IP": {
+      "type": "string",
+      "value": "",
+      "display": "Public IP",
+      "desc": "Address the server advertises",
+      "required": false,
+      "userEdit": true
+    },
+    "SHUTDOWN_PORT": {
+      "type": "integer",
+      "value": 27018,
+      "display": "Shutdown Service Port",
+      "desc": "Shutdown service port, normally the game port plus three",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2334200",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the The Front dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_ADMIN": {
+      "type": "string",
+      "value": "",
+      "display": "Server Admins",
+      "desc": "17 digit SteamIDs separated by semicolons. Admins get the highest GM level.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRV_NAME": {
+      "type": "string",
+      "value": "PufferPanel hosted Server",
+      "display": "Server Name",
+      "desc": "Name of the server. No spaces or special characters.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRV_SAVETIME": {
+      "type": "integer",
+      "value": 300,
+      "display": "Save Interval",
+      "desc": "Seconds between world saves (150-600)",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_TAGS": {
+      "type": "string",
+      "value": "",
+      "display": "Server Tags",
+      "desc": "Up to five tags: 0 PvP, 1 PvE, 2 EXP multiplier, 3 gathering rate, 4 keep inventory, 5 45d wipe, 6 15d wipe, 7 30d wipe, 8 60d wipe",
+      "required": false,
+      "userEdit": true
+    },
+    "STEAMSOCKET": {
+      "type": "option",
+      "value": "0",
+      "display": "Use Steam Socket",
+      "desc": "Relay traffic through Steam when the host has no public address. It costs latency and depends on Steam being responsive.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update 1007 +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "TheFrontManager/${CFG_NAME}"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./ProjectWar/Binaries/Linux/TheFrontServer"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./ProjectWar/Binaries/Linux/TheFrontServer ProjectWar_Start?DedicatedServer -server -game -log -ServerTags=${SRV_TAGS} -UseSteamSocket=${STEAMSOCKET} -Port=${port} -BeaconPort=${BEACON_PORT} -ShutDownServicePort=${SHUTDOWN_PORT} -QueryPort=${QUERY_PORT} -ConfigServerName=${CFG_NAME} -OutIPAddress=${SERVER_IP} -UserDir=/pufferpanel/TheFrontManager/${CFG_NAME}/ -ServerName=${SRV_NAME} -EnableParallelCharacterMovementTickFunction -EnableParallelCharacterTickFunction -UseDynamicPhysicsScene -Game.PhysicsVehicle=false -ansimalloc -Game.MaxFrameRate=35 -MaxQueueSize=50 -QueueValidTime=120 -QueueThreshold=${MAX_PLAYERS} -ServerFightModeType=${GAMEMODE} -IsCanSelfDamage=${SELFDMG} -IsCanFriendDamage=${DMGALLIES} -SaveWorldInterval=${SRV_SAVETIME} -GMOverlapRatio=2 -GreenHand=${GREENHAND} -SensitiveWords=${SENSITIVE_WORDS} -UseACE=${ANTI_CHEAT} -ServerAdminAccounts=${SRV_ADMIN} -IsShowGmTitle=${ADMIN_LABEL} -ServerPassword=${SRV_PW}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${SHUTDOWN_PORT}:${SHUTDOWN_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${SHUTDOWN_PORT}:${SHUTDOWN_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

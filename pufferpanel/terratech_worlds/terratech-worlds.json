@@ -1,0 +1,181 @@
+{
+  "type": "terratechworlds",
+  "display": "TerraTech Worlds (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 6,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (1-6)",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2533070",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the TerraTech Worlds dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "TT2/Binaries/Win64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel/TT2/Binaries/Win64 +login anonymous +@sSteamCmdForcePlatformType windows +app_update 1007 validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+    },
+    {
+      "type": "mkdir",
+      "target": "TT2/Saved/Logs"
+    },
+    {
+      "if": "!file_exists('dedicated_server_config.json')",
+      "type": "writefile",
+      "target": "dedicated_server_config.json",
+      "text": "{\n  \"Port\": ${port},\n  \"Password\": \"${SERVER_PASSWORD}\",\n  \"SlotCount\": ${MAX_PLAYERS}\n}\n"
+    }
+  ],
+  "run": {
+    "command": "proton run ./TT2/Binaries/Win64/TT2Server-Win64-Shipping.exe -log",
+    "stopCode": 2,
+    "environmentVars": {
+      "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",
+      "STEAM_COMPAT_DATA_PATH": "/pufferpanel/.steam/steam/steamapps/compatdata/${SRCDS_APPID}",
+      "WINEDEBUG": "-all"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('dedicated_server_config.json')",
+        "type": "alterfile",
+        "file": "dedicated_server_config.json",
+        "search": "\"Port\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"Port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated_server_config.json')",
+        "type": "alterfile",
+        "file": "dedicated_server_config.json",
+        "search": "\"Password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Password\": \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated_server_config.json')",
+        "type": "alterfile",
+        "file": "dedicated_server_config.json",
+        "search": "\"SlotCount\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"SlotCount\": ${MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

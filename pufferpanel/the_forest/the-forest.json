@@ -1,0 +1,348 @@
+{
+  "type": "theforest",
+  "display": "The Forest (Docker)",
+  "data": {
+    "ADMIN_PASS": {
+      "type": "string",
+      "value": "cHanGetHePaSwWord",
+      "display": "Admin Password",
+      "desc": "Password that grants in-game admin access",
+      "required": true,
+      "userEdit": true
+    },
+    "INIT_TYPE": {
+      "type": "option",
+      "value": "New",
+      "display": "Init Type",
+      "desc": "Start a fresh world or continue from the saved one",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "New",
+          "display": "New game"
+        },
+        {
+          "value": "Continue",
+          "display": "Continue saved game"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Player cap of the server",
+      "required": true,
+      "userEdit": false
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Query port. Clients also connect through this one.",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_DIFFICULTY": {
+      "type": "option",
+      "value": "Normal",
+      "display": "Difficulty",
+      "desc": "Difficulty of the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Peaceful",
+          "display": "Peaceful"
+        },
+        {
+          "value": "Normal",
+          "display": "Normal"
+        },
+        {
+          "value": "Hard",
+          "display": "Hard"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel Forest Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the Steam browser, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "556450",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the The Forest dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_ACC": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Account Token",
+      "desc": "Game server login token. Without it the server cannot save player progress. Generate one for app id 242760 at https://steamcommunity.com/dev/managegameservers.",
+      "required": false,
+      "userEdit": true
+    },
+    "STEAM_PORT": {
+      "type": "integer",
+      "value": 8766,
+      "display": "Steam Port",
+      "desc": "UDP port used by the Steam networking layer",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "VAC": {
+      "type": "option",
+      "value": "off",
+      "display": "Valve Anti-Cheat",
+      "desc": "Run VAC on the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "on",
+          "display": "Enabled"
+        },
+        {
+          "value": "off",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP game port",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "TheForestDedicatedServer_Data/forest/config"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q sound=disabled"
+      ]
+    },
+    {
+      "if": "!file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+      "type": "writefile",
+      "target": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+      "text": "// Dedicated Server Settings.\nserverIP 0.0.0.0\nserverSteamPort ${STEAM_PORT}\nserverGamePort ${port}\nserverQueryPort ${QUERY_PORT}\nserverName ${SERVER_NAME}\nserverPlayers ${MAX_PLAYERS}\nserverPassword ${SERVER_PASS}\nserverSteamAccount ${STEAM_ACC}\nenableVAC ${VAC}\nserverAutoSaveInterval 15\ndifficulty ${SERVER_DIFFICULTY}\ninitType ${INIT_TYPE}\nslot 1\nshowLogs off\nserverContact email@example.com\nveganMode off\nvegetarianMode off\nresetHolesMode off\ntreeRegrowMode off\nallowBuildingDestruction on\nallowEnemiesCreativeMode off\nallowCheats off\nsaveFolderPath\ntargetFpsIdle 5\ntargetFpsActive 60\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c \"exec xvfb-run --auto-servernum --server-args='-screen 0 640x480x24:32' wine ./TheForestDedicatedServer.exe -batchmode -nographics -serverPasswordAdmin ${ADMIN_PASS} -inittype ${INIT_TYPE} -nosteamclient -savefolderpath /pufferpanel/TheForestDedicatedServer_Data -configfilepath /pufferpanel/TheForestDedicatedServer_Data/forest/config/config.cfg\"",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^serverIP .*$",
+        "replace": "serverIP 0.0.0.0",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^serverSteamPort .*$",
+        "replace": "serverSteamPort ${STEAM_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^serverGamePort .*$",
+        "replace": "serverGamePort ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^serverQueryPort .*$",
+        "replace": "serverQueryPort ${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^serverName .*$",
+        "replace": "serverName ${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^serverPlayers .*$",
+        "replace": "serverPlayers ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^serverPassword .*$",
+        "replace": "serverPassword ${SERVER_PASS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^serverSteamAccount .*$",
+        "replace": "serverSteamAccount ${STEAM_ACC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^enableVAC .*$",
+        "replace": "enableVAC ${VAC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^difficulty .*$",
+        "replace": "difficulty ${SERVER_DIFFICULTY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheForestDedicatedServer_Data/forest/config/config.cfg')",
+        "type": "alterfile",
+        "file": "TheForestDedicatedServer_Data/forest/config/config.cfg",
+        "search": "^initType .*$",
+        "replace": "initType ${INIT_TYPE}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${STEAM_PORT}:${STEAM_PORT}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${STEAM_PORT}:${STEAM_PORT}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

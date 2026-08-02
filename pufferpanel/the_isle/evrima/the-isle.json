@@ -1,0 +1,438 @@
+{
+  "type": "theisle",
+  "display": "The Isle - Evrima (Docker)",
+  "data": {
+    "ADMINSTEAMID": {
+      "type": "string",
+      "value": "",
+      "display": "Admin SteamIDs",
+      "desc": "SteamIDs granted admin on the server",
+      "required": false,
+      "userEdit": true
+    },
+    "ALLOW_REPLAY": {
+      "type": "option",
+      "value": "false",
+      "display": "Allow Replay",
+      "desc": "Record replays on the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "DISCORD": {
+      "type": "string",
+      "value": "norden",
+      "display": "Discord",
+      "desc": "Discord invite advertised in game",
+      "required": false,
+      "userEdit": false
+    },
+    "DYNAMIC_WEATHER": {
+      "type": "option",
+      "value": "true",
+      "display": "Dynamic Weather",
+      "desc": "Run the dynamic weather system",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "ENABLE_QUEUE": {
+      "type": "option",
+      "value": "true",
+      "display": "Enable Queue",
+      "desc": "Let players queue for a slot",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "HUMANS": {
+      "type": "option",
+      "value": "false",
+      "display": "Humans",
+      "desc": "Allow the human faction",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "PLAYER_COUNT": {
+      "type": "integer",
+      "value": 100,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "QUEUE_PORT": {
+      "type": "integer",
+      "value": 44001,
+      "display": "Queue Port",
+      "desc": "TCP port the queue listens on",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON": {
+      "type": "option",
+      "value": "false",
+      "display": "Enable RCON",
+      "desc": "Run the RCON listener",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password used to log in over RCON",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 44000,
+      "display": "RCON Port",
+      "desc": "TCP port RCON listens on",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel server",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 70 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password used when Require Password is enabled",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD_ENABLED": {
+      "type": "option",
+      "value": "false",
+      "display": "Require Password",
+      "desc": "Ask joining players for the server password",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "412680",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the The Isle dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "evrima",
+      "display": "Steam Beta Branch",
+      "desc": "Branch carrying the Evrima build",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "TheIsle/Saved/Config/LinuxServer"
+    },
+    {
+      "if": "!file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+      "type": "writefile",
+      "target": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+      "text": "[/Script/TheIsle.TIGameSession]\nServerName=${SERVER_NAME}\nMaxPlayerCount=${PLAYER_COUNT}\nMapName=Gateway\nbRconEnabled=${RCON}\nRconPort=${RCON_PORT}\nRconPassword=${RCON_PASSWORD}\nbServerPassword=${SERVER_PASSWORD_ENABLED}\nServerPassword=${SERVER_PASSWORD}\nbServerDynamicWeather=${DYNAMIC_WEATHER}\nbAllowReplay=${ALLOW_REPLAY}\nbEnableHumans=${HUMANS}\nbQueueEnabled=${ENABLE_QUEUE}\nQueuePort=${QUEUE_PORT}\ndiscord=${DISCORD}\n\n[/Script/TheIsle.TIGameStateBase]\nAdminsSteamIDs=${ADMINSTEAMID}\n"
+    },
+    {
+      "type": "writefile",
+      "target": "TheIsle/Saved/Config/LinuxServer/Engine.ini",
+      "text": "[Core.System]\nPaths=../../../Engine/Content\nPaths=%GAMEDIR%Content\nPaths=../../../Engine/Plugins/Runtime/SoundUtilities/Content\nPaths=../../../Engine/Plugins/Runtime/Synthesis/Content\nPaths=../../../Engine/Plugins/Runtime/AudioSynesthesia/Content\nPaths=../../../Engine/Plugins/Runtime/WebBrowserWidget/Content\nPaths=../../../Engine/Plugins/FX/Niagara/Content\nPaths=../../../Engine/Plugins/Experimental/PythonScriptPlugin/Content\nPaths=../../../TheIsle/Plugins/SteamCore/Content\nPaths=../../../TheIsle/Plugins/RVTObjectLandscapeBlending/Content\nPaths=../../../Engine/Plugins/Runtime/Nvidia/DLSS/Content\nPaths=../../../TheIsle/Plugins/DonMeshPainting/Content\nPaths=../../../TheIsle/Plugins/UIPF/Content\nPaths=../../../TheIsle/Plugins/EOSCore/Content\nPaths=../../../Engine/Plugins/Experimental/ControlRig/Content\nPaths=../../../Engine/Plugins/Runtime/Nvidia/DLSSMoviePipelineSupport/Content\nPaths=../../../Engine/Plugins/MovieScene/MovieRenderPipeline/Content\nPaths=../../../Engine/Plugins/Compositing/OpenColorIO/Content\nPaths=../../../Engine/Plugins/MovieScene/SequencerScripting/Content\nPaths=../../../TheIsle/Plugins/ImpostorBaker/Content\nPaths=../../../Engine/Plugins/2D/Paper2D/Content\nPaths=../../../Engine/Plugins/Developer/AnimationSharing/Content\nPaths=../../../Engine/Plugins/Editor/GeometryMode/Content\nPaths=../../../Engine/Plugins/Editor/SpeedTreeImporter/Content\nPaths=../../../Engine/Plugins/Enterprise/DatasmithContent/Content\nPaths=../../../Engine/Plugins/Experimental/ChaosClothEditor/Content\nPaths=../../../Engine/Plugins/Experimental/GeometryProcessing/Content\nPaths=../../../Engine/Plugins/Experimental/GeometryCollectionPlugin/Content\nPaths=../../../Engine/Plugins/Experimental/ChaosSolverPlugin/Content\nPaths=../../../Engine/Plugins/Experimental/ChaosNiagara/Content\nPaths=../../../Engine/Plugins/Experimental/MotoSynth/Content\nPaths=../../../Engine/Plugins/Media/MediaCompositing/Content\nPaths=../../../Engine/Plugins/Runtime/OpenXREyeTracker/Content\nPaths=../../../Engine/Plugins/Runtime/OpenXR/Content\nPaths=../../../Engine/Plugins/Runtime/OpenXRHandTracking/Content\nPaths=../../../Engine/Plugins/VirtualProduction/Takes/Content\n\n[EpicOnlineServices]\nDedicatedServerClientId=xyza7891gk5PRo3J7G9puCJGFJjmEguW\nDedicatedServerClientSecret=pKWl6t5i9NJK8gTpVlAxzENZ65P8hYzodV8Dqe5Rlc8\n"
+    }
+  ],
+  "run": {
+    "command": "./TheIsle/Binaries/Linux/TheIsleServer-Linux-Shipping -Port=${port} -ini:Engine:[EpicOnlineServices]:DedicatedServerClientId=xyza7891gk5PRo3J7G9puCJGFJjmEguW -ini:Engine:[EpicOnlineServices]:DedicatedServerClientSecret=pKWl6t5i9NJK8gTpVlAxzENZ65P8hYzodV8Dqe5Rlc8",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^MaxPlayerCount=.*$",
+        "replace": "MaxPlayerCount=${PLAYER_COUNT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bRconEnabled=.*$",
+        "replace": "bRconEnabled=${RCON}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^RconPort=.*$",
+        "replace": "RconPort=${RCON_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^RconPassword=.*$",
+        "replace": "RconPassword=${RCON_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bServerPassword=.*$",
+        "replace": "bServerPassword=${SERVER_PASSWORD_ENABLED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bServerDynamicWeather=.*$",
+        "replace": "bServerDynamicWeather=${DYNAMIC_WEATHER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bAllowReplay=.*$",
+        "replace": "bAllowReplay=${ALLOW_REPLAY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bEnableHumans=.*$",
+        "replace": "bEnableHumans=${HUMANS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bQueueEnabled=.*$",
+        "replace": "bQueueEnabled=${ENABLE_QUEUE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^QueuePort=.*$",
+        "replace": "QueuePort=${QUEUE_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^discord=.*$",
+        "replace": "discord=${DISCORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('TheIsle/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "TheIsle/Saved/Config/LinuxServer/Game.ini",
+        "search": "^AdminsSteamIDs=.*$",
+        "replace": "AdminsSteamIDs=${ADMINSTEAMID}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp",
+      "0.0.0.0:${QUEUE_PORT}:${QUEUE_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp",
+        "0.0.0.0:${QUEUE_PORT}:${QUEUE_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
