@@ -1,0 +1,162 @@
+{
+  "type": "quakelive",
+  "display": "Quake Live (Docker)",
+  "data": {
+    "FPS": {
+      "type": "integer",
+      "value": 40,
+      "display": "Server FPS",
+      "desc": "Frames the server simulates per second. Raising it costs CPU and bandwidth.",
+      "required": true,
+      "userEdit": false
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Server-wide password. Leave empty to let anyone connect.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A Quake Live Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser, at most 70 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_TYPE": {
+      "type": "option",
+      "value": "2",
+      "display": "Server Type",
+      "desc": "Visibility of the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Offline"
+        },
+        {
+          "value": "1",
+          "display": "LAN"
+        },
+        {
+          "value": "2",
+          "display": "Internet"
+        }
+      ]
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "349090",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Quake Live dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27960,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x qzeroded.x64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./qzeroded.x64 +set net_port ${port} +set sv_hostname \"${SERVER_NAME}\" +set sv_serverType \"${SERVER_TYPE}\" +set g_password \"${PASSWORD}\" +sv_fps \"${FPS}\"",
+    "stop": "quit",
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel/linux64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

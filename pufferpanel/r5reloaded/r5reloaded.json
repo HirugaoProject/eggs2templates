@@ -1,0 +1,144 @@
+{
+  "type": "r5reloaded",
+  "display": "R5Reloaded (Docker)",
+  "data": {
+    "ARGS": {
+      "type": "string",
+      "value": "",
+      "display": "Extra Arguments",
+      "desc": "Additional arguments appended to the server command line",
+      "required": false,
+      "userEdit": true
+    },
+    "DL_URL": {
+      "type": "string",
+      "value": "https://r5reloaded.com/server-download",
+      "display": "Download URL",
+      "desc": "Location of the R5Reloaded server build",
+      "required": true,
+      "userEdit": false
+    },
+    "PLAYLIST": {
+      "type": "string",
+      "value": "fs_dm",
+      "display": "Playlist",
+      "desc": "Playlist the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "REINSTALL_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Reinstall On Boot",
+      "desc": "Fetch the R5Reloaded build again before every start. R5Reloaded ships full builds rather than patches, so this re-downloads everything.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Server",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 50 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 37015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o server_download.7z ${DL_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "server_download.7z",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f server_download.7z"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'Xvfb :0 -screen 0 1024x768x16 & exec wine r5apex_ds.exe -noconsole -port ${port} +launchplaylist \"${PLAYLIST}\" +hostname \"${SERVER_NAME}\" ${ARGS}'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "type": "command",
+        "commands": [
+          "curl -sSL -o server_download.7z ${DL_URL}"
+        ],
+        "if": "REINSTALL_ON_BOOT"
+      },
+      {
+        "if": "REINSTALL_ON_BOOT",
+        "type": "extract",
+        "source": "server_download.7z",
+        "destination": "."
+      },
+      {
+        "if": "REINSTALL_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "rm -f server_download.7z"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

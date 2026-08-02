@@ -1,0 +1,267 @@
+{
+  "type": "rimworldopenworld",
+  "display": "Rimworld: Open World (Docker)",
+  "data": {
+    "CUSTOM_SCEN": {
+      "type": "option",
+      "value": "false",
+      "display": "Allow Custom Scenarios",
+      "desc": "Let players join with custom scenarios",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "ENFORCE_MODS": {
+      "type": "option",
+      "value": "false",
+      "display": "Enforce Mods",
+      "desc": "Require players to run exactly the mods in the Mods Enforced folder",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players connected at the same time",
+      "required": true,
+      "userEdit": true
+    },
+    "PLAYER_VERSION": {
+      "type": "string",
+      "value": "1.2",
+      "display": "Client Version",
+      "desc": "Open World client version players must be running",
+      "required": true,
+      "userEdit": true
+    },
+    "USE_CUSTOM_DIFF": {
+      "type": "option",
+      "value": "false",
+      "display": "Use Custom Difficulty",
+      "desc": "Force every player onto the settings in the Difficulty file. Fill in every value or they end up at zero.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "USE_MOD_BLACKLIST": {
+      "type": "option",
+      "value": "false",
+      "display": "Use Mod Blacklist",
+      "desc": "Reject the mods listed in the blacklist. Usually paired with Enforce Mods disabled.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "latest",
+      "display": "Open World Version",
+      "desc": "Release tag of D12-Dev/OpenWorld to install, or latest for the newest release",
+      "required": true,
+      "userEdit": true
+    },
+    "WHITELIST": {
+      "type": "option",
+      "value": "false",
+      "display": "Use Whitelist",
+      "desc": "Only let the usernames in the Whitelist file join",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 25555,
+      "display": "Port",
+      "desc": "TCP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "if": "VERSION == 'latest'",
+      "type": "download",
+      "files": [
+        "https://github.com/D12-Dev/OpenWorld/releases/latest/download/linux-x64.zip"
+      ]
+    },
+    {
+      "if": "VERSION != 'latest'",
+      "type": "download",
+      "files": [
+        "https://github.com/D12-Dev/OpenWorld/releases/download/${VERSION}/linux-x64.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "linux-x64.zip",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/linux-x64/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted linux-x64.zip",
+        "chmod +x ./OpenWorldServer"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Data"
+    },
+    {
+      "if": "!file_exists('Data/Config.json')",
+      "type": "writefile",
+      "target": "Data/Config.json",
+      "text": "{\n  \"LocalAddress\": \"0.0.0.0\",\n  \"ServerPort\": ${port},\n  \"MaxPlayers\": ${MAX_PLAYERS},\n  \"PlayerVersion\": \"${PLAYER_VERSION}\",\n  \"EnforceMods\": ${ENFORCE_MODS},\n  \"UseModBlacklist\": ${USE_MOD_BLACKLIST},\n  \"UseCustomDifficulty\": ${USE_CUSTOM_DIFF},\n  \"UseWhitelist\": ${WHITELIST},\n  \"AllowCustomScenarios\": ${CUSTOM_SCEN}\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./OpenWorldServer",
+    "stop": "shutdown",
+    "pre": [
+      {
+        "if": "file_exists('Data/Config.json')",
+        "type": "alterfile",
+        "file": "Data/Config.json",
+        "search": "\"ServerPort\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"ServerPort\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Data/Config.json')",
+        "type": "alterfile",
+        "file": "Data/Config.json",
+        "search": "\"MaxPlayers\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"MaxPlayers\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Data/Config.json')",
+        "type": "alterfile",
+        "file": "Data/Config.json",
+        "search": "\"PlayerVersion\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"PlayerVersion\": \"${PLAYER_VERSION}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Data/Config.json')",
+        "type": "alterfile",
+        "file": "Data/Config.json",
+        "search": "\"EnforceMods\"\\s*:\\s*(true|false)",
+        "replace": "\"EnforceMods\": ${ENFORCE_MODS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Data/Config.json')",
+        "type": "alterfile",
+        "file": "Data/Config.json",
+        "search": "\"UseModBlacklist\"\\s*:\\s*(true|false)",
+        "replace": "\"UseModBlacklist\": ${USE_MOD_BLACKLIST}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Data/Config.json')",
+        "type": "alterfile",
+        "file": "Data/Config.json",
+        "search": "\"UseCustomDifficulty\"\\s*:\\s*(true|false)",
+        "replace": "\"UseCustomDifficulty\": ${USE_CUSTOM_DIFF}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Data/Config.json')",
+        "type": "alterfile",
+        "file": "Data/Config.json",
+        "search": "\"UseWhitelist\"\\s*:\\s*(true|false)",
+        "replace": "\"UseWhitelist\": ${WHITELIST}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Data/Config.json')",
+        "type": "alterfile",
+        "file": "Data/Config.json",
+        "search": "\"AllowCustomScenarios\"\\s*:\\s*(true|false)",
+        "replace": "\"AllowCustomScenarios\": ${CUSTOM_SCEN}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_6",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_6",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "type": "resonite",
+  "display": "Resonite (Docker)",
+  "data": {
+    "ENABLE_MODLOADER": {
+      "type": "boolean",
+      "value": false,
+      "display": "Enable Mod Loader",
+      "desc": "Install and load ResoniteModLoader. See https://github.com/resonite-modding-group/ResoniteModLoader",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2519830",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Resonite dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "headless",
+      "display": "Steam Beta Branch",
+      "desc": "Beta branch carrying the headless client",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAPASS": {
+      "type": "string",
+      "value": "",
+      "display": "Headless Access Code",
+      "desc": "Beta password for the headless branch. Subscribe to the Resonite Patreon tier with headless access, then message the Resonite bot in game with /headlessCode and paste the result here.",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_AUTH": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Guard Code",
+      "desc": "Steam Guard code or login token. Leave empty when the account has no Steam Guard.",
+      "required": false,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of that Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Resonite",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 24000,
+      "display": "Port",
+      "desc": "UDP port the headless session binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} -betapassword ${SRCDS_BETAPASS} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "Headless/Config"
+    },
+    {
+      "type": "mkdir",
+      "target": "Headless/Logs"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('Headless/Config/Config.json')",
+      "type": "writefile",
+      "target": "Headless/Config/Config.json",
+      "text": "{\n\t\"$schema\": \"https://raw.githubusercontent.com/Yellow-Dog-Man/JSONSchemas/main/schemas/HeadlessConfig.schema.json\",\n\t\"universeId\": null,\n\t\"tickRate\": 60.0,\n\t\"maxConcurrentAssetTransfers\": 4,\n\t\"usernameOverride\": null,\n\t\"loginCredential\": \"\",\n\t\"loginPassword\": \"\",\n\t\"startWorlds\": [{\n\t\t\"isEnabled\": true,\n\t\t\"saveAsOwner\": null,\n\t\t\"autoInviteUsernames\": null,\n\t\t\"parentSessionIds\": null,\n\t\t\"autoInviteMessage\": null,\n\t\t\"autoRecover\": true,\n\t\t\"idleRestartInterval\": -1.0,\n\t\t\"forcedRestartInterval\": -1.0,\n\t\t\"saveOnExit\": false,\n\t\t\"autosaveInterval\": -1.0,\n\t\t\"autoSleep\": true,\n\t\t\"sessionName\": null,\n\t\t\"customSessionId\": null,\n\t\t\"description\": null,\n\t\t\"maxUsers\": 32,\n\t\t\"accessLevel\": \"Anyone\",\n\t\t\"hideFromPublicListing\": null,\n\t\t\"tags\": null,\n\t\t\"mobileFriendly\": false,\n\t\t\"loadWorldURL\": null,\n\t\t\"loadWorldPresetName\": \"SpaceWorld\",\n\t\t\"overrideCorrespondingWorldId\": null,\n\t\t\"forcePort\": ${port},\n\t\t\"keepOriginalRoles\": false,\n\t\t\"defaultUserRoles\": null,\n\t\t\"roleCloudVariable\": null,\n\t\t\"allowUserCloudVariable\": null,\n\t\t\"denyUserCloudVariable\": null,\n\t\t\"requiredUserJoinCloudVariable\": null,\n\t\t\"requiredUserJoinCloudVariableDenyMessage\": null,\n\t\t\"awayKickMinutes\": -1.0\n\t}],\n\t\"dataFolder\": null,\n\t\"cacheFolder\": null,\n\t\"logsFolder\": null,\n\t\"allowedUrlHosts\": null,\n\t\"autoSpawnItems\": null,\n\t\"metamovieRoles\": null\n}\n"
+    },
+    {
+      "if": "ENABLE_MODLOADER",
+      "type": "mkdir",
+      "target": "Libraries"
+    },
+    {
+      "if": "ENABLE_MODLOADER",
+      "type": "mkdir",
+      "target": "rml_libs"
+    },
+    {
+      "if": "ENABLE_MODLOADER",
+      "type": "mkdir",
+      "target": "rml_mods"
+    },
+    {
+      "if": "ENABLE_MODLOADER",
+      "type": "download",
+      "files": [
+        "https://github.com/resonite-modding-group/ResoniteModLoader/releases/latest/download/ResoniteModLoader.dll",
+        "https://github.com/resonite-modding-group/ResoniteModLoader/releases/latest/download/0Harmony.dll"
+      ]
+    },
+    {
+      "if": "ENABLE_MODLOADER",
+      "type": "move",
+      "source": "ResoniteModLoader.dll",
+      "target": "Libraries/ResoniteModLoader.dll"
+    },
+    {
+      "if": "ENABLE_MODLOADER",
+      "type": "move",
+      "source": "0Harmony.dll",
+      "target": "rml_libs/0Harmony.dll"
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "if": "ENABLE_MODLOADER",
+        "command": "mono Headless/Resonite.exe -HeadlessConfig Headless/Config/Config.json -Logs Headless/Logs -LoadAssembly Libraries/ResoniteModLoader.dll"
+      },
+      {
+        "if": "!ENABLE_MODLOADER",
+        "command": "mono Headless/Resonite.exe -HeadlessConfig Headless/Config/Config.json -Logs Headless/Logs"
+      }
+    ],
+    "stop": "shutdown",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} -betapassword ${SRCDS_BETAPASS} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Headless/Config/Config.json')",
+        "type": "alterfile",
+        "file": "Headless/Config/Config.json",
+        "search": "\"forcePort\"\\s*:\\s*[^,\\n]*",
+        "replace": "\"forcePort\": ${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:mono_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:mono_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

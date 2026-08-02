@@ -1,0 +1,220 @@
+{
+  "type": "returntomoria",
+  "display": "The Lord of the Rings: Return to Moria (Docker)",
+  "data": {
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "normal",
+      "display": "Difficulty",
+      "desc": "World difficulty preset",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "story",
+          "display": "Story"
+        },
+        {
+          "value": "solo",
+          "display": "Solo"
+        },
+        {
+          "value": "normal",
+          "display": "Normal"
+        },
+        {
+          "value": "hard",
+          "display": "Hard"
+        },
+        {
+          "value": "custom",
+          "display": "Custom"
+        }
+      ]
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password, case sensitive. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3349480",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the The Lord of the Rings: Return to Moria dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Server",
+      "display": "World Name",
+      "desc": "Name of the saved world to load, at most 80 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "mkdir",
+      "target": "Moria/Saved/Logs"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q vcrun2022"
+      ]
+    },
+    {
+      "if": "!file_exists('MoriaServerConfig.ini')",
+      "type": "writefile",
+      "target": "MoriaServerConfig.ini",
+      "text": "[Host]\nListenPort=${port}\n\n[Main]\nOptionalPassword=${SERVER_PASSWORD}\n\n[World]\nName=\"${WORLD_NAME}\"\n\n[World.Create]\nDifficulty.Preset=${DIFFICULTY}\n\n[Console]\nEnabled=false\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c 'Xvfb :0 -screen 0 1024x768x16 & exec wine ./Moria/Binaries/Win64/MoriaServer-Win64-Shipping.exe -log'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('MoriaServerConfig.ini')",
+        "type": "alterfile",
+        "file": "MoriaServerConfig.ini",
+        "search": "^ListenPort\\s*=.*$",
+        "replace": "ListenPort=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('MoriaServerConfig.ini')",
+        "type": "alterfile",
+        "file": "MoriaServerConfig.ini",
+        "search": "^OptionalPassword\\s*=.*$",
+        "replace": "OptionalPassword=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('MoriaServerConfig.ini')",
+        "type": "alterfile",
+        "file": "MoriaServerConfig.ini",
+        "search": "^Name\\s*=.*$",
+        "replace": "Name=\"${WORLD_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('MoriaServerConfig.ini')",
+        "type": "alterfile",
+        "file": "MoriaServerConfig.ini",
+        "search": "^Difficulty\\.Preset\\s*=.*$",
+        "replace": "Difficulty.Preset=${DIFFICULTY}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

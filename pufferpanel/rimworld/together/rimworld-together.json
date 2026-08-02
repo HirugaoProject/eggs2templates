@@ -1,0 +1,142 @@
+{
+  "type": "rimworldtogether",
+  "display": "Rimworld Together (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 100,
+      "display": "Max Players",
+      "desc": "Maximum number of players that can join (1-150)",
+      "required": true,
+      "userEdit": true
+    },
+    "VERBOSE": {
+      "type": "option",
+      "value": "false",
+      "display": "Verbose Logs",
+      "desc": "Print verbose output to the console",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "latest",
+      "display": "Version",
+      "desc": "Release tag of RimworldTogether/Rimworld-Together to install, or latest for the newest release",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 25555,
+      "display": "Port",
+      "desc": "TCP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "if": "VERSION == 'latest'",
+      "type": "download",
+      "files": [
+        "https://github.com/RimworldTogether/Rimworld-Together/releases/latest/download/Server-linux-x64.zip"
+      ]
+    },
+    {
+      "if": "VERSION != 'latest'",
+      "type": "download",
+      "files": [
+        "https://github.com/RimworldTogether/Rimworld-Together/releases/download/${VERSION}/Server-linux-x64.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "Server-linux-x64.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f Server-linux-x64.zip",
+        "chmod +x ./GameServer"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Configs"
+    },
+    {
+      "if": "!file_exists('Configs/ServerConfig.json')",
+      "type": "writefile",
+      "target": "Configs/ServerConfig.json",
+      "text": "{\n  \"IP\": \"0.0.0.0\",\n  \"Port\": ${port},\n  \"MaxPlayers\": ${MAX_PLAYERS},\n  \"VerboseLogs\": ${VERBOSE}\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./GameServer",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "file_exists('Configs/ServerConfig.json')",
+        "type": "alterfile",
+        "file": "Configs/ServerConfig.json",
+        "search": "\"Port\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"Port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/ServerConfig.json')",
+        "type": "alterfile",
+        "file": "Configs/ServerConfig.json",
+        "search": "\"MaxPlayers\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"MaxPlayers\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Configs/ServerConfig.json')",
+        "type": "alterfile",
+        "file": "Configs/ServerConfig.json",
+        "search": "\"VerboseLogs\"\\s*:\\s*(true|false)",
+        "replace": "\"VerboseLogs\": ${VERBOSE}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_7",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_7",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

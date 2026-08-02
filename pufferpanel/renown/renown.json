@@ -1,0 +1,411 @@
+{
+  "type": "renown",
+  "display": "Renown (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "ChangeMe",
+      "display": "Admin Password",
+      "desc": "Password used for admin access",
+      "required": true,
+      "userEdit": true
+    },
+    "BEACON_PORT": {
+      "type": "integer",
+      "value": 15000,
+      "display": "Beacon Port",
+      "desc": "Port used by the Unreal lobby beacon",
+      "required": true,
+      "userEdit": false
+    },
+    "ENABLE_RCON": {
+      "type": "option",
+      "value": "True",
+      "display": "Enable RCON",
+      "desc": "Allow remote console connections",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "True",
+          "display": "Enabled"
+        },
+        {
+          "value": "False",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "FIRST_PERSON_ONLY": {
+      "type": "option",
+      "value": "1",
+      "display": "First Person Only",
+      "desc": "Force players into first-person view",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAP_ROTATION": {
+      "type": "string",
+      "value": "RSurv-AlgaraIsle_p",
+      "display": "Map Rotation",
+      "desc": "Maps rotated during gameplay",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "PUBLIC": {
+      "type": "option",
+      "value": "True",
+      "display": "Public Server",
+      "desc": "List the server publicly. Keep Private Session disabled when this is enabled.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "True",
+          "display": "Enabled"
+        },
+        {
+          "value": "False",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Port used for server queries and server list visibility",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "RconPassword",
+      "display": "RCON Password",
+      "desc": "Password used to log in over RCON",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 27020,
+      "display": "RCON Port",
+      "desc": "Port used for remote console connections",
+      "required": true,
+      "userEdit": false
+    },
+    "SAVE_NAME": {
+      "type": "string",
+      "value": "Save_1",
+      "display": "Save Name",
+      "desc": "Name of the save file used by the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_LIST": {
+      "type": "option",
+      "value": "False",
+      "display": "Private Session",
+      "desc": "Run the server as a private session. Keep Public Server disabled when this is enabled.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "True",
+          "display": "Enabled"
+        },
+        {
+          "value": "False",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Name of the server as shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1512690",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Renown dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "USE_FIRST_MAP": {
+      "type": "option",
+      "value": "True",
+      "display": "Load First Map On Start",
+      "desc": "Load the first map of the rotation when the server starts",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "True",
+          "display": "Enabled"
+        },
+        {
+          "value": "False",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Renown_Combat/Saved/Config/LinuxServer"
+    },
+    {
+      "if": "!file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+      "type": "writefile",
+      "target": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+      "text": "[/Game/Core/Blueprints/Renown_GameInstance.Renown_GameInstance_C]\nEnableRCON=${ENABLE_RCON}\nRCONPort=${RCON_PORT}\nRCONChatMessagesLimit=50\nRCONPassword=${RCON_PASSWORD}\nRCON_ServerMaxUptime=1800\nServerPassword=${SERVER_PASSWORD}\nServerName=${SERVER_NAME}\nMaxPlayers=${MAX_PLAYERS}\nbLAN=False\nbAntiCheat=False\nGameSaveName=${SAVE_NAME}\nGameDescription=Renown\nAdminPassword=${ADMIN_PASSWORD}\nAdminWhitelist=\nUseFirstMap=${USE_FIRST_MAP}\nPublic=${PUBLIC}\nMapRotation=${MAP_ROTATION}\nBanList=\nPrivateSession=${SERVER_LIST}\nMaxPing=195\nMOTD=\"NSLOCTEXT(\"[2CF2D1E04F419B14490A65BF06750767]\", \"F67B0BE94A3C4A2665B05284056D0757\", \"Welcome to this PufferPanel Renown server!\")\"\nRegion=\nMaxServerUptime=28800\nDebugRCON=True\n\n[/Game/Core/Blueprints/GameModes/Renown_Base_GameMode.Renown_Base_GameMode_C]\nTimeLimit=0\nAutoBalance=0\nMaintenanceRate=(X=0.500000,Y=1.000000)\nResourceGainMultiplier=1\nGoldCoinGainMultiplier=1\nGlobalCraftingMultiplier=1\nGlobalSmeltingMultiplier=1\nGlobalResourceRespawnTimeMultiplier=1\nGlobalMaintenanceCostMultiplier=1\nGlobalDecayDamageMultiplier=1\nKickIdlePlayers=True\nIdleTimeOutTime=300\nMaxPlayersPerBanner=0\n\n[/Game/Core/Blueprints/GameModes/Renown_FFA_GameMode.Renown_FFA_GameMode_C]\n[/Game/Core/Blueprints/GameModes/Renown_TDM_GameMode.Renown_TDM_GameMode_C]\n[/Game/Core/Blueprints/GameModes/Renown_LTS_GameMode.Renown_LTS_GameMode_C]\n[/Game/Core/Blueprints/GameModes/Renown_Raid_GameMode.Renown_Raid_GameMode_C]\n[/Game/Core/Blueprints/GameModes/Renown_Survival_GameMode.Renown_Survival_GameMode_C]\nServerRebootTimeMinutes=120\n[/Game/Core/Blueprints/GameModes/Renown_Horde_GameMode.Renown_Horde_GameMode_C]\n[/Game/Core/Blueprints/GameModes/Renown_Duels_GameMode.Renown_Duels_GameMode_C]\n\n[/Script/Renown_Combat.RenownDeveloperSettings]\nbEnableServerQueue=True\nbRunOnLan=False\nbIsServerClientRunningOnSameMachine=False\nReconnectionGracePeriodSeconds=90\nServerQueueMaxJoinDuration=300\nPurgePendingPlayerConnections=60\nPlayerSlotsToConsume=0\nMaxClientReconnectAttempts=0\n\n[/Script/Party.Party]\nDefaultMaxPartySize=5\n\n[/Script/Lobby.LobbyBeaconState]\nWaitForPlayersTimeRemaining=20.0\n\n[/Script/Engine.GameSession]\nMaxSpectators=2\nbRequiresPushToTalk=true\n\n[/Script/Engine.GameNetworkManager]\nTotalNetBandwidth=4000000\nMaxDynamicBandwidth=100000\nMinDynamicBandwidth=40000\n"
+    },
+    {
+      "if": "!file_exists('Renown_Combat/Saved/Config/LinuxServer/Engine.ini')",
+      "type": "writefile",
+      "target": "Renown_Combat/Saved/Config/LinuxServer/Engine.ini",
+      "text": "[Server]\nFirstPersonOnly=${FIRST_PERSON_ONLY}\n"
+    }
+  ],
+  "run": {
+    "command": "./Renown_Combat/Binaries/Linux/Renown_CombatServer-Linux-Shipping Renown_Combat -PORT=${port} -QUERYPORT=${QUERY_PORT} -BeaconPort=${BEACON_PORT} -RCONPort=${RCON_PORT} -LOG=Server.log -ini:Engine:[EpicOnlineServices]:DedicatedServerClientId=xyza78917DzEE5Ey0isciVt66QDm5IzM -ini:Engine:[EpicOnlineServices]:DedicatedServerClientSecret=m/mrnywFCdeA1mW3ZSvv3qcVlQlfwi1a+7Z63Q44EGU",
+    "stopCode": 2,
+    "environmentVars": {
+      "SteamAppId": "1512690"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^AdminPassword=.*$",
+        "replace": "AdminPassword=${ADMIN_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^EnableRCON=.*$",
+        "replace": "EnableRCON=${ENABLE_RCON}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^RCONPort=.*$",
+        "replace": "RCONPort=${RCON_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^RCONPassword=.*$",
+        "replace": "RCONPassword=${RCON_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^MapRotation=.*$",
+        "replace": "MapRotation=${MAP_ROTATION}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^GameSaveName=.*$",
+        "replace": "GameSaveName=${SAVE_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^UseFirstMap=.*$",
+        "replace": "UseFirstMap=${USE_FIRST_MAP}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^Public=.*$",
+        "replace": "Public=${PUBLIC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Game.ini",
+        "search": "^PrivateSession=.*$",
+        "replace": "PrivateSession=${SERVER_LIST}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Renown_Combat/Saved/Config/LinuxServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "Renown_Combat/Saved/Config/LinuxServer/Engine.ini",
+        "search": "^FirstPersonOnly=.*$",
+        "replace": "FirstPersonOnly=${FIRST_PERSON_ONLY}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
