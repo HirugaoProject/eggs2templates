@@ -1,0 +1,261 @@
+{
+  "type": "portalknights",
+  "display": "Portal Knights (Docker)",
+  "data": {
+    "ADMIN_PASS": {
+      "type": "string",
+      "value": "admin_password_please_change",
+      "display": "Admin Password",
+      "desc": "Password for the admin group. Change this before exposing the server.",
+      "required": true,
+      "userEdit": true
+    },
+    "GAMEMODE": {
+      "type": "option",
+      "value": "Adventure",
+      "display": "Gameplay Mode",
+      "desc": "Gameplay mode of the universe",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Adventure",
+          "display": "Adventure"
+        },
+        {
+          "value": "Creative",
+          "display": "Creative"
+        }
+      ]
+    },
+    "GUEST_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Guest Password",
+      "desc": "Password for the guest group. Leave empty to disable that group.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 32 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "374040",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Portal Knights dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of the Steam account used to install the server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Portal Knights. The dedicated server files are not available to anonymous Steam users.",
+      "required": true,
+      "userEdit": false
+    },
+    "UNIVERSE_SIZE": {
+      "type": "option",
+      "value": "Normal",
+      "display": "Universe Size",
+      "desc": "Size of the generated universe",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Small",
+          "display": "Small"
+        },
+        {
+          "value": "Normal",
+          "display": "Normal"
+        },
+        {
+          "value": "Large",
+          "display": "Large"
+        }
+      ]
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "USER_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "User Password",
+      "desc": "Password for the user group. Leave empty to disable that group.",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 16365,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "dedicated_server"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "wineboot --init"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "dedicated_server.zip",
+      "destination": "dedicated_server"
+    },
+    {
+      "if": "!file_exists('dedicated_server/server_config.json')",
+      "type": "writefile",
+      "target": "dedicated_server/server_config.json",
+      "text": "{\n  \"basicServerData\": {\n    \"name\": \"${SERVER_NAME}\",\n    \"ipv4\": \"0.0.0.0\",\n    \"port\": ${port},\n    \"saveFolderPath\": \"./savedata\"\n  },\n  \"gameplayMode\": \"${GAMEMODE}\",\n  \"universeSize\": \"${UNIVERSE_SIZE}\",\n  \"universeId\": 0,\n  \"hideConsoleWindow\": false,\n  \"admins\": {\n    \"credentials\": {\n      \"password\": \"${ADMIN_PASS}\"\n    },\n    \"canLogin\": true,\n    \"canKickPlayers\": true,\n    \"canModifyWorld\": true,\n    \"canInteractWithCraftingStations\": true,\n    \"canInteractWithChests\": true,\n    \"canInteractWithNPCs\": true\n  },\n  \"users\": {\n    \"credentials\": {\n      \"password\": \"${USER_PASS}\"\n    },\n    \"canLogin\": true,\n    \"canKickPlayers\": false,\n    \"canModifyWorld\": true,\n    \"canInteractWithCraftingStations\": true,\n    \"canInteractWithChests\": true,\n    \"canInteractWithNPCs\": true\n  },\n  \"guests\": {\n    \"credentials\": {\n      \"password\": \"${GUEST_PASS}\"\n    },\n    \"canLogin\": false,\n    \"canKickPlayers\": false,\n    \"canModifyWorld\": false,\n    \"canInteractWithCraftingStations\": false,\n    \"canInteractWithChests\": false,\n    \"canInteractWithNPCs\": false\n  }\n}\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c 'cd dedicated_server && exec xvfb-run --auto-servernum wine pk_dedicated_server.exe -config server_config.json'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('dedicated_server/server_config.json')",
+        "type": "alterfile",
+        "file": "dedicated_server/server_config.json",
+        "search": "\"name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"name\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated_server/server_config.json')",
+        "type": "alterfile",
+        "file": "dedicated_server/server_config.json",
+        "search": "\"port\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated_server/server_config.json')",
+        "type": "alterfile",
+        "file": "dedicated_server/server_config.json",
+        "search": "\"gameplayMode\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"gameplayMode\": \"${GAMEMODE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('dedicated_server/server_config.json')",
+        "type": "alterfile",
+        "file": "dedicated_server/server_config.json",
+        "search": "\"universeSize\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"universeSize\": \"${UNIVERSE_SIZE}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

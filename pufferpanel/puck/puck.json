@@ -1,0 +1,262 @@
+{
+  "type": "puck",
+  "display": "Puck (Docker)",
+  "data": {
+    "CLIENT_TICK_RATE": {
+      "type": "integer",
+      "value": 360,
+      "display": "Client Tick Rate",
+      "desc": "Update rate sent to clients. Should be at least double the server tick rate, and never above 360.",
+      "required": true,
+      "userEdit": true
+    },
+    "FRAME_RATE": {
+      "type": "integer",
+      "value": 120,
+      "display": "Target Frame Rate",
+      "desc": "Server frame rate. Keep it 10-20 above the server tick rate.",
+      "required": true,
+      "userEdit": true
+    },
+    "KICK_TIMEOUT": {
+      "type": "integer",
+      "value": 300,
+      "display": "AFK Kick Timeout",
+      "desc": "Seconds a player may idle before being kicked",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (up to 32)",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 7778,
+      "display": "Query Port",
+      "desc": "UDP port answering server browser pings",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel Puck Server",
+      "display": "Server Name",
+      "desc": "Name shown in the in-game server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_TICK_RATE": {
+      "type": "integer",
+      "value": 100,
+      "display": "Server Tick Rate",
+      "desc": "Simulation tick rate of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3481440",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Puck dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "!file_exists('server_configuration.json')",
+      "type": "writefile",
+      "target": "server_configuration.json",
+      "text": "{\n  \"port\": ${port},\n  \"pingPort\": ${QUERY_PORT},\n  \"name\": \"${SERVER_NAME}\",\n  \"maxPlayers\": ${MAX_PLAYERS},\n  \"password\": \"${SRV_PASSWORD}\",\n  \"voip\": false,\n  \"isPublic\": true,\n  \"adminSteamIds\": [],\n  \"reloadBannedSteamIds\": false,\n  \"usePuckBannedSteamIds\": true,\n  \"printMetrics\": true,\n  \"kickTimeout\": ${KICK_TIMEOUT},\n  \"sleepTimeout\": 60,\n  \"joinMidMatchDelay\": 10,\n  \"targetFrameRate\": ${FRAME_RATE},\n  \"serverTickRate\": ${SERVER_TICK_RATE},\n  \"clientTickRate\": ${CLIENT_TICK_RATE},\n  \"startPaused\": false,\n  \"allowVoting\": true,\n  \"phaseDurationMap\": {\n    \"Warmup\": 600,\n    \"FaceOff\": 3,\n    \"Playing\": 300,\n    \"BlueScore\": 5,\n    \"RedScore\": 5,\n    \"Replay\": 10,\n    \"PeriodOver\": 15,\n    \"GameOver\": 15\n  },\n  \"mods\": [\n    {\n      \"id\": 3493628417,\n      \"enabled\": false,\n      \"clientRequired\": false\n    }\n  ]\n}\n"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./Puck.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Puck.x86_64",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"name\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"password\": \"${SRV_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"port\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"pingPort\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"pingPort\": ${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"maxPlayers\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"maxPlayers\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"kickTimeout\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"kickTimeout\": ${KICK_TIMEOUT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"targetFrameRate\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"targetFrameRate\": ${FRAME_RATE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"serverTickRate\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"serverTickRate\": ${SERVER_TICK_RATE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_configuration.json')",
+        "type": "alterfile",
+        "file": "server_configuration.json",
+        "search": "\"clientTickRate\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"clientTickRate\": ${CLIENT_TICK_RATE}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

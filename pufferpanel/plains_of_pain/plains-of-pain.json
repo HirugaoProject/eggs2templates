@@ -1,0 +1,327 @@
+{
+  "type": "plainsofpain",
+  "display": "Plains of Pain (Docker)",
+  "data": {
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "1",
+      "display": "Difficulty",
+      "desc": "Gameplay difficulty",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Tourist"
+        },
+        {
+          "value": "1",
+          "display": "Rookies"
+        },
+        {
+          "value": "2",
+          "display": "True Wastelander"
+        },
+        {
+          "value": "3",
+          "display": "Veteran"
+        },
+        {
+          "value": "4",
+          "display": "Overlord"
+        }
+      ]
+    },
+    "MAP_ID": {
+      "type": "integer",
+      "value": 256,
+      "display": "Map ID",
+      "desc": "Map the world is generated from",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (1-200)",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SEED": {
+      "type": "integer",
+      "value": 12345,
+      "display": "World Seed",
+      "desc": "Seed handed to the world generator",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Name shown in the in-game server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password, at most 20 characters. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2227360",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Plains of Pain dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_ID": {
+      "type": "integer",
+      "value": 1,
+      "display": "World ID",
+      "desc": "World slot to load. Any unused number creates a fresh world.",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_SIZE": {
+      "type": "option",
+      "value": "21",
+      "display": "World Size",
+      "desc": "Size of the generated world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "11",
+          "display": "Small"
+        },
+        {
+          "value": "21",
+          "display": "Medium"
+        },
+        {
+          "value": "31",
+          "display": "Large"
+        },
+        {
+          "value": "41",
+          "display": "Extra large"
+        },
+        {
+          "value": "51",
+          "display": "Extra extra large"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "configs"
+    },
+    {
+      "if": "!file_exists('configs/server.json')",
+      "type": "command",
+      "commands": [
+        "cp configs/default.json configs/server.json"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./PlainsOfPain.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./PlainsOfPain.x86_64 -nographics -batchmode -ignorecompilererrors -cc -config configs/server.json -port ${port} -queryPort ${QUERY_PORT}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"serverName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"serverName\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"password\": \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"worldId\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"worldId\": ${WORLD_ID}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"mapId\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"mapId\": ${MAP_ID}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"seed\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"seed\": ${SEED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"difficulty\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"difficulty\": ${DIFFICULTY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"worldSize\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"worldSize\": ${WORLD_SIZE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"port\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"queryPort\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"queryPort\": ${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('configs/server.json')",
+        "type": "alterfile",
+        "file": "configs/server.json",
+        "search": "\"maxPlayers\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"maxPlayers\": ${MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

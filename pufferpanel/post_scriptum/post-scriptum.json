@@ -1,0 +1,322 @@
+{
+  "type": "postscriptum",
+  "display": "Post Scriptum (Docker)",
+  "data": {
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 10037,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password for RCON connections, letters and digits only. Leave empty to disable RCON.",
+      "required": false,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 21114,
+      "display": "RCON Port",
+      "desc": "TCP port used for RCON connections",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "746200",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Post Scriptum dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "advertise": {
+      "type": "option",
+      "value": "true",
+      "display": "Advertise Server",
+      "desc": "List the server in the public browser",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Listed"
+        },
+        {
+          "value": "false",
+          "display": "Unlisted"
+        }
+      ]
+    },
+    "allowteamchange": {
+      "type": "option",
+      "value": "true",
+      "display": "Allow Team Change",
+      "desc": "Let players switch teams",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Allowed"
+        },
+        {
+          "value": "false",
+          "display": "Blocked"
+        }
+      ]
+    },
+    "demo_recording": {
+      "type": "option",
+      "value": "true",
+      "display": "Record Demos",
+      "desc": "Record player demos on the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Recording"
+        },
+        {
+          "value": "false",
+          "display": "Off"
+        }
+      ]
+    },
+    "hostname": {
+      "type": "string",
+      "value": "PufferPanel Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser, at most 32 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "maxplayers": {
+      "type": "integer",
+      "value": 80,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 10027,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    },
+    "reservedslots": {
+      "type": "integer",
+      "value": 0,
+      "display": "Reserved Slots",
+      "desc": "Number of slots kept free for reserved players",
+      "required": true,
+      "userEdit": true
+    },
+    "team_change": {
+      "type": "option",
+      "value": "true",
+      "display": "Prevent Unbalanced Team Change",
+      "desc": "Block team switches that would unbalance the teams",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Blocked"
+        },
+        {
+          "value": "false",
+          "display": "Allowed"
+        }
+      ]
+    },
+    "teambalance": {
+      "type": "option",
+      "value": "true",
+      "display": "Enforce Team Balance",
+      "desc": "Force team balance once the teams differ by three players",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enforced"
+        },
+        {
+          "value": "false",
+          "display": "Off"
+        }
+      ]
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x PostScriptum/Binaries/Linux/PostScriptumServer"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./PostScriptum/Binaries/Linux/PostScriptumServer Port=${port} QueryPort=${QUERY_PORT} -RCONPORT=${RCON_PORT} -RCONPASSWORD=${RCON_PASSWORD} -fullcrashdump -log",
+    "stopCode": 2,
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('PostScriptum/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "PostScriptum/ServerConfig/Server.cfg",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${hostname}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('PostScriptum/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "PostScriptum/ServerConfig/Server.cfg",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${maxplayers}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('PostScriptum/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "PostScriptum/ServerConfig/Server.cfg",
+        "search": "^AllowTeamChanges=.*$",
+        "replace": "AllowTeamChanges=${allowteamchange}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('PostScriptum/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "PostScriptum/ServerConfig/Server.cfg",
+        "search": "^ShouldAdvertise=.*$",
+        "replace": "ShouldAdvertise=${advertise}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('PostScriptum/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "PostScriptum/ServerConfig/Server.cfg",
+        "search": "^NumReservedSlots=.*$",
+        "replace": "NumReservedSlots=${reservedslots}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('PostScriptum/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "PostScriptum/ServerConfig/Server.cfg",
+        "search": "^PreventTeamChangeIfUnbalanced=.*$",
+        "replace": "PreventTeamChangeIfUnbalanced=${team_change}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('PostScriptum/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "PostScriptum/ServerConfig/Server.cfg",
+        "search": "^EnforceTeamBalance=.*$",
+        "replace": "EnforceTeamBalance=${teambalance}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('PostScriptum/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "PostScriptum/ServerConfig/Server.cfg",
+        "search": "^RecordDemos=.*$",
+        "replace": "RecordDemos=${demo_recording}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
