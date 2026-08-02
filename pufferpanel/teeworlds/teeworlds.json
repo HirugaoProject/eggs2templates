@@ -1,0 +1,138 @@
+{
+  "type": "teeworlds",
+  "display": "Teeworlds (Docker)",
+  "data": {
+    "SERVER_MOTD": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Teeworlds Server",
+      "display": "Server MOTD",
+      "desc": "Message of the day shown to everyone who joins",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Teeworlds Server",
+      "display": "Server Name",
+      "desc": "Display name of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "0.7.5",
+      "display": "Teeworlds Version",
+      "desc": "Release installed from https://github.com/teeworlds/teeworlds/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 8303,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/teeworlds/teeworlds/releases/download/${VERSION}-release/teeworlds-${VERSION}-linux_x86_64.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "teeworlds-${VERSION}-linux_x86_64.tar.gz",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/teeworlds-${VERSION}-linux_x86_64/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted teeworlds-${VERSION}-linux_x86_64.tar.gz",
+        "chmod +x ./teeworlds_srv"
+      ]
+    },
+    {
+      "if": "!file_exists('autoexec.cfg')",
+      "type": "writefile",
+      "target": "autoexec.cfg",
+      "text": "## These settings are set on start.\n## changing them will be overwritten on start\nbindaddr 0.0.0.0\nsv_port ${port}\nsv_name ${SERVER_NAME}\nsv_motd ${SERVER_MOTD}\n\n## These can be changed manually\nsv_map dm1\nsv_scorelimit 20\nsv_timelimit 10\nsv_gametype dm\n"
+    },
+    {
+      "type": "writefile",
+      "target": "storage.cfg",
+      "text": "####\n# This specifies where and in which order Teeworlds looks\n# for its data (sounds, skins, ...). The search goes top\n# down which means the first path has the highest priority.\n# Furthermore the top entry also defines the save path where\n# all data (settings.cfg, screenshots, ...) are stored.\n# There are 3 special paths available:\n#\t$USERDIR\n#\t- ~/.appname on UNIX based systems\n#\t- ~/Library/Applications Support/appname on Mac OS X\n#\t- %APPDATA%/Appname on Windows based systems\n#\t$DATADIR\n#\t- the 'data' directory which is part of an official\n#\trelease\n#\t$CURRENTDIR\n#\t- current working directory\n#\t$APPDIR\n#\t- usable path provided by argv[0]\n#\n#\n# The default file has the following entries:\n#\tadd_path $USERDIR\n#\tadd_path $DATADIR\n#\tadd_path $CURRENTDIR\n#\n# A customised one could look like this:\n#\tadd_path user\n#\tadd_path mods/mymod\n####\n\n##\n# Touch it and your server may not start.\n##\n\nadd_path $DATADIR\nadd_path $CURRENTDIR\nadd_path $APPDIR\n"
+    }
+  ],
+  "run": {
+    "command": "./teeworlds_srv",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('autoexec.cfg')",
+        "type": "alterfile",
+        "file": "autoexec.cfg",
+        "search": "^bindaddr .*$",
+        "replace": "bindaddr 0.0.0.0",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoexec.cfg')",
+        "type": "alterfile",
+        "file": "autoexec.cfg",
+        "search": "^sv_port .*$",
+        "replace": "sv_port ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoexec.cfg')",
+        "type": "alterfile",
+        "file": "autoexec.cfg",
+        "search": "^sv_name .*$",
+        "replace": "sv_name ${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoexec.cfg')",
+        "type": "alterfile",
+        "file": "autoexec.cfg",
+        "search": "^sv_motd .*$",
+        "replace": "sv_motd ${SERVER_MOTD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

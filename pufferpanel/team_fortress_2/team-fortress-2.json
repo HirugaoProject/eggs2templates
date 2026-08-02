@@ -1,0 +1,227 @@
+{
+  "type": "teamfortress2",
+  "display": "Team Fortress 2 (Docker)",
+  "data": {
+    "HOSTNAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted TF2 Server",
+      "display": "Server Name",
+      "desc": "Name in the in-game server browser, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 24,
+      "display": "Max Players",
+      "desc": "Players allowed at once, up to 128",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin (RCON) Password",
+      "desc": "Password remote admin tools use. Leave empty to disable RCON.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty to let anyone join.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "232250",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Team Fortress 2 Dedicated Server dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_CPORT": {
+      "type": "integer",
+      "value": 27005,
+      "display": "Client Port",
+      "desc": "Second port the game uses next to the main one. It needs its own allocation.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_GAME": {
+      "type": "string",
+      "value": "tf",
+      "display": "Game Folder",
+      "desc": "Folder the server software runs from",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_MAP": {
+      "type": "string",
+      "value": "ctf_2fort",
+      "display": "Default Map",
+      "desc": "Map loaded on start. Popular picks: ctf_2fort, cp_dustbowl, pl_badwater, koth_harvest_event.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_STV": {
+      "type": "integer",
+      "value": 27020,
+      "display": "SourceTV Port",
+      "desc": "Port SourceTV spectators and recordings use. It needs its own allocation.",
+      "required": true,
+      "userEdit": true
+    },
+    "STEAM_GSLT": {
+      "type": "string",
+      "value": "",
+      "display": "Game Server Login Token",
+      "desc": "Free Valve token that puts the server in the public browser. Request one at https://steamcommunity.com/dev/managegameservers. Leave empty for a private server.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x srcds_run"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "tf/cfg"
+    },
+    {
+      "if": "!file_exists('tf/cfg/server.cfg')",
+      "type": "writefile",
+      "target": "tf/cfg/server.cfg",
+      "text": "hostname \"${HOSTNAME}\"\nsv_password \"${SERVER_PASSWORD}\"\nrcon_password \"${RCON_PASSWORD}\"\n"
+    }
+  ],
+  "run": {
+    "command": "./srcds_run -game ${SRCDS_GAME} -strictportbind -ip 0.0.0.0 -port ${port} +clientport ${SRCDS_CPORT} +tv_port ${SRCDS_STV} +map ${SRCDS_MAP} +servercfgfile server.cfg -maxplayers ${MAX_PLAYERS} +sv_setsteamaccount ${STEAM_GSLT}",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('tf/cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "tf/cfg/server.cfg",
+        "search": "^hostname .*$",
+        "replace": "hostname \"${HOSTNAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('tf/cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "tf/cfg/server.cfg",
+        "search": "^sv_password .*$",
+        "replace": "sv_password \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('tf/cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "tf/cfg/server.cfg",
+        "search": "^rcon_password .*$",
+        "replace": "rcon_password \"${RCON_PASSWORD}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${SRCDS_CPORT}:${SRCDS_CPORT}/udp",
+      "0.0.0.0:${SRCDS_STV}:${SRCDS_STV}/tcp",
+      "0.0.0.0:${SRCDS_STV}:${SRCDS_STV}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${SRCDS_CPORT}:${SRCDS_CPORT}/udp",
+        "0.0.0.0:${SRCDS_STV}:${SRCDS_STV}/tcp",
+        "0.0.0.0:${SRCDS_STV}:${SRCDS_STV}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

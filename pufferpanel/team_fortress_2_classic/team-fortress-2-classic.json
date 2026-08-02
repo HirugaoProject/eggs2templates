@@ -1,0 +1,194 @@
+{
+  "type": "teamfortress2classic",
+  "display": "Team Fortress 2 Classic (Docker)",
+  "data": {
+    "GAMEVERSION": {
+      "type": "string",
+      "value": "2.1.3",
+      "display": "Game Version",
+      "desc": "TF2C build to install. Published versions are listed at https://wiki.tf2classic.com/kachemak/versions.json",
+      "required": true,
+      "userEdit": true
+    },
+    "MAXPLAYERS": {
+      "type": "integer",
+      "value": 24,
+      "display": "Max Players",
+      "desc": "Players allowed on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "244310",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Source SDK Base 2013 Dedicated Server dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "previous2021",
+      "display": "Steam Beta Branch",
+      "desc": "Source SDK Base branch TF2C builds against",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_GAME": {
+      "type": "string",
+      "value": "tf2classic",
+      "display": "Game Folder",
+      "desc": "Folder the server software runs from",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_MAP": {
+      "type": "string",
+      "value": "ctf_2fort",
+      "display": "Default Map",
+      "desc": "Map loaded on start",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "Port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x srcds_run"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o tf2classic.tar.zst https://wiki.tf2classic.com/kachemak/tf2classic-${GAMEVERSION}.tar.zst"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "tf2classic.tar.zst",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f tf2classic.tar.zst"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'cd bin && for m in vphysics studiorender soundemittersystem shaderapiempty scenefilecache replay materialsystem; do ln -sf \"$m\"_srv.so \"$m\".so; done'",
+        "bash -c 'cd tf2classic/bin && rm -f server_srv.so && ln -sf server.so server_srv.so'"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./srcds_run -game ${SRCDS_GAME} -console -port ${port} +map ${SRCDS_MAP} +ip 0.0.0.0 -strictportbind -norestart -debug +maxplayers ${MAXPLAYERS}",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu_24.04",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu_24.04",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
