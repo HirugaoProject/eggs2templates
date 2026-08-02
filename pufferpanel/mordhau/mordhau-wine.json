@@ -1,0 +1,233 @@
+{
+  "type": "mordhau",
+  "display": "Mordhau Wine (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "aP@55word",
+      "display": "Admin Password",
+      "desc": "Password used to administrate the server",
+      "required": true,
+      "userEdit": true
+    },
+    "BEACON_PORT": {
+      "type": "integer",
+      "value": 15000,
+      "display": "Beacon Port",
+      "desc": "Beacon port used by the server",
+      "required": true,
+      "userEdit": false
+    },
+    "DEFAULT_MAP": {
+      "type": "string",
+      "value": "/Game/Mordhau/Maps/Contraband/FFA_Contraband",
+      "display": "Default Map",
+      "desc": "Map the server loads on boot",
+      "required": true,
+      "userEdit": true
+    },
+    "EXTRA_FLAGS": {
+      "type": "string",
+      "value": "",
+      "display": "Extra SteamCMD Flags",
+      "desc": "Extra flags passed to SteamCMD",
+      "required": false,
+      "userEdit": true
+    },
+    "GAME_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Game Password",
+      "desc": "Password required to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 24,
+      "display": "Max Players",
+      "desc": "Maximum number of player slots",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "629800",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Mordhau (Windows build, run through Wine) dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} ${EXTRA_FLAGS} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine/drive_c/users/container/My Documents"
+    },
+    {
+      "type": "mkdir",
+      "target": "Mordhau/Saved/Config/WindowsServer"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q vcrun2022"
+      ]
+    },
+    {
+      "if": "!file_exists('Mordhau/Saved/Config/WindowsServer/Game.ini')",
+      "type": "writefile",
+      "target": "Mordhau/Saved/Config/WindowsServer/Game.ini",
+      "text": "[/Script/Mordhau.MordhauGameSession]\nServerName=${SERVER_NAME}\nServerPassword=${GAME_PASSWORD}\nAdminPassword=${ADMIN_PASSWORD}\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c 'Xvfb :0 -screen 0 1024x768x16 & exec wine MordhauServer.exe ${DEFAULT_MAP} -log MaxSlots=${MAX_PLAYERS} -USEALLAVAILABLECORES -Port=${port} -QueryPort=${QUERY_PORT} -Beaconport=${BEACON_PORT}'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} ${EXTRA_FLAGS} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Mordhau/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Mordhau/Saved/Config/WindowsServer/Game.ini",
+        "search": "^AdminPassword=.*$",
+        "replace": "AdminPassword=${ADMIN_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Mordhau/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Mordhau/Saved/Config/WindowsServer/Game.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Mordhau/Saved/Config/WindowsServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Mordhau/Saved/Config/WindowsServer/Game.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${GAME_PASSWORD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

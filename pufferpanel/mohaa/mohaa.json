@@ -1,0 +1,191 @@
+{
+  "type": "mohaa",
+  "display": "Medal of Honor: Allied Assault (Docker)",
+  "data": {
+    "BASE_PATH": {
+      "type": "string",
+      "value": "/pufferpanel",
+      "display": "Base Path",
+      "desc": "Value passed to fs_basepath",
+      "required": true,
+      "userEdit": false
+    },
+    "CONFIG_URL": {
+      "type": "string",
+      "value": "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/mohaa/server.cfg",
+      "display": "Config URL",
+      "desc": "Default server.cfg downloaded during installation",
+      "required": true,
+      "userEdit": false
+    },
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "http://linuxgsm.download/MedalofHonorAlliedAssault/moh_revival_v1.12_RC3.5.1.tar.xz",
+      "display": "Download URL",
+      "desc": "Link to the MOHAA revival server archive",
+      "required": true,
+      "userEdit": true
+    },
+    "LOG_DIR": {
+      "type": "string",
+      "value": "/pufferpanel/Logs",
+      "display": "Log Directory",
+      "desc": "Value passed to fs_outputpath",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password used for RCON",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_MAP": {
+      "type": "string",
+      "value": "dm/mohdm7",
+      "display": "Start Map",
+      "desc": "Map the server loads on boot",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MAXCLIENTS": {
+      "type": "integer",
+      "value": 14,
+      "display": "Max Players",
+      "desc": "Maximum number of clients",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "MOHAA Server running on PufferPanel",
+      "display": "Server Name",
+      "desc": "Name in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 12203,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "Logs"
+    },
+    {
+      "type": "download",
+      "files": [
+        "${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "moh_revival_v1.12_RC3.5.1.tar.xz",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f moh_revival_v1.12_RC3.5.1.tar.xz",
+        "chmod +x ./mohaa_lnxded"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "main"
+    },
+    {
+      "if": "!file_exists('main/server.cfg')",
+      "type": "download",
+      "files": [
+        "${CONFIG_URL}"
+      ]
+    },
+    {
+      "if": "file_exists('server.cfg')",
+      "type": "move",
+      "source": "server.cfg",
+      "target": "main/server.cfg"
+    }
+  ],
+  "run": {
+    "command": "./mohaa_lnxded +set sv_punkbuster 0 +set fs_basepath ${BASE_PATH} +set fs_outputpath ${LOG_DIR} +set dedicated 2 +set sv_maxclients ${SERVER_MAXCLIENTS} +set net_ip 0.0.0.0 +set net_port ${port} +exec server.cfg +map ${SERVER_MAP}",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "file_exists('main/server.cfg')",
+        "type": "alterfile",
+        "file": "main/server.cfg",
+        "search": "^seta sv_hostname .*$",
+        "replace": "seta sv_hostname \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('main/server.cfg')",
+        "type": "alterfile",
+        "file": "main/server.cfg",
+        "search": "^seta sv_maxClients .*$",
+        "replace": "seta sv_maxClients \"${SERVER_MAXCLIENTS}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('main/server.cfg')",
+        "type": "alterfile",
+        "file": "main/server.cfg",
+        "search": "^seta rconPassword .*$",
+        "replace": "seta rconPassword \"${RCON_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('main/server.cfg')",
+        "type": "alterfile",
+        "file": "main/server.cfg",
+        "search": "^seta g_password .*$",
+        "replace": "seta g_password \"${SERVER_PASSWORD}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:mohaa",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:mohaa",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "type": "necesse",
+  "display": "Necesse (Docker)",
+  "data": {
+    "SAVE_NAME": {
+      "type": "string",
+      "value": "Save1",
+      "display": "Save Name",
+      "desc": "Name of the world the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MEMORY": {
+      "type": "integer",
+      "value": 2048,
+      "display": "Memory (MB)",
+      "desc": "Java heap size for the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_SLOTS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Number of player slots",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1169370",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Necesse dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Beta Branch",
+      "desc": "Installs a beta branch if specified",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 14159,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to cfg/server.cfg",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./jre/bin/java"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "cfg"
+    },
+    {
+      "if": "!file_exists('cfg/server.cfg')",
+      "type": "writefile",
+      "target": "cfg/server.cfg",
+      "text": "port=${port},\nslots=${SERVER_SLOTS},\npassword=${SERVER_PASSWORD},\npausewhenempty=true,\ngiveclientspower=false,\nmotd=,\nlogsdays=7,\nmaxplayers=${SERVER_SLOTS},\n"
+    }
+  ],
+  "run": {
+    "command": "./jre/bin/java -Xms128M -Xmx${SERVER_MEMORY}M -Dterminal.jline=false -Dterminal.ansi=true -jar Server.jar -localdir -nogui -world ${SAVE_NAME}",
+    "stop": "stop",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "cfg/server.cfg",
+        "search": "^port=.*$",
+        "replace": "port=${port},",
+        "regex": true
+      },
+      {
+        "if": "file_exists('cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "cfg/server.cfg",
+        "search": "^slots=.*$",
+        "replace": "slots=${SERVER_SLOTS},",
+        "regex": true
+      },
+      {
+        "if": "file_exists('cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "cfg/server.cfg",
+        "search": "^password=.*$",
+        "replace": "password=${SERVER_PASSWORD},",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

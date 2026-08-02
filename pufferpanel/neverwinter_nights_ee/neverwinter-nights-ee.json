@@ -1,0 +1,306 @@
+{
+  "type": "nwnee",
+  "display": "Neverwinter Nights: Enhanced Edition (Docker)",
+  "data": {
+    "AUTO_SAVE_INTERVAL": {
+      "type": "integer",
+      "value": 0,
+      "display": "Auto Save Interval",
+      "desc": "Minutes between automatic saves, 0 disables them",
+      "required": true,
+      "userEdit": true
+    },
+    "DIFFICULTY": {
+      "type": "integer",
+      "value": 3,
+      "display": "Difficulty",
+      "desc": "Game difficulty, 1 to 4",
+      "required": true,
+      "userEdit": true
+    },
+    "DM_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "DM Password",
+      "desc": "Password granting dungeon master access",
+      "required": false,
+      "userEdit": true
+    },
+    "ELC": {
+      "type": "option",
+      "value": "1",
+      "display": "Enforce Legal Characters",
+      "desc": "Reject characters that fail the legality check",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "GAME_TYPE": {
+      "type": "integer",
+      "value": 0,
+      "display": "Game Type",
+      "desc": "Game type reported to the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "ILR": {
+      "type": "option",
+      "value": "1",
+      "display": "Item Level Restrictions",
+      "desc": "Enforce item level restrictions",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "IS_PUBLIC": {
+      "type": "option",
+      "value": "0",
+      "display": "Public Server",
+      "desc": "List the server publicly",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Private"
+        },
+        {
+          "value": "1",
+          "display": "Public"
+        }
+      ]
+    },
+    "MAX_CLIENTS": {
+      "type": "integer",
+      "value": 96,
+      "display": "Max Clients",
+      "desc": "Maximum number of connected players",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_LEVEL": {
+      "type": "integer",
+      "value": 100,
+      "display": "Max Level",
+      "desc": "Highest character level allowed",
+      "required": true,
+      "userEdit": true
+    },
+    "MIN_LEVEL": {
+      "type": "integer",
+      "value": 1,
+      "display": "Min Level",
+      "desc": "Lowest character level allowed",
+      "required": true,
+      "userEdit": true
+    },
+    "MODULE_NAME": {
+      "type": "string",
+      "value": "",
+      "display": "Module Name",
+      "desc": "Module the server loads",
+      "required": false,
+      "userEdit": true
+    },
+    "NWN_VERSION": {
+      "type": "string",
+      "value": "8193.37",
+      "display": "Server Version",
+      "desc": "Dedicated server build to install from https://nwn.beamdog.net/downloads/",
+      "required": true,
+      "userEdit": true
+    },
+    "ONE_PARTY": {
+      "type": "option",
+      "value": "0",
+      "display": "One Party Only",
+      "desc": "Restrict the server to a single party",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "PAUSE_AND_PLAY": {
+      "type": "option",
+      "value": "1",
+      "display": "Pause And Play",
+      "desc": "Allow players to pause the game",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "PLAYER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Player Password",
+      "desc": "Password required to join",
+      "required": false,
+      "userEdit": true
+    },
+    "PVP": {
+      "type": "integer",
+      "value": 2,
+      "display": "PvP",
+      "desc": "PvP setting: 0 none, 1 party, 2 full",
+      "required": true,
+      "userEdit": true
+    },
+    "RELOAD_WHEN_EMPTY": {
+      "type": "option",
+      "value": "0",
+      "display": "Reload When Empty",
+      "desc": "Reload the module once the server empties",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "SAVE_SLOT": {
+      "type": "string",
+      "value": "",
+      "display": "Save Slot",
+      "desc": "Save game the server loads",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel hosted server",
+      "display": "Server Name",
+      "desc": "Name in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_VAULT": {
+      "type": "option",
+      "value": "1",
+      "display": "Server Vault",
+      "desc": "Store characters on the server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 5121,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "user"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://nwn.beamdog.net/downloads/nwnee-dedicated-${NWN_VERSION}.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "nwnee-dedicated-${NWN_VERSION}.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f nwnee-dedicated-${NWN_VERSION}.zip",
+        "chmod +x ./bin/linux-x86/nwserver-linux"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "command": "bash -c 'cd bin/linux-x86 && exec ./nwserver-linux -port ${port} -userdirectory /pufferpanel/user -servername \"${SERVER_NAME}\" -module \"${MODULE_NAME}\" -publicserver ${IS_PUBLIC} -maxclients ${MAX_CLIENTS} -minlevel ${MIN_LEVEL} -maxlevel ${MAX_LEVEL} -pauseandplay ${PAUSE_AND_PLAY} -pvp ${PVP} -servervault ${SERVER_VAULT} -elc ${ELC} -ilr ${ILR} -gametype ${GAME_TYPE} -oneparty ${ONE_PARTY} -difficulty ${DIFFICULTY} -autosaveinterval ${AUTO_SAVE_INTERVAL} -playerpassword \"${PLAYER_PASSWORD}\" -dmpassword \"${DM_PASSWORD}\" -reloadwhenempty ${RELOAD_WHEN_EMPTY} -saveslot \"${SAVE_SLOT}\"'",
+        "if": "SAVE_SLOT != ''"
+      },
+      {
+        "command": "bash -c 'cd bin/linux-x86 && exec ./nwserver-linux -port ${port} -userdirectory /pufferpanel/user -servername \"${SERVER_NAME}\" -module \"${MODULE_NAME}\" -publicserver ${IS_PUBLIC} -maxclients ${MAX_CLIENTS} -minlevel ${MIN_LEVEL} -maxlevel ${MAX_LEVEL} -pauseandplay ${PAUSE_AND_PLAY} -pvp ${PVP} -servervault ${SERVER_VAULT} -elc ${ELC} -ilr ${ILR} -gametype ${GAME_TYPE} -oneparty ${ONE_PARTY} -difficulty ${DIFFICULTY} -autosaveinterval ${AUTO_SAVE_INTERVAL} -playerpassword \"${PLAYER_PASSWORD}\" -dmpassword \"${DM_PASSWORD}\" -reloadwhenempty ${RELOAD_WHEN_EMPTY}'"
+      }
+    ],
+    "stopCode": 2,
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

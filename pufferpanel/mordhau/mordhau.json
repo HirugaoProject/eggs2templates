@@ -1,0 +1,207 @@
+{
+  "type": "mordhau",
+  "display": "Mordhau (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password used to administrate the server",
+      "required": false,
+      "userEdit": true
+    },
+    "BEACON_PORT": {
+      "type": "integer",
+      "value": 15000,
+      "display": "Beacon Port",
+      "desc": "Beacon port used by the server",
+      "required": true,
+      "userEdit": false
+    },
+    "DEFAULT_MAP": {
+      "type": "string",
+      "value": "Grad/FL_Grad",
+      "display": "Default Map",
+      "desc": "Map the server loads on boot",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Game Password",
+      "desc": "Password required to join the server",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 48,
+      "display": "Max Players",
+      "desc": "Maximum number of player slots",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "629800",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Mordhau dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./Mordhau/Binaries/Linux/MordhauServer-Linux-Shipping"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Mordhau/Saved/Config/LinuxServer"
+    },
+    {
+      "if": "!file_exists('Mordhau/Saved/Config/LinuxServer/Game.ini')",
+      "type": "writefile",
+      "target": "Mordhau/Saved/Config/LinuxServer/Game.ini",
+      "text": "[/Script/Mordhau.MordhauGameSession]\nServerName=${SERVER_NAME}\nServerPassword=${GAME_PASSWORD}\nAdminPassword=${ADMIN_PASSWORD}\n"
+    }
+  ],
+  "run": {
+    "command": "./Mordhau/Binaries/Linux/MordhauServer-Linux-Shipping /Game/Mordhau/Maps/${DEFAULT_MAP} -MaxSlots=${MAX_PLAYERS} -USEALLAVAILABLECORES -Port=${port} -queryport=${QUERY_PORT} -beaconport=${BEACON_PORT} -log",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Mordhau/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Mordhau/Saved/Config/LinuxServer/Game.ini",
+        "search": "^AdminPassword=.*$",
+        "replace": "AdminPassword=${ADMIN_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Mordhau/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Mordhau/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Mordhau/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Mordhau/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${GAME_PASSWORD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

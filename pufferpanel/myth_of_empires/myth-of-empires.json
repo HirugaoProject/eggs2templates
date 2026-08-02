@@ -1,0 +1,229 @@
+{
+  "type": "mythofempires",
+  "display": "Myth of Empires (Docker)",
+  "data": {
+    "ADMIN_IDS": {
+      "type": "string",
+      "value": "",
+      "display": "Admin IDs",
+      "desc": "Steam64 ids granted admin, comma separated",
+      "required": false,
+      "userEdit": true
+    },
+    "CLUSTER_ID": {
+      "type": "string",
+      "value": "1",
+      "display": "Cluster ID",
+      "desc": "Cluster the server belongs to",
+      "required": true,
+      "userEdit": true
+    },
+    "EXTRA_FLAGS": {
+      "type": "string",
+      "value": "",
+      "display": "Extra Flags",
+      "desc": "Extra command line flags",
+      "required": false,
+      "userEdit": true
+    },
+    "MAP_NAME": {
+      "type": "string",
+      "value": "LargeTerrain_Central_Main",
+      "display": "Map Name",
+      "desc": "Map the server hosts",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 25,
+      "display": "Max Players",
+      "desc": "Maximum number of players",
+      "required": true,
+      "userEdit": true
+    },
+    "PVP": {
+      "type": "option",
+      "value": "1",
+      "display": "PvP",
+      "desc": "Player versus player combat",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 12888,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password used for RCON",
+      "required": false,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 13888,
+      "display": "RCON Port",
+      "desc": "Port used for RCON",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_ID": {
+      "type": "string",
+      "value": "100",
+      "display": "Server ID",
+      "desc": "Identifier of this server inside the cluster",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel hosted server",
+      "display": "Server Name",
+      "desc": "Name in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1794810",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Myth of Empires (Windows build, run through Proton) dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+    }
+  ],
+  "run": {
+    "command": "proton run MOE/Binaries/Win64/MOEServer.exe ${MAP_NAME} -game -server -DataLocalFile -NotCheckServerSteamAuth -LOCALLOGTIMES -PrivateServer -MultiHome=0.0.0.0 -Port=${port} -QueryPort=${QUERY_PORT} -RconPort=${RCON_PORT} -RconPassword=\"${RCON_PASSWORD}\" -ServerName=\"${SERVER_NAME}\" -MaxPlayers=${MAX_PLAYERS} -PVP=${PVP} -ClusterId=${CLUSTER_ID} -ServerId=${SERVER_ID} -AdminIds=${ADMIN_IDS} ${EXTRA_FLAGS} -log",
+    "stopCode": 2,
+    "environmentVars": {
+      "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",
+      "STEAM_COMPAT_DATA_PATH": "/pufferpanel/.steam/steam/steamapps/compatdata/${SRCDS_APPID}",
+      "WINEDEBUG": "-all",
+      "PROTON_USE_WINED3D": "1",
+      "PROTON_NO_ESYNC": "1"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "type": "mkdir",
+        "target": ".steam/steam/steamapps/compatdata/${SRCDS_APPID}"
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:proton",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

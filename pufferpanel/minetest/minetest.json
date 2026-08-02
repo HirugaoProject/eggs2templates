@@ -1,0 +1,310 @@
+{
+  "type": "minetest",
+  "display": "Minetest / Luanti (Docker)",
+  "data": {
+    "COMMUNITY_GAME_AUTHOR": {
+      "type": "string",
+      "value": "Minetest",
+      "display": "Community Game Author",
+      "desc": "Author of the ContentDB game installed during installation",
+      "required": false,
+      "userEdit": true
+    },
+    "COMMUNITY_GAME_NAME": {
+      "type": "string",
+      "value": "minetest_game",
+      "display": "Community Game Name",
+      "desc": "ContentDB game installed during installation. Leave blank to skip.",
+      "required": false,
+      "userEdit": true
+    },
+    "DEFAULT_GAME": {
+      "type": "string",
+      "value": "minetest",
+      "display": "Default Game",
+      "desc": "Game id the server runs",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_ADMIN_NAME": {
+      "type": "string",
+      "value": "changeme",
+      "display": "Admin Name",
+      "desc": "Player name granted server admin",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_ANNOUNCE": {
+      "type": "option",
+      "value": "true",
+      "display": "Announce Server",
+      "desc": "Publish the server on the public server list",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Announced"
+        },
+        {
+          "value": "false",
+          "display": "Not announced"
+        }
+      ]
+    },
+    "SERVER_DESC": {
+      "type": "string",
+      "value": "mine here",
+      "display": "Server Description",
+      "desc": "Description shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_DOMAIN": {
+      "type": "string",
+      "value": "game.minetest.net",
+      "display": "Server Address",
+      "desc": "Address advertised to the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_LIST_URL": {
+      "type": "string",
+      "value": "servers.minetest.net",
+      "display": "Server List URL",
+      "desc": "Server list the server announces to",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MAX_USERS": {
+      "type": "integer",
+      "value": 15,
+      "display": "Max Players",
+      "desc": "Maximum number of connected players",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MOTD": {
+      "type": "string",
+      "value": "",
+      "display": "MOTD",
+      "desc": "Message shown to joining players",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Minetest server",
+      "display": "Server Name",
+      "desc": "Name shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Default Password",
+      "desc": "Password required to join. Leave empty for an open server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_URL": {
+      "type": "string",
+      "value": "https://minetest.net",
+      "display": "Server URL",
+      "desc": "Website advertised with the server",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "world",
+      "display": "World Name",
+      "desc": "World directory under .minetest/worlds",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 30000,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": ".minetest/mods"
+    },
+    {
+      "type": "mkdir",
+      "target": ".minetest/games"
+    },
+    {
+      "type": "mkdir",
+      "target": ".minetest/worlds/${WORLD_NAME}"
+    },
+    {
+      "if": "!file_exists('.minetest/minetest.conf')",
+      "type": "writefile",
+      "target": ".minetest/minetest.conf",
+      "text": "name = ${SERVER_ADMIN_NAME}\nserver_name = ${SERVER_NAME}\nserver_description = ${SERVER_DESC}\nserver_address = ${SERVER_DOMAIN}\nserver_url = ${SERVER_URL}\nserver_announce = ${SERVER_ANNOUNCE}\nserverlist_url = ${SERVER_LIST_URL}\nmotd = ${SERVER_MOTD}\nmax_users = ${SERVER_MAX_USERS}\nbind_address = 0.0.0.0\ndefault_password = ${SERVER_PASSWORD}\ndefault_game = ${DEFAULT_GAME}\n"
+    },
+    {
+      "if": "COMMUNITY_GAME_NAME != ''",
+      "type": "download",
+      "files": [
+        "https://content.luanti.org/packages/${COMMUNITY_GAME_AUTHOR}/${COMMUNITY_GAME_NAME}/download/"
+      ]
+    },
+    {
+      "if": "COMMUNITY_GAME_NAME != '' && file_exists('download')",
+      "type": "move",
+      "source": "download",
+      "target": "games.zip"
+    },
+    {
+      "if": "file_exists('games.zip')",
+      "type": "extract",
+      "source": "games.zip",
+      "destination": ".minetest/games"
+    },
+    {
+      "if": "file_exists('games.zip')",
+      "type": "command",
+      "commands": [
+        "rm -f games.zip"
+      ]
+    }
+  ],
+  "run": {
+    "command": "luanti --server --port ${port} --gameid ${DEFAULT_GAME} --world /pufferpanel/.minetest/worlds/${WORLD_NAME} --terminal --config /pufferpanel/.minetest/minetest.conf",
+    "stop": "/shutdown",
+    "pre": [
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^name = .*$",
+        "replace": "name = ${SERVER_ADMIN_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^server_name = .*$",
+        "replace": "server_name = ${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^server_description = .*$",
+        "replace": "server_description = ${SERVER_DESC}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^server_address = .*$",
+        "replace": "server_address = ${SERVER_DOMAIN}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^server_url = .*$",
+        "replace": "server_url = ${SERVER_URL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^server_announce = .*$",
+        "replace": "server_announce = ${SERVER_ANNOUNCE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^serverlist_url = .*$",
+        "replace": "serverlist_url = ${SERVER_LIST_URL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^motd = .*$",
+        "replace": "motd = ${SERVER_MOTD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^max_users = .*$",
+        "replace": "max_users = ${SERVER_MAX_USERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^bind_address = .*$",
+        "replace": "bind_address = 0.0.0.0",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^default_password = .*$",
+        "replace": "default_password = ${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.minetest/minetest.conf')",
+        "type": "alterfile",
+        "file": ".minetest/minetest.conf",
+        "search": "^default_game = .*$",
+        "replace": "default_game = ${DEFAULT_GAME}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:minetest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:minetest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
