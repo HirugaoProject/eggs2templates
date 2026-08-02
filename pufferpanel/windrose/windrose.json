@@ -1,0 +1,297 @@
+{
+  "type": "windrose",
+  "display": "Windrose (Docker)",
+  "data": {
+    "INVITE_CODE": {
+      "type": "string",
+      "value": "",
+      "display": "Invite Code",
+      "desc": "Invite code of 6 to 32 letters and digits, case sensitive. Leave empty to have one generated on each start. Ignored with Direct Connection on.",
+      "required": false,
+      "userEdit": false
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "P2P_PROXY": {
+      "type": "string",
+      "value": "127.0.0.1",
+      "display": "P2P Proxy Address",
+      "desc": "Address of the peer to peer proxy. Leave this alone.",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_IP": {
+      "type": "string",
+      "value": "0.0.0.0",
+      "display": "Direct Connection Address",
+      "desc": "Address advertised for direct connections",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel Windrose Server",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 40 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password used when Password Protected is enabled",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD_PROTECTED": {
+      "type": "option",
+      "value": "0",
+      "display": "Password Protected",
+      "desc": "Ask joining players for the server password",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "4129620",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Windrose dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "USE_DIRECT_CONNECTION": {
+      "type": "option",
+      "value": "0",
+      "display": "Direct Connection",
+      "desc": "Let players connect straight to the address instead of using an invite code. Enabling this disables the invite code.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "R5/Saved/Logs"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
+    },
+    {
+      "if": "!file_exists('R5/ServerDescription.json')",
+      "type": "writefile",
+      "target": "R5/ServerDescription.json",
+      "text": "{\n  \"ServerDescription_Persistent\": {\n    \"ServerName\": \"${SERVER_NAME}\",\n    \"InviteCode\": \"${INVITE_CODE}\",\n    \"IsPasswordProtected\": ${SERVER_PASSWORD_PROTECTED},\n    \"Password\": \"${SERVER_PASSWORD}\",\n    \"MaxPlayerCount\": ${MAX_PLAYERS},\n    \"P2pProxyAddress\": \"${P2P_PROXY}\",\n    \"UseDirectConnection\": ${USE_DIRECT_CONNECTION},\n    \"DirectConnectionServerAddress\": \"${SERVER_IP}\",\n    \"DirectConnectionServerPort\": ${port}\n  }\n}\n"
+    }
+  ],
+  "run": {
+    "command": "wine /pufferpanel/R5/Binaries/Win64/WindroseServer-Win64-Shipping.exe -log",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"ServerName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"ServerName\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"InviteCode\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"InviteCode\": \"${INVITE_CODE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"Password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Password\": \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"P2pProxyAddress\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"P2pProxyAddress\": \"${P2P_PROXY}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"DirectConnectionServerAddress\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"DirectConnectionServerAddress\": \"${SERVER_IP}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"IsPasswordProtected\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"IsPasswordProtected\": ${SERVER_PASSWORD_PROTECTED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"MaxPlayerCount\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"MaxPlayerCount\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"UseDirectConnection\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"UseDirectConnection\": ${USE_DIRECT_CONNECTION}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('R5/ServerDescription.json')",
+        "type": "alterfile",
+        "file": "R5/ServerDescription.json",
+        "search": "\"DirectConnectionServerPort\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"DirectConnectionServerPort\": ${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

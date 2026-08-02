@@ -1,0 +1,209 @@
+{
+  "type": "voyagersofnera",
+  "display": "Voyagers of Nera (Docker)",
+  "data": {
+    "AUTOSAVE_TIMER_SECONDS": {
+      "type": "integer",
+      "value": 300,
+      "display": "Autosave Timer",
+      "desc": "Seconds between automatic saves (10-900). There is rarely a reason to change this.",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Players connected at the same time (1-10)",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Public name in the server browser. Letters, digits, spaces, dashes and underscores, at most 50 characters.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3937860",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Voyagers of Nera dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "BoatGame/Saved/PersistedData/CustomConfig"
+    },
+    {
+      "type": "mkdir",
+      "target": "BoatGame/Saved/Logs"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
+    },
+    {
+      "if": "!file_exists('BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini')",
+      "type": "writefile",
+      "target": "BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini",
+      "text": "[/Script/BoatGame.BGCustomHostServerSettings]\nHostServerDisplayName=${SERVER_NAME}\nHostServerPassword=${SERVER_PASSWORD}\nMaxPlayers=${MAX_PLAYERS}\nAutosaveTimerSeconds=${AUTOSAVE_TIMER_SECONDS}\n"
+    }
+  ],
+  "run": {
+    "command": "wine BoatGame/Binaries/Win64/BoatGameServer-Win64-Shipping.exe -Port=${port} -log -LoggingInShippingEnabled=true",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini')",
+        "type": "alterfile",
+        "file": "BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini",
+        "search": "^HostServerDisplayName=.*$",
+        "replace": "HostServerDisplayName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini')",
+        "type": "alterfile",
+        "file": "BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini",
+        "search": "^HostServerPassword=.*$",
+        "replace": "HostServerPassword=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini')",
+        "type": "alterfile",
+        "file": "BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini')",
+        "type": "alterfile",
+        "file": "BoatGame/Saved/PersistedData/CustomConfig/CustomHostServerUserSettings.ini",
+        "search": "^AutosaveTimerSeconds=.*$",
+        "replace": "AutosaveTimerSeconds=${AUTOSAVE_TIMER_SECONDS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

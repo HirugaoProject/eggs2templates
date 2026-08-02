@@ -1,0 +1,115 @@
+{
+  "type": "winegeneric",
+  "display": "Wine Generic (Docker)",
+  "data": {
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "https://beamng-mp.com/server/BeamMP_Server.zip",
+      "display": "Download URL",
+      "desc": "Archive the server files are fetched from. Zip, tar.gz and tar.xz are unpacked automatically.",
+      "required": true,
+      "userEdit": true
+    },
+    "INSTALL_DIR": {
+      "type": "string",
+      "value": "",
+      "display": "Install Directory",
+      "desc": "Subdirectory the archive is unpacked into, for example server/bin. Leave empty to unpack into the server root.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_EXECUTABLE": {
+      "type": "string",
+      "value": "BeamMP-Server.exe",
+      "display": "Server Executable",
+      "desc": "Windows executable wine starts",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 30814,
+      "display": "Port",
+      "desc": "Port the server binds to. It is only bound, never passed to the server, so set the port in the game's own config as well.",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'D=\"${INSTALL_DIR}\"; [ -n \"$D\" ] && mkdir -p \"$D\"; exec curl -sSL -o server-files.archive ${DOWNLOAD_URL}'"
+      ]
+    },
+    {
+      "if": "INSTALL_DIR == ''",
+      "type": "extract",
+      "source": "server-files.archive",
+      "destination": "."
+    },
+    {
+      "if": "INSTALL_DIR != ''",
+      "type": "extract",
+      "source": "server-files.archive",
+      "destination": "${INSTALL_DIR}"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f server-files.archive"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
+    }
+  ],
+  "run": {
+    "command": "wine ${SERVER_EXECUTABLE}",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

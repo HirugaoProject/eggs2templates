@@ -1,0 +1,98 @@
+{
+  "type": "xonotic",
+  "display": "Xonotic (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "0.8.6",
+      "display": "Xonotic Version",
+      "desc": "Release downloaded from https://dl.xonotic.org/",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 26000,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o xonotic.zip http://dl.xonotic.org/xonotic-${VERSION}.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "xonotic.zip",
+      "destination": "extracted"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'cp -R extracted/Xonotic/. .'",
+        "rm -rf extracted xonotic.zip"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".xonotic/data"
+    },
+    {
+      "if": "!file_exists('.xonotic/data/server.cfg')",
+      "type": "command",
+      "commands": [
+        "cp server/server.cfg .xonotic/data/server.cfg"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'rm -rf COPYING Makefile GPL* Docs gmqcc source misc bin*; rm -f ./*glx* ./*sdl* ./*linux32* ./*.exe ./*.sh; true'",
+        "chmod +x ./xonotic-linux64-dedicated"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./xonotic-linux64-dedicated +log_file latest.log +net_address 0.0.0.0 +port ${port} +maxplayers ${MAX_PLAYERS}",
+    "stop": "quit",
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

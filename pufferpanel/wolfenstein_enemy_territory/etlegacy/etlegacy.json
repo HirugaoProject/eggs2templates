@@ -1,0 +1,169 @@
+{
+  "type": "etlegacy",
+  "display": "ET Legacy (Docker)",
+  "data": {
+    "ET_LEGACY_VERSION": {
+      "type": "string",
+      "value": "2.83.2",
+      "display": "ET Legacy Version",
+      "desc": "Release installed from https://mirror.etlegacy.com/release/",
+      "required": true,
+      "userEdit": true
+    },
+    "ET_VERSION": {
+      "type": "option",
+      "value": "x86_64",
+      "display": "Architecture",
+      "desc": "Server build to install",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "x86_64",
+          "display": "64 bit"
+        },
+        {
+          "value": "i386",
+          "display": "32 bit"
+        }
+      ]
+    },
+    "MAP": {
+      "type": "string",
+      "value": "oasis",
+      "display": "Default Map",
+      "desc": "Map the server starts on",
+      "required": true,
+      "userEdit": true
+    },
+    "OMNIBOT": {
+      "type": "option",
+      "value": "0",
+      "display": "Omni-Bot",
+      "desc": "Load the Omni-Bot bot framework",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 27960,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o etlegacy.tar.gz https://mirror.etlegacy.com/release/${ET_LEGACY_VERSION}/etlegacy-v${ET_LEGACY_VERSION}-${ET_VERSION}.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "etlegacy.tar.gz",
+      "destination": "extracted"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'cp -R extracted/*/. .'",
+        "rm -rf extracted etlegacy.tar.gz",
+        "bash -c 'mv -f etlded.${ET_VERSION} etlded 2>/dev/null || true'",
+        "chmod +x ./etlded"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "etmain"
+    },
+    {
+      "type": "mkdir",
+      "target": ".etlegacy"
+    },
+    {
+      "if": "!file_exists('etmain/pak0.pk3')",
+      "type": "download",
+      "files": [
+        "https://mirror.etlegacy.com/etmain/pak0.pk3",
+        "https://mirror.etlegacy.com/etmain/pak1.pk3",
+        "https://mirror.etlegacy.com/etmain/pak2.pk3",
+        "https://mirror.etlegacy.com/etmain/mp_bin.pk3"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'for p in pak0.pk3 pak1.pk3 pak2.pk3 mp_bin.pk3; do [ -f \"$p\" ] && mv -f \"$p\" etmain/; done; true'"
+      ]
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "if": "OMNIBOT == '1'",
+        "command": "./etlded +set net_port ${port} +map ${MAP} +set omnibot_enable 1 +set omnibot_path ./legacy/omni-bot +exec etl_server.cfg"
+      },
+      {
+        "if": "OMNIBOT != '1'",
+        "command": "./etlded +set net_port ${port} +map ${MAP} +set omnibot_enable 0 +exec etl_server.cfg"
+      }
+    ],
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "file_exists('etmain/etl_server.cfg')",
+        "type": "alterfile",
+        "file": "etmain/etl_server.cfg",
+        "search": "^(//)?set net_ip .*$",
+        "replace": "set net_ip \"0.0.0.0\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('etmain/etl_server.cfg')",
+        "type": "alterfile",
+        "file": "etmain/etl_server.cfg",
+        "search": "^(//)?set net_port .*$",
+        "replace": "set net_port \"${port}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

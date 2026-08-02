@@ -1,0 +1,280 @@
+{
+  "type": "wurmunlimited",
+  "display": "Wurm Unlimited (Docker)",
+  "data": {
+    "ADMINPWD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Unlocks the in-game admin commands that change gameplay settings such as skill gain and field growth",
+      "required": false,
+      "userEdit": true
+    },
+    "EPIC": {
+      "type": "option",
+      "value": "false",
+      "display": "Epic Settings",
+      "desc": "Follow the Wurm Online Epic rules, including its skill curve",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 25,
+      "display": "Max Players",
+      "desc": "Player cap. Setting it here disables the in-game commands that change it.",
+      "required": true,
+      "userEdit": false
+    },
+    "PVP": {
+      "type": "option",
+      "value": "true",
+      "display": "PvP",
+      "desc": "Allow players to fight each other",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Steam query port, normally 27016-27030",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVERNAME": {
+      "type": "string",
+      "value": "PufferPanel Wurm Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVERPWD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_CLEAN_LOGS_ON_START": {
+      "type": "option",
+      "value": "true",
+      "display": "Clean Logs On Start",
+      "desc": "Clear the log file when the server starts",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SERVER_WORLD": {
+      "type": "string",
+      "value": "dist/Adventure",
+      "display": "World",
+      "desc": "World the launcher starts. The shipped ones are dist/Adventure and dist/Creative, and the names are case sensitive.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "402370",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Wurm Unlimited dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "option",
+      "value": "",
+      "display": "Beta Branch",
+      "desc": "Steam branch installed",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "Public release"
+        },
+        {
+          "value": "beta",
+          "display": "Beta"
+        }
+      ]
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 3724,
+      "display": "Port",
+      "desc": "TCP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x WurmServerLauncher"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "nativelibs"
+    },
+    {
+      "type": "mkdir",
+      "target": "backup"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux64/steamclient.so nativelibs/steamclient.so",
+        "cp -f WurmServerLauncher backup/WurmServerLauncher",
+        "bash -c 'cp -R dist/Adventure dist/Creative backup/ 2>/dev/null || true'"
+      ]
+    },
+    {
+      "if": "!file_exists('LaunchConfig.ini')",
+      "type": "writefile",
+      "target": "LaunchConfig.ini",
+      "text": "CleanLogsOnStart=${SERVER_CLEAN_LOGS_ON_START}\n"
+    }
+  ],
+  "run": {
+    "command": "./WurmServerLauncher ip=0.0.0.0 externalport=${port} start=${SERVER_WORLD} maxplayers=${MAX_PLAYERS} servername=${SERVERNAME} adminpwd=${ADMINPWD} serverpassword=${SERVERPWD} epicsettings=${EPIC} queryport=${QUERY_PORT} pvp=${PVP}",
+    "stop": "shutdown",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('LaunchConfig.ini')",
+        "type": "alterfile",
+        "file": "LaunchConfig.ini",
+        "search": "^CleanLogsOnStart=.*$",
+        "replace": "CleanLogsOnStart=${SERVER_CLEAN_LOGS_ON_START}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

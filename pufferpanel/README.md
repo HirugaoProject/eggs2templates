@@ -156,29 +156,52 @@ normally sets them is replaced by PufferPanel's own command.
 * **Factorio with Mod Updater** installs the `requests` Python module with
   `pip install --user` into the server's own directory. Nothing is installed
   into the image.
+* **Valheim** (all three templates) drops the egg's `sed` console filter. The
+  filter only trims Unity noise, but piping the output puts a shell between the
+  daemon and the game, and Valheim only saves when it receives SIGINT itself.
+  `stopCode: 2` now delivers that signal directly, which is worth more than the
+  tidier log. The BepInEx template also leaves out the egg's Thunderstore
+  modpack installer, which needs the Thunderstore API and `jq`; BepInEx itself
+  is installed, and plugin DLLs can be uploaded to `BepInEx/plugins`.
+* **StarRupture** hashes its admin and player passwords through
+  `starrupture-utilities.com`, which is the only published way to produce the
+  `Password.json` files the server reads. That request only happens when a
+  password variable is filled in, and it sends the password to that third party.
+  Leave both empty to skip it entirely.
+* **Urban Terror** replaces the official updater (which needs `xmllint`
+  installed into the OS) with the full release archive, and **ET Legacy**
+  replaces the 2.60b self-extracting installer with the retail `pk3` files that
+  ET: Legacy mirrors directly.
+* **Xonotic** leaves out the `rsync`-based autobuild updater the egg ran, since
+  it needs `rsync` in the image. The release archive is a complete server.
+* **Space Station 14** still scrapes the build number out of the Wizard's Den
+  fork page, because that is the only place it is published; a `Build Version`
+  variable pins it when that page changes shape.
+* **Swords 'n Magic and Stuff** applies its panel variables to the `Game.ini`
+  the game ships by key name. The egg never wrote them anywhere, and the key
+  names are not documented, so a key that does not match is simply left alone.
 
 ## Coverage
 
-134 of the 254 eggs in this repository are converted so far. The remaining eggs are listed below so the conversion can be picked up where it left off; they are being worked through in the same order as the directory listing.
+All 254 eggs in this repository are converted, in 253 templates. The one place where the
+counts differ is `minecraft/proxy/bedrock/waterdog_pe`, whose two eggs are byte-identical
+apart from the list of Java images they offer; the single template covers both because it
+takes the Java version as a variable.
 
-### Converted
+Every directory below is converted.
 
 * `7_days_to_die` (1)
-* `Archean` (1)
-* `Aska` (1)
-* `League Sandbox` (1)
-* `Nazi Zombies Portable` (1)
-* `Nightingale` (1)
-* `SuperTuxKart` (1)
 * `abiotic_factor` (1)
 * `aloft` (1)
 * `americas_army/proving_grounds` (1)
 * `among_us/bettercrewlink_server` (1)
 * `among_us/impostor_server` (1)
+* `Archean` (1)
 * `ark_survival_ascended` (1)
 * `ark_survival_evolved` (1)
 * `arma/arma3` (1)
 * `arma/arma_reforger` (1)
+* `Aska` (1)
 * `assetto_corsa` (2)
 * `astro_colony` (1)
 * `astroneer` (1)
@@ -254,72 +277,71 @@ normally sets them is replaced by PufferPanel's own command.
 * `killing_floor_2` (1)
 * `ksp/DMP` (1)
 * `ksp/LMP` (1)
+* `League Sandbox` (1)
 * `left4dead` (1)
 * `left4dead_2` (1)
 * `longvinter` (1)
 * `losangelescrimes` (1)
 * `midnight_ghost_hunt` (1)
 * `mindustry` (1)
+* `minecraft/bedrock/bedrock` (2)
+* `minecraft/bedrock/gomint` (1)
+* `minecraft/bedrock/LeviLamina` (1)
+* `minecraft/bedrock/LiteLoader-bedrock` (1)
+* `minecraft/bedrock/nukkit` (1)
+* `minecraft/bedrock/pocketmine_mp` (1)
+* `minecraft/bedrock/PowerNukkitX` (1)
+* `minecraft/crossplay/purpur-geysermc-floodgate` (1)
 * `minecraft/java/arclight` (1)
 * `minecraft/java/canvas-mc` (1)
 * `minecraft/java/cuberite` (1)
+* `minecraft/java/curseforge` (1)
 * `minecraft/java/fabric` (1)
 * `minecraft/java/folia` (1)
 * `minecraft/java/forge` (1)
+* `minecraft/java/ftb` (1)
 * `minecraft/java/glowstone` (1)
 * `minecraft/java/krypton` (1)
 * `minecraft/java/limbo` (1)
 * `minecraft/java/magma` (1)
+* `minecraft/java/modrinth` (1)
 * `minecraft/java/mohist` (1)
 * `minecraft/java/nanolimbo` (1)
 * `minecraft/java/neoforge` (1)
 * `minecraft/java/paper` (1)
 * `minecraft/java/purpur` (1)
 * `minecraft/java/quilt` (1)
+* `minecraft/java/spigot` (1)
 * `minecraft/java/spongeforge` (1)
 * `minecraft/java/spongevanilla` (1)
-* `minecraft/java/technic/Tekkit` (1)
-* `minecraft/java/technic/Tekkit-2` (1)
 * `minecraft/java/technic/attack-of-the-bteam` (1)
 * `minecraft/java/technic/blightfall` (1)
 * `minecraft/java/technic/hexxit` (1)
+* `minecraft/java/technic/Tekkit` (1)
+* `minecraft/java/technic/Tekkit-2` (1)
 * `minecraft/java/technic/tekkit-classic` (1)
 * `minecraft/java/technic/tekkit-legends` (1)
 * `minecraft/java/technic/tekkit-smp` (1)
 * `minecraft/java/technic/the-1-12-2-pack` (1)
 * `minecraft/java/technic/the-1-7-10-pack` (1)
 * `minecraft/java/vanillacord` (1)
+* `minecraft/proxy/bedrock/waterdog_pe` (2) — 1 template; the eggs there are duplicates of one another
 * `minecraft/proxy/java/travertine` (1)
 * `minecraft/proxy/java/velocity` (1)
 * `minecraft/proxy/java/viaaas` (1)
 * `minecraft/proxy/java/waterfall` (1)
-* `rdr/redm` (1)
-
-### Not converted yet
-
-* `minecraft/bedrock/LeviLamina` (1)
-* `minecraft/bedrock/LiteLoader-bedrock` (1)
-* `minecraft/bedrock/PowerNukkitX` (1)
-* `minecraft/bedrock/bedrock` (2)
-* `minecraft/bedrock/gomint` (1)
-* `minecraft/bedrock/nukkit` (1)
-* `minecraft/bedrock/pocketmine_mp` (1)
-* `minecraft/crossplay/purpur-geysermc-floodgate` (1)
-* `minecraft/java/curseforge` (1)
-* `minecraft/java/ftb` (1)
-* `minecraft/java/modrinth` (1)
-* `minecraft/java/spigot` (1)
-* `minecraft/proxy/bedrock/waterdog_pe` (2)
 * `minetest` (1)
 * `modiverse` (1)
 * `mohaa` (1)
 * `mordhau` (2)
 * `mount_blade_II_bannerlord` (1)
 * `myth_of_empires` (1)
+* `Nazi Zombies Portable` (1)
 * `necesse` (1)
 * `neosvr` (1)
 * `neverwinter_nights_ee` (1)
 * `night_of_the_dead` (1)
+* `Nightingale` (1)
 * `nmrih` (1)
 * `no_love_lost` (1)
 * `no_one_survived` (1)
@@ -345,6 +367,7 @@ normally sets them is replaced by PufferPanel's own command.
 * `puck` (1)
 * `quake_live` (1)
 * `r5reloaded` (1)
+* `rdr/redm` (1)
 * `renown` (1)
 * `resonite` (1)
 * `return_to_moria` (1)
@@ -380,6 +403,7 @@ normally sets them is replaced by PufferPanel's own command.
 * `stormworks` (1)
 * `subnautica_nitrox_mod` (1)
 * `sunkenland` (1)
+* `SuperTuxKart` (1)
 * `svencoop` (1)
 * `swords_'n_Magic_and_Stuff` (1)
 * `team_fortress_2` (1)
