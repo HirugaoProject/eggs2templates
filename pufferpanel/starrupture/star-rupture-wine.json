@@ -1,0 +1,284 @@
+{
+  "type": "starrupture",
+  "display": "StarRupture Wine (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password behind Manage Server in game. Setting it sends the password to starrupture-utilities.com, which is the only published way to produce the hashed Password.json. Leave empty to skip that entirely.",
+      "required": false,
+      "userEdit": true
+    },
+    "LOAD_SAVE": {
+      "type": "option",
+      "value": "true",
+      "display": "Load Saved Game",
+      "desc": "Load the existing save instead of skipping saved data",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "PLAYER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Player Password",
+      "desc": "Password players need to join. It goes through the same third party hashing service as the admin password.",
+      "required": false,
+      "userEdit": true
+    },
+    "SAVEGAME_NAME": {
+      "type": "string",
+      "value": "AutoSave0.sav",
+      "display": "Savegame Name",
+      "desc": "Save file to load. It has to exist under StarRupture/Saved/SaveGames/<session name>.",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_INTERVAL": {
+      "type": "integer",
+      "value": 300,
+      "display": "Save Interval",
+      "desc": "Seconds between automatic saves",
+      "required": true,
+      "userEdit": true
+    },
+    "SESSION_NAME": {
+      "type": "string",
+      "value": "StarRuptureServer",
+      "display": "Session Name",
+      "desc": "Name of the save game session",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3809400",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the StarRupture dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "START_NEW": {
+      "type": "option",
+      "value": "false",
+      "display": "Start New Savegame",
+      "desc": "Force the creation of a new world. This replaces the current one.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "STEAM_AUTH": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Guard Code",
+      "desc": "Steam Guard code. Only needed when the account has two-factor enabled.",
+      "required": false,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of that Steam account",
+      "required": false,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account used for the install. Leave empty for an anonymous install.",
+      "required": false,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "mkdir",
+      "target": "StarRupture/Saved/Logs"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "wineboot --init",
+        "winetricks -q vcrun2022"
+      ]
+    },
+    {
+      "if": "!file_exists('DSSettings.txt')",
+      "type": "writefile",
+      "target": "DSSettings.txt",
+      "text": "{\n  \"SessionName\": \"${SESSION_NAME}\",\n  \"SaveGameInterval\": \"${SAVE_INTERVAL}\",\n  \"StartNewGame\": \"${START_NEW}\",\n  \"LoadSavedGame\": \"${LOAD_SAVE}\",\n  \"SaveGameName\": \"${SAVEGAME_NAME}\"\n}\n"
+    },
+    {
+      "if": "ADMIN_PASSWORD != '' || PLAYER_PASSWORD != ''",
+      "type": "command",
+      "commands": [
+        "bash -c 'R=$(curl -s --request POST --url https://starrupture-utilities.com/passwords/ --header \"Content-Type: multipart/form-data\" --form \"adminpassword=${ADMIN_PASSWORD}\" --form \"playerpassword=${PLAYER_PASSWORD}\"); [ -n \"$R\" ] || { echo \"Warning: could not generate the password files\"; exit 0; }; if [ -n \"${ADMIN_PASSWORD}\" ] && [ ! -f Password.json ]; then printf '\"'\"'{\"password\":\"%s\"}\\n'\"'\"' \"$(printf %s \"$R\" | grep -oP '\"'\"'\"adminpassword\"\\s*:\\s*\"\\K[^\"]*'\"'\"')\" > Password.json; fi; if [ -n \"${PLAYER_PASSWORD}\" ] && [ ! -f PlayerPassword.json ]; then printf '\"'\"'{\"password\":\"%s\"}\\n'\"'\"' \"$(printf %s \"$R\" | grep -oP '\"'\"'\"playerpassword\"\\s*:\\s*\"\\K[^\"]*'\"'\"')\" > PlayerPassword.json; fi'"
+      ]
+    }
+  ],
+  "run": {
+    "command": "wine /pufferpanel/StarRupture/Binaries/Win64/StarRuptureServerEOS-Win64-Shipping.exe -Log -Port=${port} -RCWebControlDisable -RCWebInterfaceDisable",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('DSSettings.txt')",
+        "type": "alterfile",
+        "file": "DSSettings.txt",
+        "search": "\"SessionName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"SessionName\": \"${SESSION_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DSSettings.txt')",
+        "type": "alterfile",
+        "file": "DSSettings.txt",
+        "search": "\"SaveGameInterval\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"SaveGameInterval\": \"${SAVE_INTERVAL}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DSSettings.txt')",
+        "type": "alterfile",
+        "file": "DSSettings.txt",
+        "search": "\"StartNewGame\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"StartNewGame\": \"${START_NEW}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DSSettings.txt')",
+        "type": "alterfile",
+        "file": "DSSettings.txt",
+        "search": "\"LoadSavedGame\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"LoadSavedGame\": \"${LOAD_SAVE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DSSettings.txt')",
+        "type": "alterfile",
+        "file": "DSSettings.txt",
+        "search": "\"SaveGameName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"SaveGameName\": \"${SAVEGAME_NAME}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

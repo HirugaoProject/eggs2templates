@@ -1,0 +1,85 @@
+{
+  "type": "starmade",
+  "display": "StarMade (Docker)",
+  "data": {
+    "SERVER_JARFILE": {
+      "type": "string",
+      "value": "StarMade.jar",
+      "display": "Server Jar File",
+      "desc": "Jar the launcher installed",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MEMORY": {
+      "type": "integer",
+      "value": 2048,
+      "display": "Server Memory",
+      "desc": "Megabytes of heap handed to the JVM with -Xmx",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 4242,
+      "display": "Port",
+      "desc": "TCP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "http://files.star-made.org/StarMade-Starter.jar"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "java -jar StarMade-Starter.jar -nogui"
+      ]
+    },
+    {
+      "type": "move",
+      "source": "StarMade/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf StarMade StarMade-Starter.jar"
+      ]
+    }
+  ],
+  "run": {
+    "command": "java -Xms128m -Xmx${SERVER_MEMORY}m -jar ${SERVER_JARFILE} -server -port:${port}",
+    "stop": "/shutdown 0",
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:java_16",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:java_16",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

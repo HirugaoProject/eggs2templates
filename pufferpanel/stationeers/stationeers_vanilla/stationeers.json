@@ -1,0 +1,268 @@
+{
+  "type": "stationeers",
+  "display": "Stationeers (Docker)",
+  "data": {
+    "AUTOSAVE": {
+      "type": "option",
+      "value": "true",
+      "display": "Auto Save",
+      "desc": "Save the world automatically",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_INTERVAL": {
+      "type": "integer",
+      "value": 300,
+      "display": "Save Interval",
+      "desc": "Seconds between automatic saves",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVE_NAME": {
+      "type": "string",
+      "value": "stationeers_1",
+      "display": "Save Name",
+      "desc": "Name of the save. The server auto-saves to and auto-loads from it.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "600760",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Stationeers dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Beta Branch",
+      "desc": "Steam beta branch to install. Leave empty for the public branch.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_PORT": {
+      "type": "integer",
+      "value": 27014,
+      "display": "Update Port",
+      "desc": "UDP port used for server list updates",
+      "required": true,
+      "userEdit": false
+    },
+    "UPNP": {
+      "type": "option",
+      "value": "false",
+      "display": "UPnP",
+      "desc": "Ask the router to forward the port over UPnP",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "WORLD_NAME": {
+      "type": "option",
+      "value": "moon",
+      "display": "World",
+      "desc": "World the server generates or loads",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "moon",
+          "display": "Moon"
+        },
+        {
+          "value": "mars",
+          "display": "Mars"
+        },
+        {
+          "value": "europa",
+          "display": "Europa"
+        },
+        {
+          "value": "europa2",
+          "display": "Europa2"
+        },
+        {
+          "value": "mimas",
+          "display": "Mimas"
+        },
+        {
+          "value": "vulcan",
+          "display": "Vulcan"
+        },
+        {
+          "value": "venus",
+          "display": "Venus"
+        },
+        {
+          "value": "loulan",
+          "display": "Loulan"
+        },
+        {
+          "value": "space",
+          "display": "Space"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Port",
+      "desc": "UDP game port",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "if": "SRCDS_BETAID == ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "if": "SRCDS_BETAID != ''",
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x rocketstation_DedicatedServer.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./rocketstation_DedicatedServer.x86_64 -loadlatest ${SAVE_NAME} ${WORLD_NAME} -settings ServerName ${SERVER_NAME} StartLocalHost true ServerVisible true GamePort ${port} UpdatePort ${UPDATE_PORT} AutoSave ${AUTOSAVE} SaveInterval ${SAVE_INTERVAL} ServerPassword ${SERVER_PASSWD} ServerMaxPlayers ${MAX_PLAYERS} UPNPEnabled ${UPNP}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${UPDATE_PORT}:${UPDATE_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${UPDATE_PORT}:${UPDATE_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
