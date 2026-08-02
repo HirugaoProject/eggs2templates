@@ -1,0 +1,156 @@
+{
+  "type": "openra",
+  "display": "OpenRA - Tiberian Dawn (Docker)",
+  "data": {
+    "ANONYMOUS": {
+      "type": "option",
+      "value": "true",
+      "display": "Share Anonymized IPs",
+      "desc": "Share anonymised player IPs with the master server",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "GEOIP": {
+      "type": "option",
+      "value": "false",
+      "display": "Enable GeoIP",
+      "desc": "Resolve player countries with GeoIP",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Disabled"
+        },
+        {
+          "value": "true",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Password",
+      "desc": "Password required to join",
+      "required": false,
+      "userEdit": true
+    },
+    "PUBLIC": {
+      "type": "option",
+      "value": "false",
+      "display": "Advertise Online",
+      "desc": "List the server on the public server list",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Private"
+        },
+        {
+          "value": "true",
+          "display": "Public"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "OpenRAServer",
+      "display": "Server Name",
+      "desc": "Name shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SINGLEPLAYER": {
+      "type": "option",
+      "value": "false",
+      "display": "Enable Singleplayer",
+      "desc": "Allow a game with a single player",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Disabled"
+        },
+        {
+          "value": "true",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "release-20231010",
+      "display": "Version",
+      "desc": "OpenRA release to install. Releases are listed at https://github.com/OpenRA/OpenRA/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 1234,
+      "display": "Port",
+      "desc": "TCP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/OpenRA/OpenRA/releases/download/${VERSION}/OpenRA-Tiberian-Dawn-x86_64.AppImage"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./OpenRA-Tiberian-Dawn-x86_64.AppImage",
+        "./OpenRA-Tiberian-Dawn-x86_64.AppImage --appimage-extract",
+        "rm -f ./OpenRA-Tiberian-Dawn-x86_64.AppImage"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./squashfs-root/AppRun --server Server.Name=\"${SERVER_NAME}\" Server.ListenPort=${port} Server.AdvertiseOnline=${PUBLIC} Server.EnableSingleplayer=${SINGLEPLAYER} Server.Password=\"${PASSWORD}\" Server.EnableGeoIP=${GEOIP} Server.ShareAnonymizedIPs=${ANONYMOUS}",
+    "stopCode": 2,
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

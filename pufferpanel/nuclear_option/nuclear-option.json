@@ -1,0 +1,210 @@
+{
+  "type": "nuclearoption",
+  "display": "Nuclear Option (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 20,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MODDED_SERVER": {
+      "type": "option",
+      "value": "false",
+      "display": "Modded Server",
+      "desc": "Allow modded clients",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Disabled"
+        },
+        {
+          "value": "true",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Query Port",
+      "desc": "Query port advertised by the server",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanel-server",
+      "display": "Server Name",
+      "desc": "Name in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "ChangeMe",
+      "display": "Server Password",
+      "desc": "Password required to join",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3930080",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Nuclear Option dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7778,
+      "display": "Game Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./NuclearOptionServer.x86_64"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Missions"
+    },
+    {
+      "if": "!file_exists('DedicatedServerConfig.json')",
+      "type": "writefile",
+      "target": "DedicatedServerConfig.json",
+      "text": "{\n  \"BanListPaths\": [ \"ban_list.txt\" ],\n  \"MaxPlayers\": ${MAX_PLAYERS},\n  \"MissionDirectory\": \"/pufferpanel/Missions\",\n  \"MissionRotation\": [\n    {\n      \"Key\": { \"Group\": \"BuiltIn\", \"Name\": \"Escalation\" },\n      \"MaxTime\": 7200\n    },\n    {\n      \"Key\": { \"Group\": \"BuiltIn\", \"Name\": \"Terminal Control\" },\n      \"MaxTime\": 7200\n    }\n  ],\n  \"ModdedServer\": ${MODDED_SERVER},\n  \"NoPlayerStopTime\": 30,\n  \"Password\": \"${SERVER_PASSWORD}\",\n  \"Port\": { \"IsOverride\": true, \"Value\": ${port} },\n  \"QueryPort\": { \"IsOverride\": true, \"Value\": ${QUERY_PORT} },\n  \"RotationType\": 0,\n  \"ServerName\": \"${SERVER_NAME}\"\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./NuclearOptionServer.x86_64",
+    "stopCode": 2,
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel/linux64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('DedicatedServerConfig.json')",
+        "type": "alterfile",
+        "file": "DedicatedServerConfig.json",
+        "search": "\"ServerName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"ServerName\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DedicatedServerConfig.json')",
+        "type": "alterfile",
+        "file": "DedicatedServerConfig.json",
+        "search": "\"Password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"Password\": \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DedicatedServerConfig.json')",
+        "type": "alterfile",
+        "file": "DedicatedServerConfig.json",
+        "search": "\"MaxPlayers\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"MaxPlayers\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('DedicatedServerConfig.json')",
+        "type": "alterfile",
+        "file": "DedicatedServerConfig.json",
+        "search": "\"ModdedServer\"\\s*:\\s*(true|false)",
+        "replace": "\"ModdedServer\": ${MODDED_SERVER}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

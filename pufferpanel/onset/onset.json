@@ -1,0 +1,186 @@
+{
+  "type": "onset",
+  "display": "Onset (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 50,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Onset Server",
+      "display": "Server Name",
+      "desc": "Name in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1204170",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Onset dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the server binds to, written to server_config.json",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x ./OnsetServer"
+      ]
+    },
+    {
+      "if": "!file_exists('server_config.json')",
+      "type": "writefile",
+      "target": "server_config.json",
+      "text": "{\n  \"ipaddress\": \"0.0.0.0\",\n  \"port\": ${port},\n  \"servername\": \"${SERVER_NAME}\",\n  \"password\": \"${SERVER_PASSWORD}\",\n  \"maxplayers\": ${MAX_PLAYERS},\n  \"gamemode\": \"default\",\n  \"packages\": [],\n  \"plugins\": []\n}\n"
+    }
+  ],
+  "run": {
+    "command": "./OnsetServer --noinput",
+    "stopCode": 2,
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "."
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('server_config.json')",
+        "type": "alterfile",
+        "file": "server_config.json",
+        "search": "\"ipaddress\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"ipaddress\": \"0.0.0.0\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.json')",
+        "type": "alterfile",
+        "file": "server_config.json",
+        "search": "\"port\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.json')",
+        "type": "alterfile",
+        "file": "server_config.json",
+        "search": "\"servername\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"servername\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.json')",
+        "type": "alterfile",
+        "file": "server_config.json",
+        "search": "\"password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"password\": \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.json')",
+        "type": "alterfile",
+        "file": "server_config.json",
+        "search": "\"maxplayers\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"maxplayers\": ${MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

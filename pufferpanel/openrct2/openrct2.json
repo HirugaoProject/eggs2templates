@@ -1,0 +1,332 @@
+{
+  "type": "openrct2",
+  "display": "OpenRCT2 (Docker)",
+  "data": {
+    "AUTOSAVE_AMOUNT": {
+      "type": "integer",
+      "value": 10,
+      "display": "Autosave Amount",
+      "desc": "Number of autosaves kept",
+      "required": true,
+      "userEdit": true
+    },
+    "AUTOSAVE_INTERVAL": {
+      "type": "integer",
+      "value": 1,
+      "display": "Autosave Interval",
+      "desc": "Autosave frequency setting",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "PAUSE_NO_CLIENTS": {
+      "type": "option",
+      "value": "false",
+      "display": "Pause When Empty",
+      "desc": "Pause the game while nobody is connected",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Disabled"
+        },
+        {
+          "value": "true",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "PROVIDER_EMAIL": {
+      "type": "string",
+      "value": "",
+      "display": "Provider Email",
+      "desc": "Contact address shown in the server list",
+      "required": false,
+      "userEdit": true
+    },
+    "PROVIDER_NAME": {
+      "type": "string",
+      "value": "",
+      "display": "Provider Name",
+      "desc": "Provider shown in the server list",
+      "required": false,
+      "userEdit": true
+    },
+    "PROVIDER_WEBSITE": {
+      "type": "string",
+      "value": "",
+      "display": "Provider Website",
+      "desc": "Website shown in the server list",
+      "required": false,
+      "userEdit": true
+    },
+    "SAVE_URI": {
+      "type": "string",
+      "value": "ServerData/save/save.park",
+      "display": "Save File",
+      "desc": "Park the server hosts",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_ADVERTISE": {
+      "type": "option",
+      "value": "true",
+      "display": "Advertise Server",
+      "desc": "List the server publicly",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Public"
+        },
+        {
+          "value": "false",
+          "display": "Private"
+        }
+      ]
+    },
+    "SERVER_DESCRIPTION": {
+      "type": "string",
+      "value": "",
+      "display": "Server Description",
+      "desc": "Description shown in the server list",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_GREETING": {
+      "type": "string",
+      "value": "",
+      "display": "Server Greeting",
+      "desc": "Message shown to joining players",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel OpenRCT2 Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_PLAYER_NAME": {
+      "type": "string",
+      "value": "Server",
+      "display": "Server Player Name",
+      "desc": "Name the server itself uses in game",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "v0.4.7",
+      "display": "Version",
+      "desc": "OpenRCT2 release to install. Releases are listed at https://github.com/OpenRCT2/OpenRCT2/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 11753,
+      "display": "Port",
+      "desc": "TCP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "ServerData/save"
+    },
+    {
+      "type": "mkdir",
+      "target": "OpenRCT2"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/OpenRCT2/OpenRCT2/releases/download/${VERSION}/OpenRCT2-${VERSION}-linux-x86_64.AppImage"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'mv -f OpenRCT2-*-linux-x86_64.AppImage OpenRCT2.AppImage'",
+        "chmod +x ./OpenRCT2.AppImage",
+        "./OpenRCT2.AppImage --appimage-extract",
+        "bash -c 'mv -f squashfs-root/usr/* OpenRCT2/'",
+        "rm -rf squashfs-root OpenRCT2.AppImage"
+      ]
+    },
+    {
+      "if": "!file_exists('ServerData/save/save.park')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/openrct2/save.park"
+      ]
+    },
+    {
+      "if": "file_exists('save.park')",
+      "type": "move",
+      "source": "save.park",
+      "target": "ServerData/save/save.park"
+    }
+  ],
+  "run": {
+    "command": "./OpenRCT2/bin/openrct2-cli host ${SAVE_URI} --port ${port} --user-data-path=ServerData",
+    "stopCode": 2,
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "./OpenRCT2/lib"
+    },
+    "pre": [
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^autosave = .*$",
+        "replace": "autosave = ${AUTOSAVE_INTERVAL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^autosave_amount = .*$",
+        "replace": "autosave_amount = ${AUTOSAVE_AMOUNT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^player_name = .*$",
+        "replace": "player_name = \"${SERVER_PLAYER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^maxplayers = .*$",
+        "replace": "maxplayers = ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^server_name = .*$",
+        "replace": "server_name = \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^server_description = .*$",
+        "replace": "server_description = \"${SERVER_DESCRIPTION}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^server_greeting = .*$",
+        "replace": "server_greeting = \"${SERVER_GREETING}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^advertise = .*$",
+        "replace": "advertise = ${SERVER_ADVERTISE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^pause_server_if_no_clients = .*$",
+        "replace": "pause_server_if_no_clients = ${PAUSE_NO_CLIENTS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^default_password = .*$",
+        "replace": "default_password = \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^provider_name = .*$",
+        "replace": "provider_name = \"${PROVIDER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^provider_email = .*$",
+        "replace": "provider_email = \"${PROVIDER_EMAIL}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('ServerData/config.ini')",
+        "type": "alterfile",
+        "file": "ServerData/config.ini",
+        "search": "^provider_website = .*$",
+        "replace": "provider_website = \"${PROVIDER_WEBSITE}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

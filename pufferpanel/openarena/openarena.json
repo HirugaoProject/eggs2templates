@@ -1,0 +1,85 @@
+{
+  "type": "openarena",
+  "display": "OpenArena (Docker)",
+  "data": {
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "http://www.openarena.ws/request.php?4",
+      "display": "Download URL",
+      "desc": "Link to the OpenArena release archive",
+      "required": true,
+      "userEdit": true
+    },
+    "GAME_MAP": {
+      "type": "string",
+      "value": "aggressor",
+      "display": "Map",
+      "desc": "Map the server loads on boot",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27960,
+      "display": "Port",
+      "desc": "UDP port the server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'curl -sSL -o openarena.zip \"${DOWNLOAD_URL}\"'"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "openarena.zip",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/*/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted openarena.zip",
+        "chmod +x ./oa_ded.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./oa_ded.x86_64 +set net_port ${port} +map ${GAME_MAP}",
+    "stopCode": 2,
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

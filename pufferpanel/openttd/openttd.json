@@ -1,0 +1,152 @@
+{
+  "type": "openttd",
+  "display": "OpenTTD Server (Docker)",
+  "data": {
+    "OPENGFX_VERSION": {
+      "type": "string",
+      "value": "7.1",
+      "display": "OpenGFX Version",
+      "desc": "Version of the OpenGFX base graphics set to install",
+      "required": true,
+      "userEdit": true
+    },
+    "OPENTTD_VERSION": {
+      "type": "string",
+      "value": "13.0",
+      "display": "OpenTTD Version",
+      "desc": "Version of OpenTTD to install",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 3979,
+      "display": "Port",
+      "desc": "Port the server listens on, written to openttd.cfg",
+      "required": true,
+      "userEdit": false
+    },
+    "srv_advertise": {
+      "type": "option",
+      "value": "true",
+      "display": "Advertise Server",
+      "desc": "List the server publicly",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Public"
+        },
+        {
+          "value": "false",
+          "display": "Private"
+        }
+      ]
+    },
+    "srv_name": {
+      "type": "string",
+      "value": "OpenTTD Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server list",
+      "required": true,
+      "userEdit": true
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://cdn.openttd.org/openttd-releases/${OPENTTD_VERSION}/openttd-${OPENTTD_VERSION}-linux-generic-amd64.tar.xz",
+        "https://cdn.openttd.org/opengfx-releases/${OPENGFX_VERSION}/opengfx-${OPENGFX_VERSION}-all.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "openttd-${OPENTTD_VERSION}-linux-generic-amd64.tar.xz",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/*/*",
+      "target": "."
+    },
+    {
+      "type": "extract",
+      "source": "opengfx-${OPENGFX_VERSION}-all.zip",
+      "destination": "opengfx"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'tar --strip-components=1 -C baseset/ -xf opengfx/opengfx-${OPENGFX_VERSION}.tar'",
+        "rm -rf extracted opengfx openttd-${OPENTTD_VERSION}-linux-generic-amd64.tar.xz opengfx-${OPENGFX_VERSION}-all.zip",
+        "chmod +x ./openttd"
+      ]
+    },
+    {
+      "if": "!file_exists('openttd.cfg')",
+      "type": "writefile",
+      "target": "openttd.cfg",
+      "text": "[network]\nserver_port = ${port}\nserver_name = ${srv_name}\nlan_internet = 0\nserver_advertise = ${srv_advertise}\nserver_game_type = 1\n"
+    }
+  ],
+  "run": {
+    "command": "./openttd -D",
+    "stop": "exit",
+    "pre": [
+      {
+        "if": "file_exists('openttd.cfg')",
+        "type": "alterfile",
+        "file": "openttd.cfg",
+        "search": "^server_port = .*$",
+        "replace": "server_port = ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('openttd.cfg')",
+        "type": "alterfile",
+        "file": "openttd.cfg",
+        "search": "^server_name = .*$",
+        "replace": "server_name = ${srv_name}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('openttd.cfg')",
+        "type": "alterfile",
+        "file": "openttd.cfg",
+        "search": "^server_advertise = .*$",
+        "replace": "server_advertise = ${srv_advertise}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
