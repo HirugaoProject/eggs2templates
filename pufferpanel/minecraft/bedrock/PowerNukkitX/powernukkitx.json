@@ -1,0 +1,151 @@
+{
+  "type": "minecraft-bedrock",
+  "display": "PowerNukkitX (Docker)",
+  "data": {
+    "AUTOREBOOT": {
+      "type": "option",
+      "value": "",
+      "display": "AutoReboot Mode",
+      "desc": "Pass --autoreboot so the launcher restarts the server after a crash",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": ""
+        },
+        {
+          "value": "--autoreboot",
+          "display": "--Autoreboot"
+        }
+      ]
+    },
+    "PNX_CLI_VERSION": {
+      "type": "string",
+      "value": "0.1.6",
+      "display": "PNX-CLI Version",
+      "desc": "Release of the PowerNukkitX launcher to install. Releases are listed at https://github.com/PowerNukkitX/PNX-CLI/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "option",
+      "value": "latest",
+      "display": "Version",
+      "desc": "Which PowerNukkitX channel the launcher installs",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "latest",
+          "display": "Latest"
+        },
+        {
+          "value": "dev",
+          "display": "Dev"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 19132,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to server.properties",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/PowerNukkitX/PNX-CLI/releases/download/${PNX_CLI_VERSION}/PNX-CLI-Linux-x86.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "PNX-CLI-Linux-x86.zip",
+      "destination": "."
+    },
+    {
+      "type": "move",
+      "source": "target/linux-x86/pnx",
+      "target": "pnx"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf target PNX-CLI-Linux-x86.zip",
+        "chmod +x ./pnx",
+        "./pnx jvm install=GraalVM"
+      ]
+    },
+    {
+      "if": "VERSION == 'latest'",
+      "type": "command",
+      "commands": [
+        "./pnx server install --latest"
+      ]
+    },
+    {
+      "if": "VERSION != 'latest'",
+      "type": "command",
+      "commands": [
+        "./pnx server install --dev"
+      ]
+    },
+    {
+      "if": "!file_exists('nukkit.yml')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/PowerNukkitX/PowerNukkitX/master/src/main/resources/default-nukkit.yml"
+      ]
+    },
+    {
+      "if": "file_exists('default-nukkit.yml')",
+      "type": "move",
+      "source": "default-nukkit.yml",
+      "target": "nukkit.yml"
+    }
+  ],
+  "run": {
+    "command": "./pnx start ${AUTOREBOOT}",
+    "stop": "stop",
+    "pre": [
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server-port=.*$",
+        "replace": "server-port=${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

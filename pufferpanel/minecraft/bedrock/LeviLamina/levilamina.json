@@ -1,0 +1,243 @@
+{
+  "type": "minecraft-bedrock",
+  "display": "LeviLamina (Docker)",
+  "data": {
+    "BDS_VERSION": {
+      "type": "string",
+      "value": "1.21.130.4",
+      "display": "Bedrock Version",
+      "desc": "Version of the Windows Bedrock dedicated server LeviLamina patches",
+      "required": true,
+      "userEdit": true
+    },
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "easy",
+      "display": "Difficulty",
+      "desc": "World difficulty",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "peaceful",
+          "display": "Peaceful"
+        },
+        {
+          "value": "easy",
+          "display": "Easy"
+        },
+        {
+          "value": "normal",
+          "display": "Normal"
+        },
+        {
+          "value": "hard",
+          "display": "Hard"
+        }
+      ]
+    },
+    "GAMEMODE": {
+      "type": "option",
+      "value": "survival",
+      "display": "Gamemode",
+      "desc": "Default gamemode for joining players",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "survival",
+          "display": "Survival"
+        },
+        {
+          "value": "creative",
+          "display": "Creative"
+        },
+        {
+          "value": "adventure",
+          "display": "Adventure"
+        }
+      ]
+    },
+    "LIP_VERSION": {
+      "type": "string",
+      "value": "0.28.0",
+      "display": "lip Version",
+      "desc": "Release of the lip package manager used to install LeviLamina. Releases are listed at https://github.com/futrime/lip/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "MAXPLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Maximum Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVERNAME": {
+      "type": "string",
+      "value": "Bedrock Dedicated Server",
+      "display": "Server Name",
+      "desc": "Name shown in the friends list",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "latest",
+      "display": "LeviLamina Version",
+      "desc": "LeviLamina release to install, or latest",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLDNAME": {
+      "type": "string",
+      "value": "Bedrock level",
+      "display": "World Name",
+      "desc": "Name of the world directory",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 19132,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to server.properties",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-${BDS_VERSION}.zip",
+        "https://github.com/futrime/lip/releases/download/v${LIP_VERSION}/lip-${LIP_VERSION}-win-x64.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "bedrock-server-${BDS_VERSION}.zip",
+      "destination": "."
+    },
+    {
+      "type": "extract",
+      "source": "lip-${LIP_VERSION}-win-x64.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f bedrock-server-${BDS_VERSION}.zip lip-${LIP_VERSION}-win-x64.zip",
+        "wineboot --init",
+        "winetricks -q vcrun2022"
+      ]
+    },
+    {
+      "if": "VERSION == 'latest'",
+      "type": "command",
+      "commands": [
+        "wine lip.exe install --yes github.com/LiteLDev/LeviLamina"
+      ]
+    },
+    {
+      "if": "VERSION != 'latest'",
+      "type": "command",
+      "commands": [
+        "wine lip.exe install --yes github.com/LiteLDev/LeviLamina@${VERSION}"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'Xvfb :0 -screen 0 1024x768x16 & exec wine bedrock_server_mod.exe'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine"
+    },
+    "pre": [
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server-port=.*$",
+        "replace": "server-port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server-name=.*$",
+        "replace": "server-name=${SERVERNAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^gamemode=.*$",
+        "replace": "gamemode=${GAMEMODE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^difficulty=.*$",
+        "replace": "difficulty=${DIFFICULTY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^max-players=.*$",
+        "replace": "max-players=${MAXPLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^level-name=.*$",
+        "replace": "level-name=${WORLDNAME}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

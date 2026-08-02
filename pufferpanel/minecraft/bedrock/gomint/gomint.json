@@ -1,0 +1,138 @@
+{
+  "type": "minecraft-bedrock",
+  "display": "GoMint (Docker)",
+  "data": {
+    "JAVA_VERSION": {
+      "type": "option",
+      "value": "21",
+      "display": "Java Version",
+      "desc": "Java runtime the server is started with",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "8",
+          "display": "Java 8"
+        },
+        {
+          "value": "11",
+          "display": "Java 11"
+        },
+        {
+          "value": "16",
+          "display": "Java 16"
+        },
+        {
+          "value": "17",
+          "display": "Java 17"
+        },
+        {
+          "value": "21",
+          "display": "Java 21"
+        },
+        {
+          "value": "22",
+          "display": "Java 22"
+        },
+        {
+          "value": "23",
+          "display": "Java 23"
+        },
+        {
+          "value": "24",
+          "display": "Java 24"
+        },
+        {
+          "value": "25",
+          "display": "Java 25"
+        }
+      ]
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "1.0.0",
+      "display": "GoMint Version",
+      "desc": "Release tag to install. Tags are listed at https://github.com/gomint/gomint/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 19132,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to server.yml",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "modules"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/gomint/gomint/releases/download/${VERSION}/${VERSION}.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "${VERSION}.zip",
+      "destination": "modules"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'if [ -d modules/modules ]; then mv -f modules/modules/* modules/ && rm -rf modules/modules; fi'",
+        "rm -f ${VERSION}.zip modules/start.sh modules/start.bat"
+      ]
+    },
+    {
+      "if": "!file_exists('server.yml')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/minecraft/bedrock/gomint/server.yml"
+      ]
+    }
+  ],
+  "run": {
+    "command": "java --add-opens java.base/java.nio=io.netty.common --add-exports java.base/jdk.internal.misc=io.netty.common -p modules -m gomint.server/io.gomint.server.Bootstrap",
+    "stop": "stop",
+    "pre": [
+      {
+        "if": "file_exists('server.yml')",
+        "type": "alterfile",
+        "file": "server.yml",
+        "search": "^(\\s*)port: .*$",
+        "replace": "  port: ${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}

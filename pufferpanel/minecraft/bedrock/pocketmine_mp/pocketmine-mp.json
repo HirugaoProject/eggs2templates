@@ -1,0 +1,86 @@
+{
+  "type": "minecraft-bedrock",
+  "display": "PocketMine-MP (Docker)",
+  "data": {
+    "PHAR_URL": {
+      "type": "string",
+      "value": "https://github.com/pmmp/PocketMine-MP/releases/latest/download/PocketMine-MP.phar",
+      "display": "PocketMine Phar URL",
+      "desc": "Link to the PocketMine-MP phar. Releases are listed at https://github.com/pmmp/PocketMine-MP/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "PHP_BINARY_URL": {
+      "type": "string",
+      "value": "https://github.com/pmmp/PHP-Binaries/releases/download/pm5-latest/PHP-8.2-Linux-x86_64-PM5.tar.gz",
+      "display": "PHP Binary URL",
+      "desc": "Prebuilt PHP binary matching the PocketMine major version. PM5 uses the pm5-latest release, PM4 the pm4-latest release.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 19132,
+      "display": "Port",
+      "desc": "UDP port the server listens on, written to server.properties",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "${PHP_BINARY_URL}",
+        "${PHAR_URL}"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'tar -xf PHP-*-Linux-*.tar.gz && rm -f PHP-*-Linux-*.tar.gz'",
+        "chmod +x ./bin/php7/bin/php"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./bin/php7/bin/php ./PocketMine-MP.phar --no-wizard",
+    "stop": "stop",
+    "pre": [
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server-port=.*$",
+        "replace": "server-port=${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

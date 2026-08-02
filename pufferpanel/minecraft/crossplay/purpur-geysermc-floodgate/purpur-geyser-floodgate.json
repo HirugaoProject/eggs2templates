@@ -1,0 +1,192 @@
+{
+  "type": "minecraft-java",
+  "display": "Purpur with Geyser and Floodgate (Docker)",
+  "data": {
+    "BEDROCK_PORT": {
+      "type": "integer",
+      "value": 19132,
+      "display": "Bedrock Port",
+      "desc": "UDP port Geyser listens on for Bedrock clients",
+      "required": true,
+      "userEdit": false
+    },
+    "BUILD_NUMBER": {
+      "type": "string",
+      "value": "latest",
+      "display": "Build Number",
+      "desc": "Purpur build to install, or latest",
+      "required": true,
+      "userEdit": true
+    },
+    "JAVA_VERSION": {
+      "type": "option",
+      "value": "21",
+      "display": "Java Version",
+      "desc": "Java runtime the server is started with",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "8",
+          "display": "Java 8"
+        },
+        {
+          "value": "11",
+          "display": "Java 11"
+        },
+        {
+          "value": "16",
+          "display": "Java 16"
+        },
+        {
+          "value": "17",
+          "display": "Java 17"
+        },
+        {
+          "value": "21",
+          "display": "Java 21"
+        },
+        {
+          "value": "22",
+          "display": "Java 22"
+        },
+        {
+          "value": "23",
+          "display": "Java 23"
+        },
+        {
+          "value": "24",
+          "display": "Java 24"
+        },
+        {
+          "value": "25",
+          "display": "Java 25"
+        }
+      ]
+    },
+    "MINECRAFT_VERSION": {
+      "type": "string",
+      "value": "latest",
+      "display": "Minecraft Version",
+      "desc": "Minecraft version to install, or latest",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_JARFILE": {
+      "type": "string",
+      "value": "server.jar",
+      "display": "Server Jar File",
+      "desc": "Name of the jar the server is started from",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MEMORY": {
+      "type": "integer",
+      "value": 2048,
+      "display": "Memory (MB)",
+      "desc": "Java heap size for the server",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 25565,
+      "display": "Port",
+      "desc": "Port the Java edition server listens on",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "plugins"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'curl -sSL -o ${SERVER_JARFILE} https://api.purpurmc.org/v2/purpur/${MINECRAFT_VERSION}/${BUILD_NUMBER}/download'",
+        "bash -c 'curl -sSL -o plugins/geyser-spigot.jar https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot'",
+        "bash -c 'curl -sSL -o plugins/floodgate-spigot.jar https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot'"
+      ]
+    },
+    {
+      "if": "!file_exists('server.properties')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/minecraft/java/server.properties"
+      ]
+    }
+  ],
+  "run": {
+    "command": "java -Xms128M -Xmx${SERVER_MEMORY}M -Dterminal.jline=false -Dterminal.ansi=true --add-modules=jdk.incubator.vector -jar ${SERVER_JARFILE}",
+    "stop": "stop",
+    "pre": [
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server-port=.*$",
+        "replace": "server-port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server-ip=.*$",
+        "replace": "server-ip=0.0.0.0",
+        "regex": true
+      },
+      {
+        "if": "file_exists('eula.txt')",
+        "type": "alterfile",
+        "file": "eula.txt",
+        "search": "^eula=.*$",
+        "replace": "eula=true",
+        "regex": true
+      },
+      {
+        "if": "!file_exists('eula.txt')",
+        "type": "writefile",
+        "target": "eula.txt",
+        "text": "eula=true\n"
+      },
+      {
+        "if": "file_exists('plugins/Geyser-Spigot/config.yml')",
+        "type": "alterfile",
+        "file": "plugins/Geyser-Spigot/config.yml",
+        "search": "^(\\s*)port: .*$",
+        "replace": "  port: ${BEDROCK_PORT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${BEDROCK_PORT}:${BEDROCK_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${BEDROCK_PORT}:${BEDROCK_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}

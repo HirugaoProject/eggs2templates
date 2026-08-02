@@ -1,0 +1,138 @@
+{
+  "type": "minecraft-bedrock",
+  "display": "Waterdog PE (Docker)",
+  "data": {
+    "JAVA_VERSION": {
+      "type": "option",
+      "value": "21",
+      "display": "Java Version",
+      "desc": "Java runtime the server is started with",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "8",
+          "display": "Java 8"
+        },
+        {
+          "value": "11",
+          "display": "Java 11"
+        },
+        {
+          "value": "16",
+          "display": "Java 16"
+        },
+        {
+          "value": "17",
+          "display": "Java 17"
+        },
+        {
+          "value": "21",
+          "display": "Java 21"
+        },
+        {
+          "value": "22",
+          "display": "Java 22"
+        },
+        {
+          "value": "23",
+          "display": "Java 23"
+        },
+        {
+          "value": "24",
+          "display": "Java 24"
+        },
+        {
+          "value": "25",
+          "display": "Java 25"
+        }
+      ]
+    },
+    "SERVER_JARFILE": {
+      "type": "string",
+      "value": "server.jar",
+      "display": "Server Jar File",
+      "desc": "Name of the jar the proxy is started from",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MEMORY": {
+      "type": "integer",
+      "value": 1024,
+      "display": "Memory (MB)",
+      "desc": "Java heap size for the proxy",
+      "required": true,
+      "userEdit": true
+    },
+    "WATERDOG_VERSION": {
+      "type": "string",
+      "value": "lastSuccessfulBuild",
+      "display": "Waterdog Version",
+      "desc": "Jenkins build to install, for example 123, or lastSuccessfulBuild",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 19132,
+      "display": "Port",
+      "desc": "UDP port the proxy listens on, written to config.yml",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'curl -sSL -o ${SERVER_JARFILE} https://jenkins.waterdog.dev/job/Waterdog/job/WaterdogPE/job/release/${WATERDOG_VERSION}/artifact/target/Waterdog.jar'"
+      ]
+    },
+    {
+      "if": "!file_exists('config.yml')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/minecraft/proxy/bedrock/waterdog_pe/config.yml"
+      ]
+    }
+  ],
+  "run": {
+    "command": "java -Dterminal.ansi=true -Xms128M -Xmx${SERVER_MEMORY}M -jar ${SERVER_JARFILE}",
+    "stop": "end",
+    "pre": [
+      {
+        "if": "file_exists('config.yml')",
+        "type": "alterfile",
+        "file": "config.yml",
+        "search": "^(\\s*)host: .*$",
+        "replace": "  host: 0.0.0.0:${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}

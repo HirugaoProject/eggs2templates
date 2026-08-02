@@ -1,0 +1,162 @@
+{
+  "type": "minecraft-java",
+  "display": "CurseForge Generic (Docker)",
+  "data": {
+    "FILE_ID": {
+      "type": "string",
+      "value": "",
+      "display": "File ID",
+      "desc": "CurseForge file id of the modpack version to install. Leave blank for the newest file.",
+      "required": false,
+      "userEdit": true
+    },
+    "JAVA_VERSION": {
+      "type": "option",
+      "value": "21",
+      "display": "Java Version",
+      "desc": "Java runtime the server is started with",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "8",
+          "display": "Java 8"
+        },
+        {
+          "value": "11",
+          "display": "Java 11"
+        },
+        {
+          "value": "16",
+          "display": "Java 16"
+        },
+        {
+          "value": "17",
+          "display": "Java 17"
+        },
+        {
+          "value": "21",
+          "display": "Java 21"
+        },
+        {
+          "value": "22",
+          "display": "Java 22"
+        },
+        {
+          "value": "23",
+          "display": "Java 23"
+        },
+        {
+          "value": "24",
+          "display": "Java 24"
+        },
+        {
+          "value": "25",
+          "display": "Java 25"
+        }
+      ]
+    },
+    "PROJECT_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Project ID",
+      "desc": "CurseForge project id of the modpack",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MEMORY": {
+      "type": "integer",
+      "value": 4096,
+      "display": "Memory (MB)",
+      "desc": "Java heap size for the server",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 25565,
+      "display": "Port",
+      "desc": "Port the server listens on, written to server.properties",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "curseforge",
+      "projectId": "${PROJECT_ID}",
+      "fileId": "${FILE_ID}",
+      "java": "${JAVA_VERSION}"
+    },
+    {
+      "if": "!file_exists('server.properties')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/minecraft/java/server.properties"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'if [ -f unix_args.txt ]; then exec java -Xms128M -Xmx${SERVER_MEMORY}M -Dterminal.jline=false -Dterminal.ansi=true @unix_args.txt nogui; else exec java -Xms128M -Xmx${SERVER_MEMORY}M -Dterminal.jline=false -Dterminal.ansi=true -jar server.jar nogui; fi'",
+    "stop": "stop",
+    "pre": [
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server-port=.*$",
+        "replace": "server-port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server.properties')",
+        "type": "alterfile",
+        "file": "server.properties",
+        "search": "^server-ip=.*$",
+        "replace": "server-ip=0.0.0.0",
+        "regex": true
+      },
+      {
+        "if": "file_exists('eula.txt')",
+        "type": "alterfile",
+        "file": "eula.txt",
+        "search": "^eula=.*$",
+        "replace": "eula=true",
+        "regex": true
+      },
+      {
+        "if": "!file_exists('eula.txt')",
+        "type": "writefile",
+        "target": "eula.txt",
+        "text": "eula=true\n"
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:java_${JAVA_VERSION}",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux"
+  }
+}
