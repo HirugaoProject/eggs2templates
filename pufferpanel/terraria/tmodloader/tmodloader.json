@@ -1,0 +1,211 @@
+{
+  "type": "tmodloader",
+  "display": "tModLoader (Docker)",
+  "data": {
+    "DIFFICULTY": {
+      "type": "option",
+      "value": "0",
+      "display": "Difficulty",
+      "desc": "Difficulty of a newly created world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Normal"
+        },
+        {
+          "value": "1",
+          "display": "Expert"
+        },
+        {
+          "value": "2",
+          "display": "Master"
+        },
+        {
+          "value": "3",
+          "display": "Journey"
+        }
+      ]
+    },
+    "LANGUAGE": {
+      "type": "option",
+      "value": "1",
+      "display": "Language",
+      "desc": "Language the server runs in",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "English"
+        },
+        {
+          "value": "2",
+          "display": "German"
+        },
+        {
+          "value": "3",
+          "display": "Italian"
+        },
+        {
+          "value": "4",
+          "display": "French"
+        },
+        {
+          "value": "5",
+          "display": "Spanish"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": false
+    },
+    "MOTD": {
+      "type": "string",
+      "value": "Please don't cut the purple trees!",
+      "display": "MOTD",
+      "desc": "Message of the day, at most 40 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "latest",
+      "display": "tModLoader Version",
+      "desc": "Release tag to install, or latest for the newest release",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "world",
+      "display": "World Name",
+      "desc": "Name of the world file",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_SIZE": {
+      "type": "option",
+      "value": "1",
+      "display": "World Size",
+      "desc": "Size of a newly created world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Small"
+        },
+        {
+          "value": "2",
+          "display": "Medium"
+        },
+        {
+          "value": "3",
+          "display": "Large"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "TCP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "if": "VERSION == 'latest'",
+      "type": "download",
+      "files": [
+        "https://github.com/tModLoader/tModLoader/releases/latest/download/tModLoader.zip"
+      ]
+    },
+    {
+      "if": "VERSION != 'latest'",
+      "type": "download",
+      "files": [
+        "https://github.com/tModLoader/tModLoader/releases/download/${VERSION}/tModLoader.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "tModLoader.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f tModLoader.zip",
+        "rm -rf DedicatedServerUtils LaunchUtils PlatformVariantLibs tModPorter RecentGitHubCommits.txt",
+        "bash -c 'rm -f ./*.bat ./*.sh'",
+        "chmod +x ./tModLoaderServer",
+        "bash -c \"[ -f serverconfig.txt ] && sed -i 's/^#difficulty/difficulty/' serverconfig.txt; true\""
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "saves/Worlds"
+    },
+    {
+      "type": "mkdir",
+      "target": "mods"
+    }
+  ],
+  "run": {
+    "command": "./tModLoaderServer -ip 0.0.0.0 -port ${port} -maxplayers ${MAX_PLAYERS} -password ${SERVER_PASSWORD} -motd ${MOTD} -lang ${LANGUAGE} -world /pufferpanel/saves/Worlds/${WORLD_NAME}.wld -worldname ${WORLD_NAME} -autocreate ${WORLD_SIZE} -config serverconfig.txt -savedirectory /pufferpanel -tmlsavedirectory /pufferpanel/saves -modpath /pufferpanel/mods",
+    "stop": "exit",
+    "pre": [
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^difficulty=.*$",
+        "replace": "difficulty=${DIFFICULTY}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

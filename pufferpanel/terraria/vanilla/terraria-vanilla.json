@@ -1,0 +1,269 @@
+{
+  "type": "terrariavanilla",
+  "display": "Terraria (Docker)",
+  "data": {
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "https://terraria.org/api/download/pc-dedicated-server/terraria-server-1456.zip",
+      "display": "Download URL",
+      "desc": "Dedicated server archive. Version numbers are listed at https://terraria.wiki.gg/wiki/Server#Downloads; the number in the file name is the version with the dots removed.",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server (up to 255)",
+      "required": true,
+      "userEdit": true
+    },
+    "NPCSTREAM": {
+      "type": "integer",
+      "value": 0,
+      "display": "NPC Stream",
+      "desc": "Lower values cut enemy skipping at the cost of bandwidth. 0 turns it off.",
+      "required": true,
+      "userEdit": true
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_MOTD": {
+      "type": "string",
+      "value": "Welcome!",
+      "display": "MOTD",
+      "desc": "Message of the day, at most 128 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_DIFFICULTY": {
+      "type": "option",
+      "value": "3",
+      "display": "Difficulty",
+      "desc": "Difficulty of a newly created world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Normal"
+        },
+        {
+          "value": "1",
+          "display": "Expert"
+        },
+        {
+          "value": "2",
+          "display": "Master"
+        },
+        {
+          "value": "3",
+          "display": "Journey"
+        }
+      ]
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "world",
+      "display": "World Name",
+      "desc": "Name of the world file",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_SEED": {
+      "type": "string",
+      "value": "",
+      "display": "World Seed",
+      "desc": "Seed used when the world is created",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_SIZE": {
+      "type": "option",
+      "value": "1",
+      "display": "World Size",
+      "desc": "Size of a newly created world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Small"
+        },
+        {
+          "value": "2",
+          "display": "Medium"
+        },
+        {
+          "value": "3",
+          "display": "Large"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "TCP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o terraria-server.zip ${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "terraria-server.zip",
+      "destination": "extracted"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'cp -R extracted/*/Linux/* .'",
+        "rm -rf extracted terraria-server.zip",
+        "chmod +x ./TerrariaServer.bin.x86_64"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "saves/Worlds"
+    },
+    {
+      "if": "!file_exists('serverconfig.txt')",
+      "type": "writefile",
+      "target": "serverconfig.txt",
+      "text": "worldpath=/pufferpanel/saves/Worlds\nworldname=${WORLD_NAME}\nworld=/pufferpanel/saves/Worlds/${WORLD_NAME}.wld\ndifficulty=${WORLD_DIFFICULTY}\nautocreate=${WORLD_SIZE}\nport=${port}\nmaxplayers=${MAX_PLAYERS}\nmotd=${SERVER_MOTD}\nseed=${WORLD_SEED}\npassword=${PASSWORD}\nnpcstream=${NPCSTREAM}\n"
+    }
+  ],
+  "run": {
+    "command": "./TerrariaServer.bin.x86_64 -config serverconfig.txt",
+    "stop": "exit",
+    "pre": [
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^worldpath=.*$",
+        "replace": "worldpath=/pufferpanel/saves/Worlds",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^worldname=.*$",
+        "replace": "worldname=${WORLD_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^world=.*$",
+        "replace": "world=/pufferpanel/saves/Worlds/${WORLD_NAME}.wld",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^difficulty=.*$",
+        "replace": "difficulty=${WORLD_DIFFICULTY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^autocreate=.*$",
+        "replace": "autocreate=${WORLD_SIZE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^port=.*$",
+        "replace": "port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^maxplayers=.*$",
+        "replace": "maxplayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^motd=.*$",
+        "replace": "motd=${SERVER_MOTD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^seed=.*$",
+        "replace": "seed=${WORLD_SEED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^password=.*$",
+        "replace": "password=${PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig.txt')",
+        "type": "alterfile",
+        "file": "serverconfig.txt",
+        "search": "^npcstream=.*$",
+        "replace": "npcstream=${NPCSTREAM}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

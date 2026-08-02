@@ -1,0 +1,119 @@
+{
+  "type": "tshock",
+  "display": "TShock (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 8,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": false
+    },
+    "TERRARIA_VERSION": {
+      "type": "string",
+      "value": "1.4.5.6",
+      "display": "Terraria Version",
+      "desc": "Terraria version that TShock release targets. Both numbers appear in the asset name on https://github.com/Pryaxis/TShock/releases.",
+      "required": true,
+      "userEdit": true
+    },
+    "TSHOCK_VERSION": {
+      "type": "string",
+      "value": "6.1.0",
+      "display": "TShock Version",
+      "desc": "TShock release to install, without the leading v",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "world",
+      "display": "World Name",
+      "desc": "Name of the world file",
+      "required": true,
+      "userEdit": true
+    },
+    "WORLD_SIZE": {
+      "type": "option",
+      "value": "1",
+      "display": "World Size",
+      "desc": "Size of a newly created world",
+      "required": true,
+      "userEdit": false,
+      "options": [
+        {
+          "value": "1",
+          "display": "Small"
+        },
+        {
+          "value": "2",
+          "display": "Medium"
+        },
+        {
+          "value": "3",
+          "display": "Large"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "TCP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/Pryaxis/TShock/releases/download/v${TSHOCK_VERSION}/TShock-${TSHOCK_VERSION}-for-Terraria-${TERRARIA_VERSION}-linux-x64-Release.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "TShock-${TSHOCK_VERSION}-for-Terraria-${TERRARIA_VERSION}-linux-x64-Release.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'for t in TShock-*.tar; do [ -f \"$t\" ] && tar xf \"$t\" && rm -f \"$t\"; done'",
+        "rm -f TShock-${TSHOCK_VERSION}-for-Terraria-${TERRARIA_VERSION}-linux-x64-Release.zip",
+        "chmod +x ./TShock.Server"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./TShock.Server -ip 0.0.0.0 -port ${port} -maxplayers ${MAX_PLAYERS} -world ${WORLD_NAME}.wld -autocreate ${WORLD_SIZE}",
+    "stop": "exit",
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_6",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_6",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
