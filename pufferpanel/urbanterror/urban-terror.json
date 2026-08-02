@@ -1,0 +1,363 @@
+{
+  "type": "urbanterror",
+  "display": "Urban Terror (Docker)",
+  "data": {
+    "BOT_MINPLAYERS": {
+      "type": "integer",
+      "value": 0,
+      "display": "Bots",
+      "desc": "Bots kept in the game. More than 16 tends to lag or crash the server, and bots are not officially supported.",
+      "required": true,
+      "userEdit": true
+    },
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "http://cdn.urbanterror.info/urt/43/releases/zips/UrbanTerror434_full.zip",
+      "display": "Download URL",
+      "desc": "Full Urban Terror release archive. Current links are published on https://www.urbanterror.info/downloads/.",
+      "required": true,
+      "userEdit": true
+    },
+    "EXE": {
+      "type": "option",
+      "value": "x86_64",
+      "display": "Server Binary",
+      "desc": "32 or 64 bit server build. Use 64 bit unless it misbehaves.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "x86_64",
+          "display": "64 bit"
+        },
+        {
+          "value": "i386",
+          "display": "32 bit"
+        }
+      ]
+    },
+    "HUNKMEGS": {
+      "type": "option",
+      "value": "128",
+      "display": "Hunk Megabytes",
+      "desc": "Memory reserved when the server starts",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "128",
+          "display": "128 MB"
+        },
+        {
+          "value": "160",
+          "display": "160 MB"
+        },
+        {
+          "value": "192",
+          "display": "192 MB"
+        },
+        {
+          "value": "256",
+          "display": "256 MB"
+        }
+      ]
+    },
+    "JOIN_MESSAGE": {
+      "type": "string",
+      "value": "Welcome to this Server, have fun!",
+      "display": "Join Message",
+      "desc": "Message players see when they connect",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "RCON Password",
+      "desc": "Password for the admin commands. Leave empty to disable RCON.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_FRIENDLYFIRE": {
+      "type": "option",
+      "value": "1",
+      "display": "Friendly Fire",
+      "desc": "Let teammates damage each other",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SERVER_GAMETYPE": {
+      "type": "option",
+      "value": "3",
+      "display": "Game Mode",
+      "desc": "Game mode the server runs",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Last Man Standing"
+        },
+        {
+          "value": "2",
+          "display": "Free For All"
+        },
+        {
+          "value": "3",
+          "display": "Team DeathMatch"
+        },
+        {
+          "value": "4",
+          "display": "Team Survivor"
+        },
+        {
+          "value": "5",
+          "display": "Follow The Leader"
+        },
+        {
+          "value": "6",
+          "display": "Capture And Hold"
+        },
+        {
+          "value": "7",
+          "display": "Capture The Flag"
+        },
+        {
+          "value": "8",
+          "display": "Bomb Mode"
+        },
+        {
+          "value": "9",
+          "display": "Jump"
+        },
+        {
+          "value": "10",
+          "display": "Freeze Tag"
+        },
+        {
+          "value": "11",
+          "display": "Gun Game"
+        }
+      ]
+    },
+    "SERVER_MAP": {
+      "type": "string",
+      "value": "ut4_casa",
+      "display": "Map",
+      "desc": "Map the server starts on. The server will not start if the map is missing.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MAXCLIENTS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Players that may connect at once (1-32)",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "My Awesome PufferPanel Server",
+      "display": "Server Hostname",
+      "desc": "Name of the server, at most 55 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_TIMELIMIT": {
+      "type": "integer",
+      "value": 10,
+      "display": "Map Time Limit",
+      "desc": "Minutes before the map ends. 0 never ends.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27960,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o UrbanTerror.zip ${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "UrbanTerror.zip",
+      "destination": "extracted"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'if [ -d extracted/UrbanTerror43 ]; then cp -R extracted/UrbanTerror43/* .; else cp -R extracted/*/* .; fi'",
+        "rm -rf extracted UrbanTerror.zip",
+        "chmod +x ./Quake3-UrT-Ded.x86_64 ./Quake3-UrT-Ded.i386"
+      ]
+    },
+    {
+      "if": "!file_exists('q3ut4/server.cfg')",
+      "type": "command",
+      "commands": [
+        "cp q3ut4/server_example.cfg q3ut4/server.cfg"
+      ]
+    },
+    {
+      "if": "!file_exists('q3ut4/mapcycle.txt')",
+      "type": "command",
+      "commands": [
+        "cp q3ut4/mapcycle_example.txt q3ut4/mapcycle.txt"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'grep -q \"^set  bot_enable\" q3ut4/server.cfg || printf \"set  bot_enable 1\\nset  bot_minplayers 0\\n\" >> q3ut4/server.cfg'"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Quake3-UrT-Ded.${EXE} +exec \"server.cfg\" +set fs_game \"q3ut4\" +set fs_basepath \"/pufferpanel\" +set fs_homepath \"/pufferpanel\" +set dedicated \"2\" +set com_hunkmegs ${HUNKMEGS} +set net_port ${port}",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  sv_hostname .*$",
+        "replace": "set  sv_hostname \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  sv_joinmessage .*$",
+        "replace": "set  sv_joinmessage \"${JOIN_MESSAGE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  sv_maxclients .*$",
+        "replace": "set  sv_maxclients \"${SERVER_MAXCLIENTS}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  rconpassword .*$",
+        "replace": "set  rconpassword \"${RCON_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  g_password .*$",
+        "replace": "set  g_password \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  g_friendlyfire .*$",
+        "replace": "set  g_friendlyfire \"${SERVER_FRIENDLYFIRE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  g_gametype .*$",
+        "replace": "set  g_gametype \"${SERVER_GAMETYPE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  timelimit .*$",
+        "replace": "set  timelimit \"${SERVER_TIMELIMIT}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  bot_enable .*$",
+        "replace": "set  bot_enable 1",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^set  bot_minplayers .*$",
+        "replace": "set  bot_minplayers \"${BOT_MINPLAYERS}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('q3ut4/server.cfg')",
+        "type": "alterfile",
+        "file": "q3ut4/server.cfg",
+        "search": "^map  .*$",
+        "replace": "map  \"${SERVER_MAP}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

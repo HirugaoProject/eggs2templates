@@ -1,0 +1,159 @@
+{
+  "type": "unturned",
+  "display": "Unturned (Docker)",
+  "data": {
+    "GSLT": {
+      "type": "string",
+      "value": "",
+      "display": "Game Server Login Token",
+      "desc": "Steam game server login token. Generate one at https://steamcommunity.com/dev/managegameservers.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1110390",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Unturned dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_ID": {
+      "type": "string",
+      "value": "PufferPanelUnturned",
+      "display": "Server ID",
+      "desc": "Identifier the savegames are stored under",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_NAME": {
+      "type": "string",
+      "value": "PufferPanel hosted Server",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 50 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Modules"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux64/steamclient.so Unturned_Headless_Data/Plugins/x86_64/steamclient.so",
+        "bash -c 'ln -sfn ../Extras/Rocket.Unturned Modules/Rocket.Unturned'",
+        "chmod +x ./Unturned_Headless.x86_64"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Unturned_Headless.x86_64 -batchmode -nographics -bind 0.0.0.0 -port ${port} -GSLT ${GSLT} -Name ${SRV_NAME} -Password ${SRV_PW} +InternetServer/${SRV_ID}",
+    "stop": "shutdown",
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel/Unturned_Headless_Data/Plugins/x86_64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

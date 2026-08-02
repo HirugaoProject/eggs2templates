@@ -1,0 +1,632 @@
+{
+  "type": "vrising",
+  "display": "V Rising (Docker)",
+  "data": {
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1829350",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the V Rising Dedicated Server dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "VALIDATE": {
+      "type": "string",
+      "value": "",
+      "display": "Validate Server Files",
+      "desc": "Any value turns on SteamCMD file verification during the boot update. It lengthens startup noticeably, so only set it when files look damaged.",
+      "required": false,
+      "userEdit": true
+    },
+    "VR_DESCRIPTION": {
+      "type": "string",
+      "value": "Welcome to the server!",
+      "display": "Description",
+      "desc": "Description shown next to the server",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_DIFFICULTY_PRESET": {
+      "type": "option",
+      "value": "Difficulty_Normal",
+      "display": "Difficulty Preset",
+      "desc": "Difficulty applied to a new world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Difficulty_Normal",
+          "display": "Normal"
+        },
+        {
+          "value": "Difficulty_Hard",
+          "display": "Hard"
+        },
+        {
+          "value": "Difficulty_Brutal",
+          "display": "Brutal"
+        }
+      ]
+    },
+    "VR_FPS": {
+      "type": "integer",
+      "value": 30,
+      "display": "Server FPS",
+      "desc": "Simulation rate of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_HIDEIPADDRESS": {
+      "type": "option",
+      "value": "false",
+      "display": "Hide IP Address",
+      "desc": "Keep the address out of the public listing",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "VR_LIST_ON_EOS": {
+      "type": "option",
+      "value": "true",
+      "display": "List On EOS",
+      "desc": "Advertise the server on Epic Online Services",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "VR_LIST_ON_STEAM": {
+      "type": "option",
+      "value": "true",
+      "display": "List On Steam",
+      "desc": "Advertise the server on Steam",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "VR_LOWER_FPS_WHEN_EMPTY": {
+      "type": "option",
+      "value": "false",
+      "display": "Lower FPS When Empty",
+      "desc": "Drop the frame rate while nobody is connected",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "VR_LOWER_FPS_WHEN_EMPTY_VALUE": {
+      "type": "integer",
+      "value": 10,
+      "display": "Idle FPS",
+      "desc": "Frame rate used while the server is empty",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_MAX_ADMINS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Admins",
+      "desc": "Admin slots kept in reserve",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_MAX_USERS": {
+      "type": "integer",
+      "value": 40,
+      "display": "Max Players",
+      "desc": "Maximum number of connected players",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_NAME": {
+      "type": "string",
+      "value": "V Rising Dedicated Server",
+      "display": "Server Name",
+      "desc": "Name in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "VR_PRESET": {
+      "type": "option",
+      "value": "",
+      "display": "Game Settings Preset",
+      "desc": "Rule preset the world runs. Leave empty when using an uploaded save or a custom ServerGameSettings.json.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "",
+          "display": "None (use ServerGameSettings.json)"
+        },
+        {
+          "value": "DuoPvP",
+          "display": "DuoPvP"
+        },
+        {
+          "value": "HardcorePvP",
+          "display": "HardcorePvP"
+        },
+        {
+          "value": "Level30PvE",
+          "display": "Level30PvE"
+        },
+        {
+          "value": "Level30PvP",
+          "display": "Level30PvP"
+        },
+        {
+          "value": "Level50PvE",
+          "display": "Level50PvE"
+        },
+        {
+          "value": "Level50PvP",
+          "display": "Level50PvP"
+        },
+        {
+          "value": "Level70PvE",
+          "display": "Level70PvE"
+        },
+        {
+          "value": "Level70PvP",
+          "display": "Level70PvP"
+        },
+        {
+          "value": "SoloPvP",
+          "display": "SoloPvP"
+        },
+        {
+          "value": "StandardPvE_Easy",
+          "display": "StandardPvE_Easy"
+        },
+        {
+          "value": "StandardPvE_Hard",
+          "display": "StandardPvE_Hard"
+        },
+        {
+          "value": "StandardPvE",
+          "display": "StandardPvE"
+        },
+        {
+          "value": "StandardPvP_Easy",
+          "display": "StandardPvP_Easy"
+        },
+        {
+          "value": "StandardPvP_Hard",
+          "display": "StandardPvP_Hard"
+        },
+        {
+          "value": "StandardPVP",
+          "display": "StandardPVP"
+        }
+      ]
+    },
+    "VR_QUERY_PORT": {
+      "type": "integer",
+      "value": 9877,
+      "display": "Query Port",
+      "desc": "UDP port used by the Steam server list",
+      "required": true,
+      "userEdit": false
+    },
+    "VR_RCON_ENABLED": {
+      "type": "option",
+      "value": "false",
+      "display": "Enable RCON",
+      "desc": "Run the RCON listener",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "VR_RCON_PASSWORD": {
+      "type": "string",
+      "value": "somepassword",
+      "display": "RCON Password",
+      "desc": "Password used to log in over RCON",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_RCON_PORT": {
+      "type": "integer",
+      "value": 25575,
+      "display": "RCON Port",
+      "desc": "TCP port RCON listens on",
+      "required": true,
+      "userEdit": false
+    },
+    "VR_SAVE_COUNT": {
+      "type": "integer",
+      "value": 20,
+      "display": "Auto Save Count",
+      "desc": "Auto saves kept before the oldest is dropped",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_SAVE_INTERVAL": {
+      "type": "integer",
+      "value": 120,
+      "display": "Auto Save Interval",
+      "desc": "Seconds between auto saves",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_SAVE_NAME": {
+      "type": "string",
+      "value": "world1",
+      "display": "Save Name",
+      "desc": "Name of the world save",
+      "required": true,
+      "userEdit": true
+    },
+    "VR_SECURE": {
+      "type": "option",
+      "value": "true",
+      "display": "Secure",
+      "desc": "Run the anti cheat",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 9876,
+      "display": "Port",
+      "desc": "UDP game port",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "save-data/Settings"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "wineboot --init"
+      ]
+    },
+    {
+      "if": "!file_exists('save-data/Settings/ServerHostSettings.json')",
+      "type": "writefile",
+      "target": "save-data/Settings/ServerHostSettings.json",
+      "text": "{\n  \"Name\": \"${VR_NAME}\",\n  \"Description\": \"${VR_DESCRIPTION}\",\n  \"Port\": ${port},\n  \"QueryPort\": ${VR_QUERY_PORT},\n  \"MaxConnectedUsers\": ${VR_MAX_USERS},\n  \"MaxConnectedAdmins\": ${VR_MAX_ADMINS},\n  \"ServerFps\": ${VR_FPS},\n  \"SaveName\": \"${VR_SAVE_NAME}\",\n  \"Password\": \"${VR_PASSWORD}\",\n  \"Secure\": ${VR_SECURE},\n  \"ListOnSteam\": ${VR_LIST_ON_STEAM},\n  \"ListOnEOS\": ${VR_LIST_ON_EOS},\n  \"AutoSaveCount\": ${VR_SAVE_COUNT},\n  \"AutoSaveInterval\": ${VR_SAVE_INTERVAL},\n  \"CompressSaveFiles\": true,\n  \"GameSettingsPreset\": \"${VR_PRESET}\",\n  \"GameDifficultyPreset\": \"${VR_DIFFICULTY_PRESET}\",\n  \"AdminOnlyDebugEvents\": true,\n  \"DisableDebugEvents\": false,\n  \"HideIpAddress\": ${VR_HIDEIPADDRESS},\n  \"LowerFPSWhenEmpty\": ${VR_LOWER_FPS_WHEN_EMPTY},\n  \"LowerFPSWhenEmptyValue\": ${VR_LOWER_FPS_WHEN_EMPTY_VALUE},\n  \"API\": {\n    \"Enabled\": false\n  },\n  \"Rcon\": {\n    \"Enabled\": ${VR_RCON_ENABLED},\n    \"Port\": ${VR_RCON_PORT},\n    \"Password\": \"${VR_RCON_PASSWORD}\"\n  }\n}\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c 'exec xvfb-run wine ./VRisingServer.exe -address 0.0.0.0 -gamePort ${port} -persistentDataPath save-data'",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "bash -c 'V=\"\"; [ -n \"${VALIDATE}\" ] && V=validate; exec ./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} $V +quit'"
+        ]
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"Name\": \".*\"",
+        "replace": "  \"Name\": \"${VR_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"Description\": \".*\"",
+        "replace": "  \"Description\": \"${VR_DESCRIPTION}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"QueryPort\": [^,]*",
+        "replace": "  \"QueryPort\": ${VR_QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"MaxConnectedUsers\": [^,]*",
+        "replace": "  \"MaxConnectedUsers\": ${VR_MAX_USERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"MaxConnectedAdmins\": [^,]*",
+        "replace": "  \"MaxConnectedAdmins\": ${VR_MAX_ADMINS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"ServerFps\": [^,]*",
+        "replace": "  \"ServerFps\": ${VR_FPS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"SaveName\": \".*\"",
+        "replace": "  \"SaveName\": \"${VR_SAVE_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"Password\": \".*\"",
+        "replace": "  \"Password\": \"${VR_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"Secure\": [^,]*",
+        "replace": "  \"Secure\": ${VR_SECURE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"ListOnSteam\": [^,]*",
+        "replace": "  \"ListOnSteam\": ${VR_LIST_ON_STEAM}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"ListOnEOS\": [^,]*",
+        "replace": "  \"ListOnEOS\": ${VR_LIST_ON_EOS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"AutoSaveCount\": [^,]*",
+        "replace": "  \"AutoSaveCount\": ${VR_SAVE_COUNT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"AutoSaveInterval\": [^,]*",
+        "replace": "  \"AutoSaveInterval\": ${VR_SAVE_INTERVAL}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"GameSettingsPreset\": \".*\"",
+        "replace": "  \"GameSettingsPreset\": \"${VR_PRESET}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"GameDifficultyPreset\": \".*\"",
+        "replace": "  \"GameDifficultyPreset\": \"${VR_DIFFICULTY_PRESET}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"HideIpAddress\": [^,]*",
+        "replace": "  \"HideIpAddress\": ${VR_HIDEIPADDRESS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"LowerFPSWhenEmpty\": [^,]*",
+        "replace": "  \"LowerFPSWhenEmpty\": ${VR_LOWER_FPS_WHEN_EMPTY}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"LowerFPSWhenEmptyValue\": [^,]*",
+        "replace": "  \"LowerFPSWhenEmptyValue\": ${VR_LOWER_FPS_WHEN_EMPTY_VALUE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^  \"Port\": [^,]*",
+        "replace": "  \"Port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^    \"Enabled\": [^,]*",
+        "replace": "    \"Enabled\": ${VR_RCON_ENABLED}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^    \"Port\": [^,]*",
+        "replace": "    \"Port\": ${VR_RCON_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('save-data/Settings/ServerHostSettings.json')",
+        "type": "alterfile",
+        "file": "save-data/Settings/ServerHostSettings.json",
+        "search": "^    \"Password\": \".*\"",
+        "replace": "    \"Password\": \"${VR_RCON_PASSWORD}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${VR_QUERY_PORT}:${VR_QUERY_PORT}/udp",
+      "0.0.0.0:${VR_RCON_PORT}:${VR_RCON_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${VR_QUERY_PORT}:${VR_QUERY_PORT}/udp",
+        "0.0.0.0:${VR_RCON_PORT}:${VR_RCON_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
