@@ -1,0 +1,258 @@
+{
+  "type": "vein",
+  "display": "VEIN (Docker)",
+  "data": {
+    "ADMIN_STEAM_IDS": {
+      "type": "string",
+      "value": "",
+      "display": "Admin SteamIDs",
+      "desc": "SteamIDs granted admin on the server",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "PUBLIC_SERVER": {
+      "type": "option",
+      "value": "True",
+      "display": "Public Server",
+      "desc": "List the server in the in-game browser",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "True",
+          "display": "Enabled"
+        },
+        {
+          "value": "False",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Vein Server",
+      "display": "Server Name",
+      "desc": "Name of the server, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "secret",
+      "display": "Server Password",
+      "desc": "Join password, 4 to 32 characters. Letters, digits, dashes and underscores only.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2131400",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the VEIN dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Vein/Saved/Config/LinuxServer"
+    },
+    {
+      "if": "!file_exists('Vein/Saved/Config/LinuxServer/Game.ini')",
+      "type": "writefile",
+      "target": "Vein/Saved/Config/LinuxServer/Game.ini",
+      "text": "[/Script/Engine.GameSession]\nMaxPlayers=${MAX_PLAYERS}\n\n[/Script/Vein.VeinGameSession]\nbPublic=${PUBLIC_SERVER}\nbAntiCheatProtected=False\nServerName=${SERVER_NAME}\nBindAddr=0.0.0.0\nHeartbeatInterval=30.0\nAdminSteamIDs=${ADMIN_STEAM_IDS}\nPassword=${SERVER_PASSWORD}\n\n[OnlineSubsystemSteam]\nGameServerQueryPort=${QUERY_PORT}\nbVACEnabled=0\n"
+    },
+    {
+      "if": "!file_exists('Vein/Saved/Config/LinuxServer/Engine.ini')",
+      "type": "writefile",
+      "target": "Vein/Saved/Config/LinuxServer/Engine.ini",
+      "text": "[/Script/OnlineSubsystemUtils.IpNetDriver]\nNetServerMaxTickRate=60\n\n[URL]\nPort=${port}\n"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./Vein/Binaries/Linux/VeinServer-Linux-Test"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./Vein/Binaries/Linux/VeinServer-Linux-Test -Port=${port} -QueryPort=${QUERY_PORT} -log",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Vein/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Vein/Saved/Config/LinuxServer/Game.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Vein/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Vein/Saved/Config/LinuxServer/Game.ini",
+        "search": "^bPublic=.*$",
+        "replace": "bPublic=${PUBLIC_SERVER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Vein/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Vein/Saved/Config/LinuxServer/Game.ini",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Vein/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Vein/Saved/Config/LinuxServer/Game.ini",
+        "search": "^BindAddr=.*$",
+        "replace": "BindAddr=0.0.0.0",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Vein/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Vein/Saved/Config/LinuxServer/Game.ini",
+        "search": "^Password=.*$",
+        "replace": "Password=${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Vein/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Vein/Saved/Config/LinuxServer/Game.ini",
+        "search": "^AdminSteamIDs=.*$",
+        "replace": "AdminSteamIDs=${ADMIN_STEAM_IDS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Vein/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "Vein/Saved/Config/LinuxServer/Game.ini",
+        "search": "^GameServerQueryPort=.*$",
+        "replace": "GameServerQueryPort=${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Vein/Saved/Config/LinuxServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "Vein/Saved/Config/LinuxServer/Engine.ini",
+        "search": "^Port=.*$",
+        "replace": "Port=${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

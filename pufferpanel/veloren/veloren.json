@@ -1,0 +1,136 @@
+{
+  "type": "veloren",
+  "display": "Veloren (Docker)",
+  "data": {
+    "METRICS_PORT": {
+      "type": "integer",
+      "value": 14005,
+      "display": "Metrics Port",
+      "desc": "TCP port the Prometheus metrics endpoint binds to, normally the game port plus one",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel hosted server",
+      "display": "Server Name",
+      "desc": "Name the server advertises, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "option",
+      "value": "weekly",
+      "display": "Build Channel",
+      "desc": "Build channel downloaded from download.veloren.net",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "weekly",
+          "display": "Weekly"
+        },
+        {
+          "value": "nightly",
+          "display": "Nightly"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 14004,
+      "display": "Port",
+      "desc": "TCP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o files.zip https://download.veloren.net/latest/linux/x86_64/${VERSION}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "files.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f files.zip",
+        "chmod +x ./veloren-server-cli"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "userdata/server/server_config"
+    },
+    {
+      "if": "!file_exists('userdata/server/server_config/settings.ron')",
+      "type": "writefile",
+      "target": "userdata/server/server_config/settings.ron",
+      "text": "(\n    gameserver_protocols: [\n        Tcp(\n            address: \"0.0.0.0:${port}\",\n        ),\n    ],\n    metrics_address: \"0.0.0.0:${METRICS_PORT}\",\n    auth_server_address: Some(\"https://auth.veloren.net\"),\n    max_players: 100,\n    world_seed: 230,\n    server_name: \"${SERVER_NAME}\",\n    start_time: 32400.0,\n    map_file: None,\n    max_view_distance: Some(65),\n    max_player_group_size: 6,\n    client_timeout: (\n        secs: 40,\n        nanos: 0,\n    ),\n    spawn_town: None,\n    max_player_for_kill_broadcast: None,\n    calendar_mode: Auto,\n    gameplay: (\n        battle_mode: Global(PvP),\n        safe_spawn: false,\n        explosion_burn_marks: true,\n    ),\n    moderation: (\n        banned_words_files: [],\n        automod: false,\n        admins_exempt: true,\n    ),\n)\n"
+    }
+  ],
+  "run": {
+    "command": "./veloren-server-cli",
+    "stop": "shutdown graceful 10",
+    "pre": [
+      {
+        "if": "file_exists('userdata/server/server_config/settings.ron')",
+        "type": "alterfile",
+        "file": "userdata/server/server_config/settings.ron",
+        "search": "^            address: \"0\\.0\\.0\\.0:[0-9]+\",$",
+        "replace": "            address: \"0.0.0.0:${port}\",",
+        "regex": true
+      },
+      {
+        "if": "file_exists('userdata/server/server_config/settings.ron')",
+        "type": "alterfile",
+        "file": "userdata/server/server_config/settings.ron",
+        "search": "^    metrics_address:.*$",
+        "replace": "    metrics_address: \"0.0.0.0:${METRICS_PORT}\",",
+        "regex": true
+      },
+      {
+        "if": "file_exists('userdata/server/server_config/settings.ron')",
+        "type": "alterfile",
+        "file": "userdata/server/server_config/settings.ron",
+        "search": "^    server_name:.*$",
+        "replace": "    server_name: \"${SERVER_NAME}\",",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:ubuntu_24.04",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${METRICS_PORT}:${METRICS_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:ubuntu_24.04",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${METRICS_PORT}:${METRICS_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "type": "vintagestory",
+  "display": "Vintage Story (Docker)",
+  "data": {
+    "FILES_BRANCH": {
+      "type": "option",
+      "value": "stable",
+      "display": "Branch",
+      "desc": "Release channel the server is installed from",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "stable",
+          "display": "Stable"
+        },
+        {
+          "value": "unstable",
+          "display": "Unstable"
+        },
+        {
+          "value": "pre",
+          "display": "Pre-release"
+        }
+      ]
+    },
+    "MAX_CLIENTS": {
+      "type": "integer",
+      "value": 16,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "OPTIONS": {
+      "type": "string",
+      "value": "",
+      "display": "Extra Options",
+      "desc": "Additional arguments appended to the server command line",
+      "required": false,
+      "userEdit": true
+    },
+    "RELEASE_VERSION": {
+      "type": "string",
+      "value": "1.20.12",
+      "display": "Version",
+      "desc": "Version to install. The current numbers per channel are published at https://api.vintagestory.at/stable.json and https://api.vintagestory.at/unstable.json.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 42420,
+      "display": "Port",
+      "desc": "TCP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf assets Lib",
+        "curl -sSL -o vs_server.tar.gz https://cdn.vintagestory.at/gamefiles/${FILES_BRANCH}/vs_server_linux-x64_${RELEASE_VERSION}.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "vs_server.tar.gz",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f vs_server.tar.gz server.sh",
+        "chmod +x ./VintagestoryServer"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "data/Backups"
+    }
+  ],
+  "run": {
+    "command": "./VintagestoryServer --dataPath ./data --port=${port} --maxclients=${MAX_CLIENTS} ${OPTIONS}",
+    "stop": "/stop",
+    "environmentVars": {
+      "SQLITE_TMPDIR": "/pufferpanel/data/Backups",
+      "DOTNET_NOLOGO": "1"
+    },
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_8",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
