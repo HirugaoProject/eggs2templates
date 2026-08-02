@@ -1,0 +1,172 @@
+{
+  "type": "trackmania",
+  "display": "Trackmania (Docker)",
+  "data": {
+    "GAME_CONFIG": {
+      "type": "string",
+      "value": "MatchSettings\\example.txt",
+      "display": "Game Config File",
+      "desc": "Match settings file the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "MASTERSERVER_LOGIN": {
+      "type": "string",
+      "value": "",
+      "display": "Master Server Login",
+      "desc": "Master server username from https://www.trackmania.com/player/dedicated-servers",
+      "required": false,
+      "userEdit": true
+    },
+    "MASTERSERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Master Server Password",
+      "desc": "Password of that master server account",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_COMMENT": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Comment",
+      "desc": "Longer description shown next to the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel Hosted Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 2350,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o TrackmaniaServer.zip http://files.v04.maniaplanet.com/server/TrackmaniaServer_Latest.zip"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "TrackmaniaServer.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f TrackmaniaServer.zip",
+        "chmod +x ./TrackmaniaServer"
+      ]
+    },
+    {
+      "if": "!file_exists('UserData/Config/dedicated_cfg.txt')",
+      "type": "command",
+      "commands": [
+        "cp UserData/Config/dedicated_cfg.default.txt UserData/Config/dedicated_cfg.txt"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "MatchSettings"
+    },
+    {
+      "if": "!file_exists('MatchSettings/example.txt')",
+      "type": "command",
+      "commands": [
+        "cp UserData/Maps/MatchSettings/example.txt MatchSettings/example.txt"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./TrackmaniaServer /dedicated_cfg=dedicated_cfg.txt /game_settings=${GAME_CONFIG} /noDaemon",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "file_exists('UserData/Config/dedicated_cfg.txt')",
+        "type": "alterfile",
+        "file": "UserData/Config/dedicated_cfg.txt",
+        "search": "(?s)<masterserver_account>.*?</masterserver_account>",
+        "replace": "<masterserver_account>\n\t\t\t<login>${MASTERSERVER_LOGIN}</login>\n\t\t\t<password>${MASTERSERVER_PASSWORD}</password>\n\t\t\t<validation_key></validation_key>\n\t\t</masterserver_account>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('UserData/Config/dedicated_cfg.txt')",
+        "type": "alterfile",
+        "file": "UserData/Config/dedicated_cfg.txt",
+        "search": "^\\t\\t<name>.*</name>$",
+        "replace": "\t\t<name>${SERVER_NAME}</name>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('UserData/Config/dedicated_cfg.txt')",
+        "type": "alterfile",
+        "file": "UserData/Config/dedicated_cfg.txt",
+        "search": "^\\t\\t<comment>.*</comment>$",
+        "replace": "\t\t<comment>${SERVER_COMMENT}</comment>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('UserData/Config/dedicated_cfg.txt')",
+        "type": "alterfile",
+        "file": "UserData/Config/dedicated_cfg.txt",
+        "search": "^\\t\\t<password>.*</password>$",
+        "replace": "\t\t<password>${SERVER_PASSWORD}</password>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('UserData/Config/dedicated_cfg.txt')",
+        "type": "alterfile",
+        "file": "UserData/Config/dedicated_cfg.txt",
+        "search": "<server_port>[^<]*</server_port>",
+        "replace": "<server_port>${port}</server_port>",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "type": "americantrucksimulator",
+  "display": "American Truck Simulator Dedicated Server (Docker)",
+  "data": {
+    "LOBBY_NAME": {
+      "type": "string",
+      "value": "American Truck Simulator",
+      "display": "Lobby Name",
+      "desc": "Name of the lobby in the server browser, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Steam query port. The manual asks for 27015-27020 but any port works.",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2239530",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the American Truck Simulator Dedicated Server dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_TOKEN": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Login Token",
+      "desc": "Game server login token. Without it the server runs anonymously and gets a new id on every start, which breaks direct search. Generate one at https://steamcommunity.com/dev/managegameservers.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".local/share/American Truck Simulator"
+    },
+    {
+      "if": "!file_exists('.local/share/American Truck Simulator/server_config.sii')",
+      "type": "writefile",
+      "target": ".local/share/American Truck Simulator/server_config.sii",
+      "text": "SiiNunit\n{\nserver_config : _nameless.54e.4440 {\n lobby_name: \"${LOBBY_NAME}\"\n description: \"\"\n welcome_message: \"\"\n password: \"\"\n max_players: 8\n max_vehicles_total: 100\n max_ai_vehicles_player: 50\n max_ai_vehicles_player_spawn: 50\n connection_virtual_port: 100\n query_virtual_port: 101\n connection_dedicated_port: ${port}\n query_dedicated_port: ${QUERY_PORT}\n server_logon_token: \"${STEAM_TOKEN}\"\n player_damage: true\n traffic: true\n hide_in_company: false\n hide_colliding: true\n force_speed_limiter: false\n mods_optioning: false\n timezones: 0\n service_no_collision: false\n in_menu_ghosting: false\n name_tags: true\n friends_only: false\n show_server: true\n moderator_list: 0\n}\n\n}\n"
+    },
+    {
+      "if": "!file_exists('.local/share/American Truck Simulator/server_packages.sii')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/truck-simulator/american-truck-simulator/ats-files/server_packages.sii"
+      ]
+    },
+    {
+      "if": "file_exists('server_packages.sii')",
+      "type": "move",
+      "source": "server_packages.sii",
+      "target": ".local/share/American Truck Simulator/server_packages.sii"
+    },
+    {
+      "if": "!file_exists('.local/share/American Truck Simulator/server_packages.dat')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/truck-simulator/american-truck-simulator/ats-files/server_packages.dat"
+      ]
+    },
+    {
+      "if": "file_exists('server_packages.dat')",
+      "type": "move",
+      "source": "server_packages.dat",
+      "target": ".local/share/American Truck Simulator/server_packages.dat"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./bin/linux_x64/amtrucks_server"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./bin/linux_x64/amtrucks_server",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('.local/share/American Truck Simulator/server_config.sii')",
+        "type": "alterfile",
+        "file": ".local/share/American Truck Simulator/server_config.sii",
+        "search": "^ lobby_name:.*$",
+        "replace": " lobby_name: \"${LOBBY_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.local/share/American Truck Simulator/server_config.sii')",
+        "type": "alterfile",
+        "file": ".local/share/American Truck Simulator/server_config.sii",
+        "search": "^ connection_dedicated_port:.*$",
+        "replace": " connection_dedicated_port: ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.local/share/American Truck Simulator/server_config.sii')",
+        "type": "alterfile",
+        "file": ".local/share/American Truck Simulator/server_config.sii",
+        "search": "^ query_dedicated_port:.*$",
+        "replace": " query_dedicated_port: ${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.local/share/American Truck Simulator/server_config.sii')",
+        "type": "alterfile",
+        "file": ".local/share/American Truck Simulator/server_config.sii",
+        "search": "^ server_logon_token:.*$",
+        "replace": " server_logon_token: \"${STEAM_TOKEN}\"",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,207 @@
+{
+  "type": "towerunite",
+  "display": "Tower Unite (Docker)",
+  "data": {
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_MAX_PLAYER": {
+      "type": "integer",
+      "value": 40,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_TITLE": {
+      "type": "string",
+      "value": "Tower Unite Server",
+      "display": "Server Title",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "439660",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Tower Unite dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_ADMIN_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Admin SteamID",
+      "desc": "SteamID of the server admin, digits only",
+      "required": true,
+      "userEdit": true
+    },
+    "STEAM_LOGIN_TOKEN": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Login Token",
+      "desc": "Game server login token for app id 394690. Generate one at https://steamcommunity.com/dev/managegameservers.",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7778,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "Tower/Saved/Config"
+    },
+    {
+      "type": "mkdir",
+      "target": "Tower/Binaries/Linux"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux64/steamclient.so Tower/Binaries/Linux/steamclient.so",
+        "chmod +x ./Tower/Binaries/Linux/TowerServer-Linux-Shipping"
+      ]
+    },
+    {
+      "if": "!file_exists('Tower/Saved/Config/TowerServer.ini')",
+      "type": "writefile",
+      "target": "Tower/Saved/Config/TowerServer.ini",
+      "text": "[/script/towernetworking.dedicatedserveroptions]\nMaxPlayers=${SERVER_MAX_PLAYER}\nServerTitle=${SERVER_TITLE}\nSteamLoginToken=${STEAM_LOGIN_TOKEN}\n\n[Administration]\nAdminSteamID=${STEAM_ADMIN_ID}\n"
+    }
+  ],
+  "run": {
+    "command": "./Tower/Binaries/Linux/TowerServer-Linux-Shipping -log -Port=${port} -MULTIHOME=0.0.0.0 -TowerServerINI=../../Saved/Config/TowerServer.ini",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('Tower/Saved/Config/TowerServer.ini')",
+        "type": "alterfile",
+        "file": "Tower/Saved/Config/TowerServer.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${SERVER_MAX_PLAYER}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Tower/Saved/Config/TowerServer.ini')",
+        "type": "alterfile",
+        "file": "Tower/Saved/Config/TowerServer.ini",
+        "search": "^ServerTitle=.*$",
+        "replace": "ServerTitle=${SERVER_TITLE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Tower/Saved/Config/TowerServer.ini')",
+        "type": "alterfile",
+        "file": "Tower/Saved/Config/TowerServer.ini",
+        "search": "^SteamLoginToken=.*$",
+        "replace": "SteamLoginToken=${STEAM_LOGIN_TOKEN}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('Tower/Saved/Config/TowerServer.ini')",
+        "type": "alterfile",
+        "file": "Tower/Saved/Config/TowerServer.ini",
+        "search": "^AdminSteamID=.*$",
+        "replace": "AdminSteamID=${STEAM_ADMIN_ID}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
