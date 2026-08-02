@@ -141,7 +141,7 @@
     }
   ],
   "run": {
-    "command": "java -Xmx${SERVER_MEMORY}M -jar server.jar +maxplayer=${MAX_PLAYERS} +serverport=${port} +servername=\"${SERVER_NAME}\" +rconport ${RCON_PORT}",
+    "command": "java -Xmx${SERVER_MEMORY}M -jar server.jar +maxplayer=${MAX_PLAYERS} +serverport=${port} +servername=${SERVER_NAME} +rconport ${RCON_PORT}",
     "stop": "shutdown",
     "environmentVars": {
       "LD_LIBRARY_PATH": "/pufferpanel/linux64"

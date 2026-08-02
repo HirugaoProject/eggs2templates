@@ -113,7 +113,7 @@
     }
   ],
   "run": {
-    "command": "./KJMod/Binaries/Linux/KJModServer -port=${port} -queryport=${QUERY_PORT} -SteamServerName=\"${HOSTNAME}\" -KJModBaseUGCFolder=ServerData -DoNotRestartOnEmpty -InitUGCs -maxplayers=${MAX_PLAYERS} -log",
+    "command": "./KJMod/Binaries/Linux/KJModServer -port=${port} -queryport=${QUERY_PORT} -SteamServerName=${HOSTNAME} -KJModBaseUGCFolder=ServerData -DoNotRestartOnEmpty -InitUGCs -maxplayers=${MAX_PLAYERS} -log",
     "stopCode": 2,
     "pre": [
       {

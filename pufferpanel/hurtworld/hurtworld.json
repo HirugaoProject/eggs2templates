@@ -160,7 +160,7 @@
     }
   ],
   "run": {
-    "command": "./Hurtworld.x86_64 -batchmode -nographics -exec \"host ${port};queryport ${QUERY_PORT};maxplayers ${MAX_PLAYERS};servername ${HOSTNAME};creativemode ${CREATIVE_MODE};addadmin ${ADMINS}\" -logfile /dev/stdout",
+    "command": "bash -c 'exec ./Hurtworld.x86_64 -batchmode -nographics -exec \"host ${port};queryport ${QUERY_PORT};maxplayers ${MAX_PLAYERS};servername ${HOSTNAME};creativemode ${CREATIVE_MODE};addadmin ${ADMINS}\" -logfile /dev/stdout'",
     "stopCode": 2,
     "pre": [
       {

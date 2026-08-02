@@ -104,7 +104,7 @@
     }
   ],
   "run": {
-    "command": "./colonyserver.x86_64 -batchmode -nographics +server.world \"${WORLD_NAME}\" +server.networktype SteamOnline +server.name \"${SERVER_NAME}\" +server.maxplayers ${MAX_PLAYERS} +server.gameport ${port} +server.ip 0.0.0.0 +server.steamport ${SERVER_STEAMPORT}",
+    "command": "./colonyserver.x86_64 -batchmode -nographics +server.world ${WORLD_NAME} +server.networktype SteamOnline +server.name ${SERVER_NAME} +server.maxplayers ${MAX_PLAYERS} +server.gameport ${port} +server.ip 0.0.0.0 +server.steamport ${SERVER_STEAMPORT}",
     "stopCode": 2,
     "pre": [
       {

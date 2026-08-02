@@ -118,7 +118,7 @@
     }
   ],
   "run": {
-    "command": "./Binaries/Linux/AAPG -port=${port} -SAP=${AUTH_PORT} -SQP=${QUERY_PORT} -servername=\"${SERVER_NAME}\"",
+    "command": "./Binaries/Linux/AAPG -port=${port} -SAP=${AUTH_PORT} -SQP=${QUERY_PORT} -servername=${SERVER_NAME}",
     "stopCode": 2,
     "pre": [
       {

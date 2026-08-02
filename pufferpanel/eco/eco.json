@@ -168,7 +168,7 @@
     }
   ],
   "run": {
-    "command": "./EcoServer --username=\"${SLG_USER}\" --password=\"${SLG_PW}\"",
+    "command": "./EcoServer --username=${SLG_USER} --password=${SLG_PW}",
     "stop": "exit",
     "pre": [
       {

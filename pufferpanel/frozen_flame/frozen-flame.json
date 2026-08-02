@@ -137,7 +137,7 @@
     }
   ],
   "run": {
-    "command": "./FrozenFlame/Binaries/Linux/FrozenFlameServer-Linux-Shipping -log -MetaGameServerName=\"${SERVER_NAME}\" -port=${port} -queryPort=${QUERY_PORT} -RconPort=${RCON_PORT} -RconPassword=\"${RCON_PASSWORD}\"",
+    "command": "./FrozenFlame/Binaries/Linux/FrozenFlameServer-Linux-Shipping -log -MetaGameServerName=${SERVER_NAME} -port=${port} -queryPort=${QUERY_PORT} -RconPort=${RCON_PORT} -RconPassword=${RCON_PASSWORD}",
     "stopCode": 2,
     "pre": [
       {

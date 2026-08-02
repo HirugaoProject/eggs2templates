@@ -110,7 +110,7 @@
     }
   ],
   "run": {
-    "command": "wine ./Icarus/Binaries/Win64/IcarusServer-Win64-Shipping.exe -Log -SteamServerName=\"${SERVER_NAME}\" -PORT=${port} -QueryPort=${QUERY_PORT}",
+    "command": "wine ./Icarus/Binaries/Win64/IcarusServer-Win64-Shipping.exe -Log -SteamServerName=${SERVER_NAME} -PORT=${port} -QueryPort=${QUERY_PORT}",
     "stopCode": 2,
     "environmentVars": {
       "DISPLAY": ":0",

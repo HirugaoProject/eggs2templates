@@ -204,11 +204,11 @@
     "command": [
       {
         "if": "SERVER_PASSWORD != ''",
-        "command": "proton run ./Pal/Binaries/Win64/PalServer-Win64-Shipping.exe Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=\"${SERVER_NAME}\" -players=${MAX_PLAYERS} -adminpassword=\"${ADMIN_PASSWORD}\" -rcon -serverpassword=\"${SERVER_PASSWORD}\""
+        "command": "proton run ./Pal/Binaries/Win64/PalServer-Win64-Shipping.exe Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=${SERVER_NAME} -players=${MAX_PLAYERS} -adminpassword=${ADMIN_PASSWORD} -rcon -serverpassword=${SERVER_PASSWORD}"
       },
       {
         "if": "SERVER_PASSWORD == ''",
-        "command": "proton run ./Pal/Binaries/Win64/PalServer-Win64-Shipping.exe Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=\"${SERVER_NAME}\" -players=${MAX_PLAYERS} -adminpassword=\"${ADMIN_PASSWORD}\" -rcon"
+        "command": "proton run ./Pal/Binaries/Win64/PalServer-Win64-Shipping.exe Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=${SERVER_NAME} -players=${MAX_PLAYERS} -adminpassword=${ADMIN_PASSWORD} -rcon"
       }
     ],
     "stop": "shutdown 5",

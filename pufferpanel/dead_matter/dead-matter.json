@@ -104,7 +104,7 @@
     }
   ],
   "run": {
-    "command": "proton run DeadMatter/Binaries/Win64/DeadMatterServer-Win64-Test.exe -SteamServerName=\"${SERVER_NAME}\" -port=${port} -queryport=${QUERY_PORT} -log",
+    "command": "proton run DeadMatter/Binaries/Win64/DeadMatterServer-Win64-Test.exe -SteamServerName=${SERVER_NAME} -port=${port} -queryport=${QUERY_PORT} -log",
     "stopCode": 2,
     "environmentVars": {
       "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",

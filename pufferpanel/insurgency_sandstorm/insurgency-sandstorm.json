@@ -141,7 +141,7 @@
     }
   ],
   "run": {
-    "command": "./Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping ${MAP_NAME}?Scenario=${SCENARIO}?MaxPlayers=${MAX_PLAYERS} -Port=${port} -QueryPort=${QUERY_PORT} -log -hostname=\"${HOSTNAME}\" -GSLTToken=${GSLTT} -GameStats -GameStatsToken=${GST} ${ADDSWITCHES}",
+    "command": "./Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping ${MAP_NAME}?Scenario=${SCENARIO}?MaxPlayers=${MAX_PLAYERS} -Port=${port} -QueryPort=${QUERY_PORT} -log -hostname=${HOSTNAME} -GSLTToken=${GSLTT} -GameStats -GameStatsToken=${GST} ${ADDSWITCHES}",
     "stopCode": 2,
     "pre": [
       {

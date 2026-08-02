@@ -95,7 +95,7 @@
     }
   ],
   "run": {
-    "command": "proton run ./NoLoveLost/Binaries/Win64/NoLoveLostServer-Win64-Shipping.exe -port=${port} -queryport=${QUERY_PORT} -servername=\"${SERVER_NAME}\" -log",
+    "command": "proton run ./NoLoveLost/Binaries/Win64/NoLoveLostServer-Win64-Shipping.exe -port=${port} -queryport=${QUERY_PORT} -servername=${SERVER_NAME} -log",
     "stopCode": 2,
     "environmentVars": {
       "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",

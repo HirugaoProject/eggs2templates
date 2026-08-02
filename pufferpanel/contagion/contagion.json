@@ -101,7 +101,7 @@
     }
   ],
   "run": {
-    "command": "wine contagionds.exe -console -steam -log -condebug -conclearlog -dedicated -game \".\\contagion\" +sv_lan 0 -port ${port} +map ${SRV_MAP} +maxplayers ${SRV_MAXPLAYERS} +servercfgfile \"${SRV_CONFIG}\" -tickrate 128",
+    "command": "wine contagionds.exe -console -steam -log -condebug -conclearlog -dedicated -game \".\\contagion\" +sv_lan 0 -port ${port} +map ${SRV_MAP} +maxplayers ${SRV_MAXPLAYERS} +servercfgfile ${SRV_CONFIG} -tickrate 128",
     "stopCode": 2,
     "environmentVars": {
       "DISPLAY": ":0",

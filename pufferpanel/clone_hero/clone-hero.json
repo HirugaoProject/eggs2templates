@@ -58,11 +58,11 @@
   "run": {
     "command": [
       {
-        "command": "./Server -l ${LOG_LEVEL} -n \"${SERVER_DISPLAY_NAME}\" -p ${port} -a 0.0.0.0 -ps ${SERVER_PASSWORD}",
+        "command": "./Server -l ${LOG_LEVEL} -n ${SERVER_DISPLAY_NAME} -p ${port} -a 0.0.0.0 -ps ${SERVER_PASSWORD}",
         "if": "SERVER_PASSWORD != ''"
       },
       {
-        "command": "./Server -l ${LOG_LEVEL} -n \"${SERVER_DISPLAY_NAME}\" -p ${port} -a 0.0.0.0 -np"
+        "command": "./Server -l ${LOG_LEVEL} -n ${SERVER_DISPLAY_NAME} -p ${port} -a 0.0.0.0 -np"
       }
     ],
     "stopCode": 2,

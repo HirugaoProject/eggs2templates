@@ -109,7 +109,7 @@
     }
   ],
   "run": {
-    "command": "wine ./ConanSandbox/Binaries/Win64/ConanSandboxServer-Win64-Shipping.exe -Port=${port} -QueryPort=${QUERY_PORT} -RconPort=${RCON_PORT} -ServerName=\"${SRV_NAME}\" -ServerPassword=\"${SRV_PW}\" -console -log",
+    "command": "wine ./ConanSandbox/Binaries/Win64/ConanSandboxServer-Win64-Shipping.exe -Port=${port} -QueryPort=${QUERY_PORT} -RconPort=${RCON_PORT} -ServerName=${SRV_NAME} -ServerPassword=${SRV_PW} -console -log",
     "stopCode": 2,
     "environmentVars": {
       "DISPLAY": ":0",

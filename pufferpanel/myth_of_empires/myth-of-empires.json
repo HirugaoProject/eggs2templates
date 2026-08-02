@@ -173,7 +173,7 @@
     }
   ],
   "run": {
-    "command": "proton run MOE/Binaries/Win64/MOEServer.exe ${MAP_NAME} -game -server -DataLocalFile -NotCheckServerSteamAuth -LOCALLOGTIMES -PrivateServer -MultiHome=0.0.0.0 -Port=${port} -QueryPort=${QUERY_PORT} -RconPort=${RCON_PORT} -RconPassword=\"${RCON_PASSWORD}\" -ServerName=\"${SERVER_NAME}\" -MaxPlayers=${MAX_PLAYERS} -PVP=${PVP} -ClusterId=${CLUSTER_ID} -ServerId=${SERVER_ID} -AdminIds=${ADMIN_IDS} ${EXTRA_FLAGS} -log",
+    "command": "proton run MOE/Binaries/Win64/MOEServer.exe ${MAP_NAME} -game -server -DataLocalFile -NotCheckServerSteamAuth -LOCALLOGTIMES -PrivateServer -MultiHome=0.0.0.0 -Port=${port} -QueryPort=${QUERY_PORT} -RconPort=${RCON_PORT} -RconPassword=${RCON_PASSWORD} -ServerName=${SERVER_NAME} -MaxPlayers=${MAX_PLAYERS} -PVP=${PVP} -ClusterId=${CLUSTER_ID} -ServerId=${SERVER_ID} -AdminIds=${ADMIN_IDS} ${EXTRA_FLAGS} -log",
     "stopCode": 2,
     "environmentVars": {
       "STEAM_COMPAT_CLIENT_INSTALL_PATH": "/pufferpanel/.steam/steam",

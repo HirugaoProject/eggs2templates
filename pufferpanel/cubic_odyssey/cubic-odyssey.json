@@ -155,7 +155,7 @@
     }
   ],
   "run": {
-    "command": "wine ./server/CubicOdysseyServer.exe -Port=${port} -Password=\"${SERVER_PASSWORD}\" -Gamemode=${GAMEMODE} -MaxNumPlayers=${MAX_PLAYERS}",
+    "command": "wine ./server/CubicOdysseyServer.exe -Port=${port} -Password=${SERVER_PASSWORD} -Gamemode=${GAMEMODE} -MaxNumPlayers=${MAX_PLAYERS}",
     "stopCode": 2,
     "environmentVars": {
       "DISPLAY": ":0",

@@ -124,7 +124,7 @@
     }
   ],
   "run": {
-    "command": "./squashfs-root/AppRun --server Server.Name=\"${SERVER_NAME}\" Server.ListenPort=${port} Server.AdvertiseOnline=${PUBLIC} Server.EnableSingleplayer=${SINGLEPLAYER} Server.Password=\"${PASSWORD}\" Server.EnableGeoIP=${GEOIP} Server.ShareAnonymizedIPs=${ANONYMOUS}",
+    "command": "./squashfs-root/AppRun --server Server.Name=${SERVER_NAME} Server.ListenPort=${port} Server.AdvertiseOnline=${PUBLIC} Server.EnableSingleplayer=${SINGLEPLAYER} Server.Password=${PASSWORD} Server.EnableGeoIP=${GEOIP} Server.ShareAnonymizedIPs=${ANONYMOUS}",
     "stopCode": 2,
     "stdin": {
       "type": "stdin"

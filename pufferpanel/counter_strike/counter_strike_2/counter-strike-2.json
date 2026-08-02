@@ -180,7 +180,7 @@
     }
   ],
   "run": {
-    "command": "./game/bin/linuxsteamrt64/cs2 -dedicated ${VAC_ENABLED} -ip 0.0.0.0 -port ${port} -tv_port ${TV_PORT} -maxplayers ${MAX_PLAYERS} ${RCON_ENABLED} +game_mode ${GAME_MODE} +game_type ${GAME_TYPE} +map ${SRCDS_MAP} +hostname \"${SERVER_NAME}\" +sv_password \"${SERVER_PASSWORD}\" +rcon_password \"${RCON_PASSWORD}\" +sv_setsteamaccount ${STEAM_GSLT}",
+    "command": "./game/bin/linuxsteamrt64/cs2 -dedicated ${VAC_ENABLED} -ip 0.0.0.0 -port ${port} -tv_port ${TV_PORT} -maxplayers ${MAX_PLAYERS} ${RCON_ENABLED} +game_mode ${GAME_MODE} +game_type ${GAME_TYPE} +map ${SRCDS_MAP} +hostname ${SERVER_NAME} +sv_password ${SERVER_PASSWORD} +rcon_password ${RCON_PASSWORD} +sv_setsteamaccount ${STEAM_GSLT}",
     "stop": "quit",
     "environmentVars": {
       "LD_LIBRARY_PATH": "/pufferpanel/game/bin/linuxsteamrt64"

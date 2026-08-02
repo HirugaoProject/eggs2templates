@@ -130,7 +130,7 @@
     }
   ],
   "run": {
-    "command": "./ProjectZomboid64 -port ${port} -udpport ${STEAM_PORT} -cachedir=/pufferpanel/.cache -servername \"${SERVER_NAME}\" -adminusername ${ADMIN_USER} -adminpassword \"${ADMIN_PASSWORD}\"",
+    "command": "./ProjectZomboid64 -port ${port} -udpport ${STEAM_PORT} -cachedir=/pufferpanel/.cache -servername ${SERVER_NAME} -adminusername ${ADMIN_USER} -adminpassword ${ADMIN_PASSWORD}",
     "stop": "quit",
     "environmentVars": {
       "PATH": "/pufferpanel/jre64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",

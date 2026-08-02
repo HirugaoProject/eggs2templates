@@ -159,11 +159,11 @@
     "command": [
       {
         "if": "SERVER_PASSWORD != ''",
-        "command": "./Pal/Binaries/Linux/PalServer-Linux-Shipping Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=\"${SERVER_NAME}\" -players=${MAX_PLAYERS} -adminpassword=\"${ADMIN_PASSWORD}\" -rcon -serverpassword=\"${SERVER_PASSWORD}\""
+        "command": "./Pal/Binaries/Linux/PalServer-Linux-Shipping Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=${SERVER_NAME} -players=${MAX_PLAYERS} -adminpassword=${ADMIN_PASSWORD} -rcon -serverpassword=${SERVER_PASSWORD}"
       },
       {
         "if": "SERVER_PASSWORD == ''",
-        "command": "./Pal/Binaries/Linux/PalServer-Linux-Shipping Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=\"${SERVER_NAME}\" -players=${MAX_PLAYERS} -adminpassword=\"${ADMIN_PASSWORD}\" -rcon"
+        "command": "./Pal/Binaries/Linux/PalServer-Linux-Shipping Pal -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port=${port} -publicport=${port} -servername=${SERVER_NAME} -players=${MAX_PLAYERS} -adminpassword=${ADMIN_PASSWORD} -rcon"
       }
     ],
     "stop": "shutdown 15",

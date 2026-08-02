@@ -70,6 +70,25 @@ equivalents for what the eggs were emulating:
 * eggs that background the server and `tail -F` a log file run the server in the
   foreground with its log directed at the console instead.
 
+### Quoting in `run.command`
+
+PufferPanel substitutes variables into `run.command` with `ShellReplace`, which
+runs every value through `shellwords.Quote` before splitting the line. A value
+that contains spaces therefore arrives already quoted, and writing
+`-name="${SERVER_NAME}"` in a template yields the literal argument
+`-name="A Server"` — quotes included. Variables in `run.command` are written
+bare (`-name=${SERVER_NAME}`); the quoting PufferPanel adds is what keeps the
+value a single argument, and an empty value still survives as an empty argument.
+
+Inside `bash -c '…'` the rule does not apply: the shell parses the line a second
+time and collapses the added quotes, so quoting there is written normally. This
+is also why the one egg that passes a whole config script as a single argument
+(Hurtworld's `-exec "host …;servername …"`) is wrapped in `bash -c`, since only
+a shell can re-join the quoted value into the surrounding word.
+
+`install` steps and `run.pre` operations use plain substitution instead, so
+values there are quoted in the template where they need to be.
+
 ### Stopping the server
 
 `config.stop` maps to `run.stop` for console commands, and to `run.stopCode` for

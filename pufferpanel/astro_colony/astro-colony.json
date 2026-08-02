@@ -226,7 +226,7 @@
     }
   ],
   "run": {
-    "command": "./AstroColony/Binaries/Linux/AstroColonyServer -log -Port=${port} -QueryPort=${SERVER_QUERY_PORT} -SteamServerName=\"${SERVER_NAME}\"",
+    "command": "./AstroColony/Binaries/Linux/AstroColonyServer -log -Port=${port} -QueryPort=${SERVER_QUERY_PORT} -SteamServerName=${SERVER_NAME}",
     "stopCode": 2,
     "pre": [
       {

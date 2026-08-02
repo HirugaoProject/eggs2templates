@@ -227,11 +227,11 @@
   "run": {
     "command": [
       {
-        "command": "proton run ./ShooterGame/Binaries/Win64/ArkAscendedServer.exe ${SERVER_MAP}?listen?MaxPlayers=${MAX_PLAYERS}?SessionName='${SESSION_NAME}'?Port=${port}?RCONPort=${RCON_PORT}?RCONEnabled=True${SERVER_PVE}?ServerPassword='${SERVER_PASSWORD}'${ARGS_PARAMS}?ServerAdminPassword='${ARK_ADMIN_PASSWORD}' -WinLiveMaxPlayers=${MAX_PLAYERS} -oldconsole -servergamelog -mods=${MOD_IDS} ${BATTLE_EYE} -Port=${port} ${ARGS_FLAGS}",
+        "command": "proton run ./ShooterGame/Binaries/Win64/ArkAscendedServer.exe ${SERVER_MAP}?listen?MaxPlayers=${MAX_PLAYERS}?SessionName=${SESSION_NAME}?Port=${port}?RCONPort=${RCON_PORT}?RCONEnabled=True${SERVER_PVE}?ServerPassword=${SERVER_PASSWORD}${ARGS_PARAMS}?ServerAdminPassword=${ARK_ADMIN_PASSWORD} -WinLiveMaxPlayers=${MAX_PLAYERS} -oldconsole -servergamelog -mods=${MOD_IDS} ${BATTLE_EYE} -Port=${port} ${ARGS_FLAGS}",
         "if": "MOD_IDS != ''"
       },
       {
-        "command": "proton run ./ShooterGame/Binaries/Win64/ArkAscendedServer.exe ${SERVER_MAP}?listen?MaxPlayers=${MAX_PLAYERS}?SessionName='${SESSION_NAME}'?Port=${port}?RCONPort=${RCON_PORT}?RCONEnabled=True${SERVER_PVE}?ServerPassword='${SERVER_PASSWORD}'${ARGS_PARAMS}?ServerAdminPassword='${ARK_ADMIN_PASSWORD}' -WinLiveMaxPlayers=${MAX_PLAYERS} -oldconsole -servergamelog ${BATTLE_EYE} -Port=${port} ${ARGS_FLAGS}"
+        "command": "proton run ./ShooterGame/Binaries/Win64/ArkAscendedServer.exe ${SERVER_MAP}?listen?MaxPlayers=${MAX_PLAYERS}?SessionName=${SESSION_NAME}?Port=${port}?RCONPort=${RCON_PORT}?RCONEnabled=True${SERVER_PVE}?ServerPassword=${SERVER_PASSWORD}${ARGS_PARAMS}?ServerAdminPassword=${ARK_ADMIN_PASSWORD} -WinLiveMaxPlayers=${MAX_PLAYERS} -oldconsole -servergamelog ${BATTLE_EYE} -Port=${port} ${ARGS_FLAGS}"
       }
     ],
     "stop": "DoExit",

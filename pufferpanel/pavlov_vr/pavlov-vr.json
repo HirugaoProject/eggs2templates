@@ -168,7 +168,7 @@
     }
   ],
   "run": {
-    "command": "./Pavlov/Binaries/Linux/PavlovServer-Linux-Shipping Pavlov -PORT=${port} -KEY=\"${API_KEY}\"",
+    "command": "./Pavlov/Binaries/Linux/PavlovServer-Linux-Shipping Pavlov -PORT=${port} -KEY=${API_KEY}",
     "stopCode": 2,
     "pre": [
       {

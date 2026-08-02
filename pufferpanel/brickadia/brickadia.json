@@ -132,7 +132,7 @@
     }
   ],
   "run": {
-    "command": "./Brickadia/Binaries/Linux/BrickadiaServer-Linux-Shipping -server -log -world=\"${WORLD_NAME}\" -port=${port} -token=${SERVER_HOSTING_TOKEN}",
+    "command": "./Brickadia/Binaries/Linux/BrickadiaServer-Linux-Shipping -server -log -world=${WORLD_NAME} -port=${port} -token=${SERVER_HOSTING_TOKEN}",
     "stop": "exit",
     "pre": [
       {

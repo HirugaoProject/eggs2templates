@@ -174,11 +174,11 @@
   "run": {
     "command": [
       {
-        "command": "./ConanSandbox/Binaries/Linux/ConanSandboxServer-Linux-Shipping -Port=${port} -QueryPort=${QUERY_PORT} -MaxPlayers=${MAX_PLAYERS} -ServerName=\"${SERVER_NAME}\" -ServerPassword=\"${SERVER_PASSWORD}\" -Multihome=0.0.0.0 -console -log",
+        "command": "./ConanSandbox/Binaries/Linux/ConanSandboxServer-Linux-Shipping -Port=${port} -QueryPort=${QUERY_PORT} -MaxPlayers=${MAX_PLAYERS} -ServerName=${SERVER_NAME} -ServerPassword=${SERVER_PASSWORD} -Multihome=0.0.0.0 -console -log",
         "if": "SERVER_PASSWORD != ''"
       },
       {
-        "command": "./ConanSandbox/Binaries/Linux/ConanSandboxServer-Linux-Shipping -Port=${port} -QueryPort=${QUERY_PORT} -MaxPlayers=${MAX_PLAYERS} -ServerName=\"${SERVER_NAME}\" -Multihome=0.0.0.0 -console -log"
+        "command": "./ConanSandbox/Binaries/Linux/ConanSandboxServer-Linux-Shipping -Port=${port} -QueryPort=${QUERY_PORT} -MaxPlayers=${MAX_PLAYERS} -ServerName=${SERVER_NAME} -Multihome=0.0.0.0 -console -log"
       }
     ],
     "stopCode": 2,

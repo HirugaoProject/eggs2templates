@@ -96,7 +96,7 @@
     }
   ],
   "run": {
-    "command": "./Battalion/Binaries/Linux/BattalionServer-Linux-Shipping Battalion -Port=${port} -QueryPort=${QUERY_PORT} -SteamServerName=\"${SERVER_NAME}\" -Queue=\"Wartide\" -AdminPassword=\"${ADMIN_PW}\" -Log",
+    "command": "./Battalion/Binaries/Linux/BattalionServer-Linux-Shipping Battalion -Port=${port} -QueryPort=${QUERY_PORT} -SteamServerName=${SERVER_NAME} -Queue=\"Wartide\" -AdminPassword=${ADMIN_PW} -Log",
     "stopCode": 2,
     "pre": [
       {

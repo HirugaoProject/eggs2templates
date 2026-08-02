@@ -482,7 +482,7 @@
     }
   ],
   "run": {
-    "command": "./TSSGame/Binaries/Linux/TSSGameServer-Linux-Shipping TSSGame -log -port=${port} -queryport=${QUERY_PORT} -steamservername=\"${SERVER_NAME}\"",
+    "command": "./TSSGame/Binaries/Linux/TSSGameServer-Linux-Shipping TSSGame -log -port=${port} -queryport=${QUERY_PORT} -steamservername=${SERVER_NAME}",
     "stopCode": 2,
     "pre": [
       {

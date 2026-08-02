@@ -138,7 +138,7 @@
     }
   ],
   "run": {
-    "command": "./HarshDoorstop/Binaries/Linux/HarshDoorstopServer-Linux-Shipping HarshDoorstop AAS-TestMap?MaxPlayers=${MAX_PLAYERS} -SteamServerName=\"${SERVER_NAME}\" -Port=${port} -MULTIHOME=0.0.0.0 -QueryPort=${QUERY_PORT} -log",
+    "command": "./HarshDoorstop/Binaries/Linux/HarshDoorstopServer-Linux-Shipping HarshDoorstop AAS-TestMap?MaxPlayers=${MAX_PLAYERS} -SteamServerName=${SERVER_NAME} -Port=${port} -MULTIHOME=0.0.0.0 -QueryPort=${QUERY_PORT} -log",
     "stopCode": 2,
     "pre": [
       {

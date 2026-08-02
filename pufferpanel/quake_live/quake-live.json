@@ -118,7 +118,7 @@
     }
   ],
   "run": {
-    "command": "./qzeroded.x64 +set net_port ${port} +set sv_hostname \"${SERVER_NAME}\" +set sv_serverType \"${SERVER_TYPE}\" +set g_password \"${PASSWORD}\" +sv_fps \"${FPS}\"",
+    "command": "./qzeroded.x64 +set net_port ${port} +set sv_hostname ${SERVER_NAME} +set sv_serverType ${SERVER_TYPE} +set g_password ${PASSWORD} +sv_fps ${FPS}",
     "stop": "quit",
     "environmentVars": {
       "LD_LIBRARY_PATH": "/pufferpanel/linux64"

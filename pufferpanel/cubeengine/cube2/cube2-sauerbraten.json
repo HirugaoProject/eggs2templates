@@ -93,7 +93,7 @@
     }
   ],
   "run": {
-    "command": "./bin_unix/linux_64_server -j${port} -n\"${CUBE_SERVERDESCRIPTION}\" -c${CUBE_MAXPLAYERS} -m${CUBE_MASTERSERVER} -p${CUBE_ADMINPASSWORD}",
+    "command": "./bin_unix/linux_64_server -j${port} -n${CUBE_SERVERDESCRIPTION} -c${CUBE_MAXPLAYERS} -m${CUBE_MASTERSERVER} -p${CUBE_ADMINPASSWORD}",
     "stopCode": 2,
     "stdin": {
       "type": "stdin"
