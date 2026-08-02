@@ -1,0 +1,290 @@
+{
+  "type": "sourcecoop",
+  "display": "SourceCoop (Docker)",
+  "data": {
+    "FRIENDLY_FIRE": {
+      "type": "option",
+      "value": "0",
+      "display": "Friendly Fire",
+      "desc": "Let players damage each other",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "MATCH": {
+      "type": "string",
+      "value": "bms",
+      "display": "SourceCoop Build",
+      "desc": "Build keyword in the release asset name. Only Black Mesa is supported.",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Players allowed on the server (1-128)",
+      "required": true,
+      "userEdit": true
+    },
+    "MMS_BUILD": {
+      "type": "integer",
+      "value": 1148,
+      "display": "Metamod:Source Build",
+      "desc": "Metamod:Source 1.11 build number. The recommended build is listed at https://github.com/ampreeT/SourceCoop#installation-guide",
+      "required": true,
+      "userEdit": true
+    },
+    "MOD_FORCETOUCHDATA": {
+      "type": "option",
+      "value": "1",
+      "display": "Force Touch Data",
+      "desc": "Pre-cache map data. Disabling it can fix hangs on bm_c4a4a but costs performance elsewhere.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Black Mesa: Coop",
+      "display": "Server Name",
+      "desc": "Name shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "0",
+      "display": "Server Password",
+      "desc": "Join password. 0 means no password.",
+      "required": true,
+      "userEdit": true
+    },
+    "SM_BUILD": {
+      "type": "integer",
+      "value": 6960,
+      "display": "SourceMod Build",
+      "desc": "SourceMod 1.11 build number. The recommended build is listed at https://github.com/ampreeT/SourceCoop#installation-guide",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "346680",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Black Mesa Dedicated Server dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STARTING_MAP": {
+      "type": "string",
+      "value": "bm_c0a0a",
+      "display": "Starting Map",
+      "desc": "Map loaded when the server starts. Map names are listed at https://steamcommunity.com/sharedfiles/filedetails/?id=1920599249",
+      "required": true,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": false,
+      "display": "Update On Boot",
+      "desc": "Update Black Mesa on every start. Off by default: a Black Mesa update usually needs a matching SourceCoop update, which means reinstalling.",
+      "required": false,
+      "userEdit": true
+    },
+    "VERSION": {
+      "type": "string",
+      "value": "v1.6",
+      "display": "SourceCoop Version",
+      "desc": "Release tag from https://github.com/ampreeT/SourceCoop/releases",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://mms.alliedmods.net/mmsdrop/1.11/mmsource-1.11.0-git${MMS_BUILD}-linux.tar.gz",
+        "https://sm.alliedmods.net/smdrop/1.11/sourcemod-1.11.0-git${SM_BUILD}-linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "mmsource-1.11.0-git${MMS_BUILD}-linux.tar.gz",
+      "destination": "bms"
+    },
+    {
+      "type": "extract",
+      "source": "sourcemod-1.11.0-git${SM_BUILD}-linux.tar.gz",
+      "destination": "bms"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'V=${VERSION}; exec curl -sSL -o sourcecoop.zip https://github.com/ampreeT/SourceCoop/releases/download/$V/SourceCoop-${V#v}-${MATCH}.zip'"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "sourcecoop.zip",
+      "destination": "bms"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f sourcecoop.zip mmsource-1.11.0-git${MMS_BUILD}-linux.tar.gz sourcemod-1.11.0-git${SM_BUILD}-linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "bms/cfg"
+    },
+    {
+      "if": "!file_exists('bms/cfg/server.cfg')",
+      "type": "writefile",
+      "target": "bms/cfg/server.cfg",
+      "text": "// Black Mesa server.cfg file\nhostname \"${SERVER_NAME}\"\nsv_password ${SERVER_PASSWORD}\n\n// provides lag-free noblock, shows teammates as friendly\n// and puts an arrow above their head (srccoop handles team switching)\nmp_teamplay 1\n\n// set 1 if you hate your friends\nmp_friendlyfire ${FRIENDLY_FIRE}\n\n// setting 1 disables sprinting\nsv_always_run 0\n\n// disables map timelimit\nmp_timelimit 0\n\n// changes maps in empty server\nmp_mapcycle_empty_timeout_seconds 3600\n\n// Loop back to the first map after finishing a campaign\nsourcecoop_homemap \"${STARTING_MAP}\"\n\n// Enables pre-caching of map data (eg. models, etc.)\nmod_forcetouchdata ${MOD_FORCETOUCHDATA}\n\nrcon_password \"\" // disable rcon\nsv_tags \"custom, coop, sourcecoop\"\nsv_cheats 0\nsv_alltalk 1\n"
+    }
+  ],
+  "run": {
+    "command": "./srcds_run -console -game bms -secure -ip 0.0.0.0 -port ${port} +maxplayers ${MAX_PLAYERS} +mp_teamplay 1 +exec server.cfg +map ${STARTING_MAP} -strictportbind -norestart",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('bms/cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "bms/cfg/server.cfg",
+        "search": "^hostname .*$",
+        "replace": "hostname \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('bms/cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "bms/cfg/server.cfg",
+        "search": "^sv_password .*$",
+        "replace": "sv_password ${SERVER_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('bms/cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "bms/cfg/server.cfg",
+        "search": "^mp_friendlyfire .*$",
+        "replace": "mp_friendlyfire ${FRIENDLY_FIRE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('bms/cfg/server.cfg')",
+        "type": "alterfile",
+        "file": "bms/cfg/server.cfg",
+        "search": "^mod_forcetouchdata .*$",
+        "replace": "mod_forcetouchdata ${MOD_FORCETOUCHDATA}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp",
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp",
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

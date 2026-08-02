@@ -1,0 +1,320 @@
+{
+  "type": "soulmask",
+  "display": "Soulmask (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password that opens the GM panel with 'gm key [password]'",
+      "required": false,
+      "userEdit": true
+    },
+    "BACKUP_TIME": {
+      "type": "integer",
+      "value": 960,
+      "display": "Backup Interval",
+      "desc": "Seconds between writes of the database to disk",
+      "required": true,
+      "userEdit": true
+    },
+    "CLUSTER_MAIN_IP": {
+      "type": "string",
+      "value": "127.0.0.1",
+      "display": "Cluster Main IP",
+      "desc": "Address of the main server this instance connects to",
+      "required": true,
+      "userEdit": true
+    },
+    "CLUSTER_MAIN_PORT": {
+      "type": "integer",
+      "value": 2000,
+      "display": "Cluster Main Port",
+      "desc": "TCP broadcast port the client server connects to",
+      "required": true,
+      "userEdit": true
+    },
+    "ECHO_PORT": {
+      "type": "integer",
+      "value": 18888,
+      "display": "Echo Port",
+      "desc": "TCP maintenance port used by local telnet, no public access needed",
+      "required": true,
+      "userEdit": false
+    },
+    "ENABLE_CROSS_SERVER": {
+      "type": "option",
+      "value": "0",
+      "display": "Character Transfers",
+      "desc": "Allow characters to move between servers in a cluster",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "MAP": {
+      "type": "option",
+      "value": "Level01_Main",
+      "display": "Map",
+      "desc": "Map the server loads",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Level01_Main",
+          "display": "Cloud Mist Forest"
+        },
+        {
+          "value": "DLC_Level01_Main",
+          "display": "Shifting Sands"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 60,
+      "display": "Max Players",
+      "desc": "Players the instance can support (1-70)",
+      "required": true,
+      "userEdit": true
+    },
+    "MOD_ID": {
+      "type": "string",
+      "value": "",
+      "display": "Mods",
+      "desc": "Comma separated mod ids, loaded in the order given",
+      "required": false,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Query Port",
+      "desc": "Steam query port, must be reachable publicly",
+      "required": true,
+      "userEdit": false
+    },
+    "SAVE_TIME": {
+      "type": "integer",
+      "value": 600,
+      "display": "Save Interval",
+      "desc": "Seconds between writes of game objects to the database",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_ID": {
+      "type": "integer",
+      "value": 1,
+      "display": "Server ID",
+      "desc": "Unique id of this server. Changing it after the first start resets all save data.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Soulmask Server",
+      "display": "Server Name",
+      "desc": "Name of the game instance in the server list, at most 85 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "3017300",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Soulmask dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 8777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    },
+    "region": {
+      "type": "option",
+      "value": "0",
+      "display": "Region",
+      "desc": "Region the server reports",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Test (events any time)"
+        },
+        {
+          "value": "1",
+          "display": "Asia"
+        },
+        {
+          "value": "2",
+          "display": "North America"
+        },
+        {
+          "value": "3",
+          "display": "Europe"
+        },
+        {
+          "value": "4",
+          "display": "Mainland China"
+        },
+        {
+          "value": "5",
+          "display": "South America"
+        },
+        {
+          "value": "6",
+          "display": "Oceania"
+        },
+        {
+          "value": "7",
+          "display": "Africa"
+        }
+      ]
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update 1007 +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "WS/Saved/Config/LinuxServer"
+    },
+    {
+      "type": "mkdir",
+      "target": "WS/Saved/GameplaySettings"
+    },
+    {
+      "if": "ENABLE_CROSS_SERVER == '1' && !file_exists('WS/Saved/GameplaySettings/GameXishu.json')",
+      "type": "writefile",
+      "target": "WS/Saved/GameplaySettings/GameXishu.json",
+      "text": "{\"0\":{\"KaiQiKuaFu\":1},\"1\":{\"KaiQiKuaFu\":1},\"2\":{\"KaiQiKuaFu\":1}}\n"
+    }
+  ],
+  "run": {
+    "command": "./WS/Binaries/Linux/WSServer-Linux-Shipping WS ${MAP} -log -server -UTF8Output -serverid=${SERVER_ID} -mainserverport=${CLUSTER_MAIN_PORT} -clientserverconnect=${CLUSTER_MAIN_IP}:${CLUSTER_MAIN_PORT} -SteamServerName=${SERVER_NAME} -saving=${SAVE_TIME} -Port=${port} -QueryPort=${QUERY_PORT} -EchoPort=${ECHO_PORT} -forcepassthrough -adminpsw=${ADMIN_PASSWORD} -PSW=${SERVER_PASSWORD} -MaxPlayers=${MAX_PLAYERS} -gamedistindex=${region} -backup=${BACKUP_TIME} -MULTIHOME=0.0.0.0 -mod=${MOD_ID}",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('WS/Saved/GameplaySettings/GameXishu.json')",
+        "type": "alterfile",
+        "file": "WS/Saved/GameplaySettings/GameXishu.json",
+        "search": "\"KaiQiKuaFu\"\\s*:\\s*[0-9]+",
+        "replace": "\"KaiQiKuaFu\":${ENABLE_CROSS_SERVER}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${ECHO_PORT}:${ECHO_PORT}/tcp",
+      "0.0.0.0:${CLUSTER_MAIN_PORT}:${CLUSTER_MAIN_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${ECHO_PORT}:${ECHO_PORT}/tcp",
+        "0.0.0.0:${CLUSTER_MAIN_PORT}:${CLUSTER_MAIN_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

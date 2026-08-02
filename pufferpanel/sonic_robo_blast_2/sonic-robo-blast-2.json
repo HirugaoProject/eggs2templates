@@ -1,0 +1,165 @@
+{
+  "type": "sonicroboblast2",
+  "display": "Sonic Robo Blast 2 (Docker)",
+  "data": {
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 32,
+      "display": "Max Players",
+      "desc": "Players allowed at once, 32 at most",
+      "required": true,
+      "userEdit": true
+    },
+    "ROOM_NR": {
+      "type": "option",
+      "value": "33",
+      "display": "Master List Room",
+      "desc": "Room the server is advertised in on https://ms.srb2.org/",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "33",
+          "display": "Standard"
+        },
+        {
+          "value": "28",
+          "display": "Casual"
+        }
+      ]
+    },
+    "SRB2_VERSION": {
+      "type": "string",
+      "value": "2.2.15",
+      "display": "SRB2 Version",
+      "desc": "Version of Sonic Robo Blast 2 to install",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_NAME": {
+      "type": "string",
+      "value": "Default Name",
+      "display": "Server Name",
+      "desc": "Name shown in the master list, at most 20 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW": {
+      "type": "string",
+      "value": "ChangeMe",
+      "display": "Password",
+      "desc": "Password used to join the server",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 5029,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'V=${SRB2_VERSION}; exec curl -sSL -o SRB2.zip https://github.com/STJr/SRB2/releases/download/SRB2_release_$V/SRB2-v${V//./}-Full.zip'"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "SRB2.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f SRB2.zip",
+        "chmod +x ./srb2win.exe"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
+    },
+    {
+      "if": "!file_exists('adedserv.cfg')",
+      "type": "writefile",
+      "target": "adedserv.cfg",
+      "text": "servername \"${SRV_NAME}\"\nwait 5\npassword ${SRV_PW}\nwait 5\nmaxplayers ${MAX_PLAYERS}\n"
+    }
+  ],
+  "run": {
+    "command": "wine ./srb2win.exe -dedicated -port ${port} -room ${ROOM_NR}",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "file_exists('adedserv.cfg')",
+        "type": "alterfile",
+        "file": "adedserv.cfg",
+        "search": "^servername .*$",
+        "replace": "servername \"${SRV_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('adedserv.cfg')",
+        "type": "alterfile",
+        "file": "adedserv.cfg",
+        "search": "^password .*$",
+        "replace": "password ${SRV_PW}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('adedserv.cfg')",
+        "type": "alterfile",
+        "file": "adedserv.cfg",
+        "search": "^maxplayers .*$",
+        "replace": "maxplayers ${MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

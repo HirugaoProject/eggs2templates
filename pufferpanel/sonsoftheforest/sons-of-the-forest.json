@@ -1,0 +1,264 @@
+{
+  "type": "sonsoftheforest",
+  "display": "Sons Of The Forest (Docker)",
+  "data": {
+    "BLOBSYNC_PORT": {
+      "type": "integer",
+      "value": 9700,
+      "display": "BlobSync Port",
+      "desc": "UDP port the BlobSync system uses to exchange game data",
+      "required": true,
+      "userEdit": false
+    },
+    "GAME_MODE": {
+      "type": "option",
+      "value": "normal",
+      "display": "Game Mode",
+      "desc": "Difficulty applied when a new save is created. Ignored when an existing save is loaded. Custom reads CustomGameModeSettings from the config file.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "normal",
+          "display": "Normal"
+        },
+        {
+          "value": "hard",
+          "display": "Hard"
+        },
+        {
+          "value": "hardsurvival",
+          "display": "Hard survival"
+        },
+        {
+          "value": "peaceful",
+          "display": "Peaceful"
+        },
+        {
+          "value": "custom",
+          "display": "Custom"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "Players allowed at the same time (1-8)",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "UDP port Steam uses to list the server and run discovery",
+      "required": true,
+      "userEdit": false
+    },
+    "SAVE_SLOT": {
+      "type": "integer",
+      "value": 1,
+      "display": "Save Slot",
+      "desc": "Save slot the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "SKIP_TESTS": {
+      "type": "option",
+      "value": "false",
+      "display": "Skip Network Test",
+      "desc": "Skip the network accessibility test. Turn this on when players cannot reach the server.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "false",
+          "display": "Run the test"
+        },
+        {
+          "value": "true",
+          "display": "Skip the test"
+        }
+      ]
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "2465200",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Sons Of The Forest dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_NAME": {
+      "type": "string",
+      "value": "PufferPanel hosted Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list and in Steam contacts",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PW": {
+      "type": "string",
+      "value": "changeme",
+      "display": "Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 8766,
+      "display": "Port",
+      "desc": "UDP game port",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "serverconfig"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q mono vcrun2019"
+      ]
+    },
+    {
+      "if": "!file_exists('serverconfig/dedicatedserver.cfg')",
+      "type": "writefile",
+      "target": "serverconfig/dedicatedserver.cfg",
+      "text": "{\n  \"IpAddress\": \"0.0.0.0\",\n  \"GamePort\": 8766,\n  \"QueryPort\": 27016,\n  \"BlobSyncPort\": 9700,\n  \"ServerName\": \"${SRV_NAME}\",\n  \"MaxPlayers\": 8,\n  \"Password\": \"\",\n  \"LanOnly\": false,\n  \"SaveSlot\": ${SAVE_SLOT},\n  \"SaveMode\": \"Continue\",\n  \"GameMode\": \"Normal\",\n  \"SaveInterval\": 600,\n  \"IdleDayCycleSpeed\": 0.0,\n  \"IdleTargetFramerate\": 5,\n  \"ActiveTargetFramerate\": 60,\n  \"LogFilesEnabled\": false,\n  \"TimestampLogFilenames\": true,\n  \"TimestampLogEntries\": true,\n  \"GameSettings\": {\n    \"Gameplay.TreeRegrowth\": true,\n    \"Structure.Damage\": true\n  },\n  \"CustomGameModeSettings\": {\n    \"GameSetting.Vail.EnemySpawn\": true,\n    \"GameSetting.Vail.EnemyHealth\": \"Normal\",\n    \"GameSetting.Vail.EnemyDamage\": \"Normal\",\n    \"GameSetting.Vail.EnemyArmour\": \"Normal\",\n    \"GameSetting.Vail.EnemyAggression\": \"Normal\",\n    \"GameSetting.Vail.AnimalSpawnRate\": \"Normal\",\n    \"GameSetting.Environment.StartingSeason\": \"Summer\",\n    \"GameSetting.Environment.SeasonLength\": \"Default\",\n    \"GameSetting.Environment.DayLength\": \"Default\",\n    \"GameSetting.Environment.PrecipitationFrequency\": \"Default\",\n    \"GameSetting.Survival.ConsumableEffects\": \"Normal\",\n    \"GameSetting.Survival.PlayerStatsDamage\": \"Off\",\n    \"GameSetting.Survival.ColdPenalties\": \"Off\",\n    \"GameSetting.Survival.ReducedFoodInContainers\": false,\n    \"GameSetting.Survival.SingleUseContainers\": false\n  }\n}\n"
+    },
+    {
+      "if": "!file_exists('serverconfig/ownerswhitelist.txt')",
+      "type": "writefile",
+      "target": "serverconfig/ownerswhitelist.txt",
+      "text": "# In order to be able to administrate your server from in game directly, you will need to setup server ownership.\n# Add below the steam ids of every server owner, one steam id per line.\n# To find your SteamID, open Steam and click on your name on the top right, then go to Account Details.\n# You can use # to comment out a line. That can be helpful to keep track of SteamIDs, you can include their name in the line above or below, starting with a #.\n"
+    }
+  ],
+  "run": {
+    "command": "wine ./SonsOfTheForestDS.exe -userdatapath /pufferpanel/serverconfig -dedicatedserver.IpAddress 0.0.0.0 -dedicatedserver.GamePort ${port} -dedicatedserver.QueryPort ${QUERY_PORT} -dedicatedserver.BlobSyncPort ${BLOBSYNC_PORT} -dedicatedserver.MaxPlayers ${MAX_PLAYERS} -dedicatedserver.Password ${SRV_PW} -dedicatedserver.GameMode ${GAME_MODE} -dedicatedserver.SkipNetworkAccessibilityTest ${SKIP_TESTS} -dedicatedserver.SaveSlot ${SAVE_SLOT} -dedicatedserver.LogFilesEnabled true -dedicatedserver.TimestampLogFilenames true",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree,mshtml=",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('serverconfig/dedicatedserver.cfg')",
+        "type": "alterfile",
+        "file": "serverconfig/dedicatedserver.cfg",
+        "search": "\"ServerName\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"ServerName\": \"${SRV_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('serverconfig/dedicatedserver.cfg')",
+        "type": "alterfile",
+        "file": "serverconfig/dedicatedserver.cfg",
+        "search": "\"SaveSlot\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"SaveSlot\": ${SAVE_SLOT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${BLOBSYNC_PORT}:${BLOBSYNC_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${BLOBSYNC_PORT}:${BLOBSYNC_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
