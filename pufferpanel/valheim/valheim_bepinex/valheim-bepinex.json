@@ -1,0 +1,268 @@
+{
+  "type": "valheimbepinex",
+  "display": "Valheim BepInEx (Docker)",
+  "data": {
+    "BACKUP_COUNT": {
+      "type": "integer",
+      "value": 4,
+      "display": "Backup Count",
+      "desc": "Automatic backups kept. The first uses the short interval, the rest the long one.",
+      "required": true,
+      "userEdit": true
+    },
+    "BACKUP_INTERVAL": {
+      "type": "integer",
+      "value": 1800,
+      "display": "Save Interval",
+      "desc": "Seconds between world saves",
+      "required": true,
+      "userEdit": true
+    },
+    "BACKUP_LONGTIME": {
+      "type": "integer",
+      "value": 43200,
+      "display": "Backup Long Interval",
+      "desc": "Seconds between the later automatic backups",
+      "required": true,
+      "userEdit": true
+    },
+    "BACKUP_SHORTTIME": {
+      "type": "integer",
+      "value": 7200,
+      "display": "Backup Short Interval",
+      "desc": "Seconds between the first automatic backups",
+      "required": true,
+      "userEdit": true
+    },
+    "BEPINEX_VERSION": {
+      "type": "string",
+      "value": "5.4.2202",
+      "display": "BepInEx Pack Version",
+      "desc": "denikson/BepInExPack_Valheim version pulled from Thunderstore. Released versions are listed at https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/versions/.",
+      "required": true,
+      "userEdit": true
+    },
+    "ENABLE_CROSSPLAY": {
+      "type": "option",
+      "value": "0",
+      "display": "Crossplay",
+      "desc": "Allow players from other platforms",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "PASSWORD": {
+      "type": "string",
+      "value": "secret",
+      "display": "Server Password",
+      "desc": "Join password, 5 to 20 characters. Valheim requires one.",
+      "required": true,
+      "userEdit": true
+    },
+    "PUBLIC_SERVER": {
+      "type": "option",
+      "value": "1",
+      "display": "Public Server",
+      "desc": "Show the server in the browser. Disabled servers are reachable through Join IP only.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "1",
+          "display": "Enabled"
+        },
+        {
+          "value": "0",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "My Server",
+      "display": "Server Name",
+      "desc": "Name in the server browser, at most 60 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "896660",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Valheim dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Beta Branch",
+      "desc": "Steam beta branch to install. Leave empty for the public branch.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_BETAPASS": {
+      "type": "string",
+      "value": "",
+      "display": "Beta Password",
+      "desc": "Password for the selected beta branch",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD": {
+      "type": "string",
+      "value": "Dedicated",
+      "display": "World Name",
+      "desc": "World the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 2456,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'ARGS=\"\"; [ -n \"${SRCDS_BETAID}\" ] && ARGS=\"-beta ${SRCDS_BETAID}\"; [ -n \"${SRCDS_BETAPASS}\" ] && ARGS=\"$ARGS -betapassword ${SRCDS_BETAPASS}\"; exec ./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} $ARGS validate +quit'"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x valheim_server.x86_64"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -A Mozilla -o BepInEx.zip https://thunderstore.io/package/download/denikson/BepInExPack_Valheim/${BEPINEX_VERSION}/"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "BepInEx.zip",
+      "destination": "bepinex-pack"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'cp -rf bepinex-pack/BepInExPack_Valheim/* . 2>/dev/null || cp -rf bepinex-pack/* .'",
+        "rm -rf bepinex-pack BepInEx.zip icon.png manifest.json"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "BepInEx/plugins"
+    }
+  ],
+  "run": {
+    "command": [
+      {
+        "if": "ENABLE_CROSSPLAY == '1'",
+        "command": "bash -c 'export USER=container USER_ID=$(id -u) GROUP_ID=$(id -g); envsubst < /passwd.template > /tmp/passwd; export LD_PRELOAD=libdoorstop_x64.so:/usr/lib/x86_64-linux-gnu/libnss_wrapper.so; exec ./valheim_server.x86_64 -nographics -batchmode -name ${SERVER_NAME} -port ${port} -world ${WORLD} -password ${PASSWORD} -public ${PUBLIC_SERVER} -saveinterval ${BACKUP_INTERVAL} -backups ${BACKUP_COUNT} -backupshort ${BACKUP_SHORTTIME} -backuplong ${BACKUP_LONGTIME} -crossplay'"
+      },
+      {
+        "if": "ENABLE_CROSSPLAY != '1'",
+        "command": "bash -c 'export USER=container USER_ID=$(id -u) GROUP_ID=$(id -g); envsubst < /passwd.template > /tmp/passwd; export LD_PRELOAD=libdoorstop_x64.so:/usr/lib/x86_64-linux-gnu/libnss_wrapper.so; exec ./valheim_server.x86_64 -nographics -batchmode -name ${SERVER_NAME} -port ${port} -world ${WORLD} -password ${PASSWORD} -public ${PUBLIC_SERVER} -saveinterval ${BACKUP_INTERVAL} -backups ${BACKUP_COUNT} -backupshort ${BACKUP_SHORTTIME} -backuplong ${BACKUP_LONGTIME}'"
+      }
+    ],
+    "stopCode": 2,
+    "environmentVars": {
+      "NSS_WRAPPER_PASSWD": "/tmp/passwd",
+      "NSS_WRAPPER_GROUP": "/tmp/group",
+      "SteamAppId": "892970",
+      "DOORSTOP_ENABLED": "1",
+      "DOORSTOP_TARGET_ASSEMBLY": "/pufferpanel/BepInEx/core/BepInEx.Preloader.dll",
+      "LD_LIBRARY_PATH": "/pufferpanel/linux64:/pufferpanel/doorstop_libs"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "bash -c 'ARGS=\"\"; [ -n \"${SRCDS_BETAID}\" ] && ARGS=\"-beta ${SRCDS_BETAID}\"; [ -n \"${SRCDS_BETAPASS}\" ] && ARGS=\"$ARGS -betapassword ${SRCDS_BETAPASS}\"; exec ./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} $ARGS +quit'"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:valheim",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:valheim",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
