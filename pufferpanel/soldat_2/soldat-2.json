@@ -1,0 +1,215 @@
+{
+  "type": "soldat2",
+  "display": "Soldat 2 (Docker)",
+  "data": {
+    "ADMIN_PLAYFAB_ID": {
+      "type": "string",
+      "value": "IDHere",
+      "display": "Admin PlayFab ID",
+      "desc": "Your PlayFab id, printed in the server log when you join",
+      "required": false,
+      "userEdit": true
+    },
+    "DOWNLOAD_URL": {
+      "type": "string",
+      "value": "https://dl.thd.vg/soldat2-linuxserver-release.tar.gz",
+      "display": "Download URL",
+      "desc": "Location of the Soldat 2 Linux server build",
+      "required": true,
+      "userEdit": false
+    },
+    "GREET_MESSAGE": {
+      "type": "string",
+      "value": "Welcome! Be friendly and have fun!",
+      "display": "Greeting",
+      "desc": "Message shown to players when they join",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 12,
+      "display": "Max Players",
+      "desc": "Players allowed at once, 12 at most",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PASSWORD": {
+      "type": "string",
+      "value": "RconPassword",
+      "display": "RCON Password",
+      "desc": "Password for RCON access",
+      "required": false,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 0,
+      "display": "RCON WebSockets Port",
+      "desc": "RCON WebSocket port. 0 disables it.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "PufferPanelServer",
+      "display": "Server Name",
+      "desc": "Name shown in the master list. Do not use spaces.",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "ServerPassword",
+      "display": "Server Password",
+      "desc": "Password players must enter to join",
+      "required": false,
+      "userEdit": true
+    },
+    "WEBSOCKETS_PORT": {
+      "type": "integer",
+      "value": 0,
+      "display": "WebSockets Port",
+      "desc": "WebSockets port. 0 disables it.",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 23073,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "curl -sSL -o soldat2.tar.gz ${DOWNLOAD_URL}"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "soldat2.tar.gz",
+      "destination": "extracted"
+    },
+    {
+      "type": "move",
+      "source": "extracted/soldat2-linuxserver-release/*",
+      "target": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -rf extracted soldat2.tar.gz",
+        "chmod +x ./soldat2"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./soldat2 Name=${SERVER_NAME} Port=${port} WebSocketsPort=${WEBSOCKETS_PORT} WebSocketsRconPort=${RCON_PORT} MaxPlayers=${MAX_PLAYERS} ServerPassword=${SERVER_PASSWORD} RconPassword=${RCON_PASSWORD}",
+    "stopCode": 9,
+    "pre": [
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^Name=.*$",
+        "replace": "Name=${SERVER_NAME}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^Port=.*$",
+        "replace": "Port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^WebSocketsPort=.*$",
+        "replace": "WebSocketsPort=${WEBSOCKETS_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^WebSocketsRconPort=.*$",
+        "replace": "WebSocketsRconPort=${RCON_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^RconPassword=.*$",
+        "replace": "RconPassword=${RCON_PASSWORD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^GreetMessage=.*$",
+        "replace": "GreetMessage=${GREET_MESSAGE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^AdminPlayfabId=.*$",
+        "replace": "AdminPlayfabId=${ADMIN_PLAYFAB_ID}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('autoconfig.ini')",
+        "type": "alterfile",
+        "file": "autoconfig.ini",
+        "search": "^ServerPassword=.*$",
+        "replace": "ServerPassword=${SERVER_PASSWORD}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

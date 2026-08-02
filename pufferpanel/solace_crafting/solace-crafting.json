@@ -1,0 +1,344 @@
+{
+  "type": "solacecrafting",
+  "display": "Solace Crafting (Docker)",
+  "data": {
+    "ADMIN_PASSWORD": {
+      "type": "string",
+      "value": "password",
+      "display": "Admin Password",
+      "desc": "Password for the admin login",
+      "required": true,
+      "userEdit": true
+    },
+    "ALLOW_ADMIN": {
+      "type": "option",
+      "value": "false",
+      "display": "Allow Admin Login",
+      "desc": "Let players log in as admin",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "ALLOW_MODERATOR": {
+      "type": "option",
+      "value": "false",
+      "display": "Allow Moderator Login",
+      "desc": "Let players log in as moderator",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "IS_PRIVATE": {
+      "type": "option",
+      "value": "false",
+      "display": "Private Server",
+      "desc": "Hide the server from the public browser",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 12,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "MODERATOR_PASSWORD": {
+      "type": "string",
+      "value": "password",
+      "display": "Moderator Password",
+      "desc": "Password for the moderator login",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_DESCRIPTION": {
+      "type": "string",
+      "value": "",
+      "display": "Server Description",
+      "desc": "Description shown next to the server",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "Solace Crafting Server",
+      "display": "Server Name",
+      "desc": "Name shown in the server browser",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_PASSWORD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Join password. Leave empty for a public server.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1086950",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Solace Crafting dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_SAVE": {
+      "type": "string",
+      "value": "MultiplayerWorld",
+      "display": "World Save",
+      "desc": "Name of the world save the server loads",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 27015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".config/unity3d/Big Kitty Games/Solace Crafting"
+    },
+    {
+      "if": "!file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+      "type": "writefile",
+      "target": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+      "text": "{\n    \"name\": \"${SERVER_NAME}\",\n    \"description\": \"${SERVER_DESCRIPTION}\",\n    \"port\": ${port},\n    \"steamQueryPort\": ${QUERY_PORT},\n    \"isPrivate\": ${IS_PRIVATE},\n    \"password\": \"${SERVER_PASSWORD}\",\n    \"requireSteamID\": true,\n    \"maxPlayers\": ${MAX_PLAYERS},\n    \"allowAdmin\": ${ALLOW_ADMIN},\n    \"adminPassword\": \"${ADMIN_PASSWORD}\",\n    \"allowModerator\": ${ALLOW_MODERATOR},\n    \"moderatorPassword\": \"${MODERATOR_PASSWORD}\",\n    \"worldSaveToUse\": \"${WORLD_SAVE}\",\n    \"autoRestart\": 0\n}\n"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x \"./Solace Crafting.x86_64\""
+      ]
+    }
+  ],
+  "run": {
+    "command": "\"./Solace Crafting.x86_64\"",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"name\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"name\": \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"description\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"description\": \"${SERVER_DESCRIPTION}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"password\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"password\": \"${SERVER_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"adminPassword\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"adminPassword\": \"${ADMIN_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"moderatorPassword\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"moderatorPassword\": \"${MODERATOR_PASSWORD}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"worldSaveToUse\"\\s*:\\s*\"[^\"]*\"",
+        "replace": "\"worldSaveToUse\": \"${WORLD_SAVE}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"port\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"port\": ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"steamQueryPort\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"steamQueryPort\": ${QUERY_PORT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"maxPlayers\"\\s*:\\s*-?[0-9]+",
+        "replace": "\"maxPlayers\": ${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"isPrivate\"\\s*:\\s*(true|false)",
+        "replace": "\"isPrivate\": ${IS_PRIVATE}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"allowAdmin\"\\s*:\\s*(true|false)",
+        "replace": "\"allowAdmin\": ${ALLOW_ADMIN}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('.config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat')",
+        "type": "alterfile",
+        "file": ".config/unity3d/Big Kitty Games/Solace Crafting/servercfg.dat",
+        "search": "\"allowModerator\"\\s*:\\s*(true|false)",
+        "replace": "\"allowModerator\": ${ALLOW_MODERATOR}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "type": "soldat",
+  "display": "Soldat (Docker)",
+  "data": {
+    "ADMIN_PASSWD": {
+      "type": "string",
+      "value": "",
+      "display": "Admin Password",
+      "desc": "Password for the admin console",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 10,
+      "display": "Max Players",
+      "desc": "Maximum number of players (1-20)",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "638500",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Soldat dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRV_NAME": {
+      "type": "string",
+      "value": "MySoldatServer",
+      "display": "Server Name",
+      "desc": "Name of the server",
+      "required": true,
+      "userEdit": true
+    },
+    "SRV_PWD": {
+      "type": "string",
+      "value": "",
+      "display": "Server Password",
+      "desc": "Password required to join",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 23073,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "chmod +x soldatserver"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./soldatserver",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('soldat.ini')",
+        "type": "alterfile",
+        "file": "soldat.ini",
+        "search": "^Port=.*$",
+        "replace": "Port=${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('soldat.ini')",
+        "type": "alterfile",
+        "file": "soldat.ini",
+        "search": "^Max_Players=.*$",
+        "replace": "Max_Players=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('soldat.ini')",
+        "type": "alterfile",
+        "file": "soldat.ini",
+        "search": "^Game_Password=.*$",
+        "replace": "Game_Password=${SRV_PWD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('soldat.ini')",
+        "type": "alterfile",
+        "file": "soldat.ini",
+        "search": "^Admin_Password=.*$",
+        "replace": "Admin_Password=${ADMIN_PASSWD}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('soldat.ini')",
+        "type": "alterfile",
+        "file": "soldat.ini",
+        "search": "^Server_Name=.*$",
+        "replace": "Server_Name=${SRV_NAME}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
