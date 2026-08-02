@@ -1,0 +1,139 @@
+{
+  "type": "spacestation14",
+  "display": "Space Station 14 (Docker)",
+  "data": {
+    "SERVER_MAX_PLAYERS": {
+      "type": "integer",
+      "value": 256,
+      "display": "Max Players",
+      "desc": "Maximum number of connections (1-256)",
+      "required": true,
+      "userEdit": false
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "MyServer",
+      "display": "Server Name",
+      "desc": "Hostname shown in the server list",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_TICK": {
+      "type": "integer",
+      "value": 60,
+      "display": "Tick Rate",
+      "desc": "Simulation ticks per second (1-80)",
+      "required": true,
+      "userEdit": true
+    },
+    "SS14_VERSION": {
+      "type": "string",
+      "value": "",
+      "display": "Build Version",
+      "desc": "Wizard's Den build to install. Leave empty to install the version the fork page currently advertises.",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 1212,
+      "display": "Port",
+      "desc": "UDP port the server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'URL=https://wizards.cdn.spacestation14.com/fork/wizards; V=\"${SS14_VERSION}\"; [ -n \"$V\" ] || V=$(curl -s \"$URL\" | grep -m1 -oP '\"'\"'<span[^>]*class=\"[^\"]*\\bversionNumber\\b[^\"]*\"[^>]*>\\K[^<]+'\"'\"'); exec curl -sSL -o server_linux.zip \"$URL/version/$V/file/SS14.Server_linux-x64.zip\"'"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "server_linux.zip",
+      "destination": "."
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f server_linux.zip",
+        "chmod +x ./Robust.Server"
+      ]
+    },
+    {
+      "if": "!file_exists('server_config.toml')",
+      "type": "writefile",
+      "target": "server_config.toml",
+      "text": "[net]\nport = ${port}\ntickrate = ${SERVER_TICK}\n\n[game]\nhostname = \"${SERVER_NAME}\"\nmax_connections = ${SERVER_MAX_PLAYERS}\n"
+    }
+  ],
+  "run": {
+    "command": "./Robust.Server",
+    "stopCode": 2,
+    "environmentVars": {
+      "DOTNET_NOLOGO": "1"
+    },
+    "pre": [
+      {
+        "if": "file_exists('server_config.toml')",
+        "type": "alterfile",
+        "file": "server_config.toml",
+        "search": "^port = .*$",
+        "replace": "port = ${port}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.toml')",
+        "type": "alterfile",
+        "file": "server_config.toml",
+        "search": "^hostname = .*$",
+        "replace": "hostname = \"${SERVER_NAME}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.toml')",
+        "type": "alterfile",
+        "file": "server_config.toml",
+        "search": "^tickrate = .*$",
+        "replace": "tickrate = ${SERVER_TICK}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('server_config.toml')",
+        "type": "alterfile",
+        "file": "server_config.toml",
+        "search": "^max_connections = .*$",
+        "replace": "max_connections = ${SERVER_MAX_PLAYERS}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:dotnet_9",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:dotnet_9",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

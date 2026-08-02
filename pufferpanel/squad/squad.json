@@ -1,0 +1,340 @@
+{
+  "type": "squad",
+  "display": "Squad (Docker)",
+  "data": {
+    "BEACON_PORT": {
+      "type": "integer",
+      "value": 15000,
+      "display": "Beacon Port",
+      "desc": "Port used by the Unreal lobby beacon",
+      "required": true,
+      "userEdit": false
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 27165,
+      "display": "Query Port",
+      "desc": "Steam query port",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "403240",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Squad dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORKSHOP_ITEMS": {
+      "type": "string",
+      "value": "",
+      "display": "Workshop Mods",
+      "desc": "Comma separated Steam Workshop file ids. Reinstall the server to apply a change.",
+      "required": false,
+      "userEdit": true
+    },
+    "advertise": {
+      "type": "option",
+      "value": "true",
+      "display": "Advertise Server",
+      "desc": "Report the server to the public list",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Listed"
+        },
+        {
+          "value": "false",
+          "display": "Unlisted"
+        }
+      ]
+    },
+    "allowteamchange": {
+      "type": "option",
+      "value": "true",
+      "display": "Allow Team Change",
+      "desc": "Let players switch teams",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Allowed"
+        },
+        {
+          "value": "false",
+          "display": "Blocked"
+        }
+      ]
+    },
+    "maxplayers": {
+      "type": "integer",
+      "value": 80,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7787,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    },
+    "ptciu": {
+      "type": "option",
+      "value": "true",
+      "display": "Prevent Unbalanced Team Change",
+      "desc": "Block team switches while the teams are unbalanced",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Blocked"
+        },
+        {
+          "value": "false",
+          "display": "Allowed"
+        }
+      ]
+    },
+    "recorddemos": {
+      "type": "option",
+      "value": "true",
+      "display": "Record Demos",
+      "desc": "Record player demos",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Recording"
+        },
+        {
+          "value": "false",
+          "display": "Off"
+        }
+      ]
+    },
+    "reservedslots": {
+      "type": "integer",
+      "value": 0,
+      "display": "Reserved Slots",
+      "desc": "Slots kept free for admins and moderators",
+      "required": true,
+      "userEdit": true
+    },
+    "servername": {
+      "type": "string",
+      "value": "Squad Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the server list, at most 80 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "teambal": {
+      "type": "option",
+      "value": "true",
+      "display": "Enforce Team Balance",
+      "desc": "Force team balance when teams get uneven",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enforced"
+        },
+        {
+          "value": "false",
+          "display": "Off"
+        }
+      ]
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "WORKSHOP_ITEMS != ''",
+      "type": "command",
+      "commands": [
+        "bash -c 'ITEMS=\"\"; IFS=,; for id in ${WORKSHOP_ITEMS}; do ITEMS=\"$ITEMS +workshop_download_item 393380 $id\"; done; unset IFS; [ -n \"$ITEMS\" ] || exit 0; exec ./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous $ITEMS +quit'"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "SquadGame/Plugins/Mods"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f steamapps/workshop/appworkshop_393380.acf",
+        "bash -c 'mv -f steamapps/workshop/content/393380/* SquadGame/Plugins/Mods/ 2>/dev/null || true'",
+        "chmod +x ./SquadGame/Binaries/Linux/SquadGameServer"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./SquadGame/Binaries/Linux/SquadGameServer SquadGame Port=${port} QueryPort=${QUERY_PORT} -beaconport=${BEACON_PORT}",
+    "stopCode": 2,
+    "environmentVars": {
+      "LD_LIBRARY_PATH": "/pufferpanel/linux64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('SquadGame/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "SquadGame/ServerConfig/Server.cfg",
+        "search": "^ServerName=.*$",
+        "replace": "ServerName=\"${servername}\"",
+        "regex": true
+      },
+      {
+        "if": "file_exists('SquadGame/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "SquadGame/ServerConfig/Server.cfg",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${maxplayers}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('SquadGame/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "SquadGame/ServerConfig/Server.cfg",
+        "search": "^AllowTeamChanges=.*$",
+        "replace": "AllowTeamChanges=${allowteamchange}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('SquadGame/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "SquadGame/ServerConfig/Server.cfg",
+        "search": "^ShouldAdvertise=.*$",
+        "replace": "ShouldAdvertise=${advertise}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('SquadGame/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "SquadGame/ServerConfig/Server.cfg",
+        "search": "^NumReservedSlots=.*$",
+        "replace": "NumReservedSlots=${reservedslots}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('SquadGame/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "SquadGame/ServerConfig/Server.cfg",
+        "search": "^PreventTeamChangeIfUnbalanced=.*$",
+        "replace": "PreventTeamChangeIfUnbalanced=${ptciu}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('SquadGame/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "SquadGame/ServerConfig/Server.cfg",
+        "search": "^EnforceTeamBalance=.*$",
+        "replace": "EnforceTeamBalance=${teambal}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('SquadGame/ServerConfig/Server.cfg')",
+        "type": "alterfile",
+        "file": "SquadGame/ServerConfig/Server.cfg",
+        "search": "^RecordDemos=.*$",
+        "replace": "RecordDemos=${recorddemos}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${BEACON_PORT}:${BEACON_PORT}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

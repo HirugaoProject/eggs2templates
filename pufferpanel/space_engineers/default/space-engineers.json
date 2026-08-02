@@ -1,0 +1,532 @@
+{
+  "type": "spaceengineers",
+  "display": "Space Engineers (Docker)",
+  "data": {
+    "EXPERIMENTAL_ENABLED": {
+      "type": "option",
+      "value": "false",
+      "display": "Experimental Mode",
+      "desc": "Enable experimental mode. Required when running mods.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "INGAMESCRIPTS_ENABLED": {
+      "type": "option",
+      "value": "false",
+      "display": "In-Game Scripts",
+      "desc": "Allow players to run in-game scripts",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "REMOTEAPI_ENABLE": {
+      "type": "option",
+      "value": "false",
+      "display": "Enable Remote API",
+      "desc": "Run the remote management API",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "REMOTEAPI_PORT": {
+      "type": "integer",
+      "value": 8081,
+      "display": "Remote API Port",
+      "desc": "TCP port the remote API listens on",
+      "required": true,
+      "userEdit": false
+    },
+    "SAVE_ENABLED": {
+      "type": "option",
+      "value": "true",
+      "display": "Enable Saving",
+      "desc": "Let the server write the world to disk",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "true",
+          "display": "Enabled"
+        },
+        {
+          "value": "false",
+          "display": "Disabled"
+        }
+      ]
+    },
+    "SAVE_INTERVAL": {
+      "type": "integer",
+      "value": 5,
+      "display": "Auto Save Interval",
+      "desc": "Minutes between automatic saves",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_DESC": {
+      "type": "string",
+      "value": "A PufferPanel hosted Space Engineers Server",
+      "display": "Server Description",
+      "desc": "Description of the server, at most 200 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_MODE": {
+      "type": "option",
+      "value": "Survival",
+      "display": "Game Mode",
+      "desc": "Game mode of the world",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "Survival",
+          "display": "Survival"
+        },
+        {
+          "value": "Creative",
+          "display": "Creative"
+        }
+      ]
+    },
+    "SERVER_NAME": {
+      "type": "string",
+      "value": "A PufferPanel hosted Space Engineers Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the Steam browser, at most 64 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "298740",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Space Engineers dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_PORT": {
+      "type": "integer",
+      "value": 8766,
+      "display": "Steam Port",
+      "desc": "UDP port used by the Steam networking layer",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_NAME": {
+      "type": "string",
+      "value": "World",
+      "display": "World Name",
+      "desc": "Name of the world and of its save folder. Changing this stops the server from starting unless the save folder is renamed too.",
+      "required": true,
+      "userEdit": false
+    },
+    "port": {
+      "type": "integer",
+      "value": 27016,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "config/Saves"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init",
+        "winetricks -q win11 vcrun2022 mono corefonts"
+      ]
+    },
+    {
+      "if": "!file_exists('config/Saves/World')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/space_engineers/default/World.zip"
+      ]
+    },
+    {
+      "if": "file_exists('World.zip')",
+      "type": "extract",
+      "source": "World.zip",
+      "destination": "config/Saves"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "rm -f World.zip"
+      ]
+    },
+    {
+      "if": "!file_exists('config/SpaceEngineers-Dedicated.cfg')",
+      "type": "download",
+      "files": [
+        "https://raw.githubusercontent.com/ptero-eggs/game-eggs/main/space_engineers/default/SpaceEngineers-Dedicated.cfg"
+      ]
+    },
+    {
+      "if": "file_exists('SpaceEngineers-Dedicated.cfg')",
+      "type": "move",
+      "source": "SpaceEngineers-Dedicated.cfg",
+      "target": "config/SpaceEngineers-Dedicated.cfg"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'for f in steamclient.dll steamclient64.dll tier0_s.dll tier0_s64.dll vstdlib_s.dll vstdlib_s64.dll; do cp -f \"$f\" DedicatedServer64/ 2>/dev/null || true; done'"
+      ]
+    }
+  ],
+  "run": {
+    "command": "wine /pufferpanel/DedicatedServer64/SpaceEngineersDedicated.exe -path Z:\\\\pufferpanel\\\\config -console -ignorelastsession",
+    "stopCode": 2,
+    "environmentVars": {
+      "DISPLAY": ":0",
+      "LOGNAME": "container",
+      "USER": "container",
+      "WINEDEBUG": "-all",
+      "WINEDLLOVERRIDES": "mscoree=n,b;mshtml=n,b",
+      "WINEPREFIX": "/pufferpanel/.wine",
+      "WINEARCH": "win64"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +@sSteamCmdForcePlatformType windows +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<GameMode>[^<]*</GameMode>",
+        "replace": "<GameMode>${SERVER_MODE}</GameMode>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<MaxPlayers>[^<]*</MaxPlayers>",
+        "replace": "<MaxPlayers>${MAX_PLAYERS}</MaxPlayers>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<AutoSaveInMinutes>[^<]*</AutoSaveInMinutes>",
+        "replace": "<AutoSaveInMinutes>${SAVE_INTERVAL}</AutoSaveInMinutes>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<EnableSaving>[^<]*</EnableSaving>",
+        "replace": "<EnableSaving>${SAVE_ENABLED}</EnableSaving>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<ExperimentalMode>[^<]*</ExperimentalMode>",
+        "replace": "<ExperimentalMode>${EXPERIMENTAL_ENABLED}</ExperimentalMode>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<EnableIngameScripts>[^<]*</EnableIngameScripts>",
+        "replace": "<EnableIngameScripts>${INGAMESCRIPTS_ENABLED}</EnableIngameScripts>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<LoadWorld>[^<]*</LoadWorld>",
+        "replace": "<LoadWorld>Z:\\\\pufferpanel\\\\config\\\\Saves\\\\${WORLD_NAME}\\\\Sandbox.sbc</LoadWorld>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<ServerPort>[^<]*</ServerPort>",
+        "replace": "<ServerPort>${port}</ServerPort>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<SteamPort>[^<]*</SteamPort>",
+        "replace": "<SteamPort>${STEAM_PORT}</SteamPort>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<ServerName>[^<]*</ServerName>",
+        "replace": "<ServerName>${SERVER_NAME}</ServerName>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<WorldName>[^<]*</WorldName>",
+        "replace": "<WorldName>${WORLD_NAME}</WorldName>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<ServerDescription>[^<]*</ServerDescription>",
+        "replace": "<ServerDescription>${SERVER_DESC}</ServerDescription>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<RemoteApiEnabled>[^<]*</RemoteApiEnabled>",
+        "replace": "<RemoteApiEnabled>${REMOTEAPI_ENABLE}</RemoteApiEnabled>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/SpaceEngineers-Dedicated.cfg')",
+        "type": "alterfile",
+        "file": "config/SpaceEngineers-Dedicated.cfg",
+        "search": "<RemoteApiPort>[^<]*</RemoteApiPort>",
+        "replace": "<RemoteApiPort>${REMOTEAPI_PORT}</RemoteApiPort>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox.sbc",
+        "search": "<GameMode>[^<]*</GameMode>",
+        "replace": "<GameMode>${SERVER_MODE}</GameMode>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox.sbc",
+        "search": "<MaxPlayers>[^<]*</MaxPlayers>",
+        "replace": "<MaxPlayers>${MAX_PLAYERS}</MaxPlayers>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox.sbc",
+        "search": "<AutoSaveInMinutes>[^<]*</AutoSaveInMinutes>",
+        "replace": "<AutoSaveInMinutes>${SAVE_INTERVAL}</AutoSaveInMinutes>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox.sbc",
+        "search": "<EnableSaving>[^<]*</EnableSaving>",
+        "replace": "<EnableSaving>${SAVE_ENABLED}</EnableSaving>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox.sbc",
+        "search": "<ExperimentalMode>[^<]*</ExperimentalMode>",
+        "replace": "<ExperimentalMode>${EXPERIMENTAL_ENABLED}</ExperimentalMode>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox.sbc",
+        "search": "<EnableIngameScripts>[^<]*</EnableIngameScripts>",
+        "replace": "<EnableIngameScripts>${INGAMESCRIPTS_ENABLED}</EnableIngameScripts>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox_config.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox_config.sbc",
+        "search": "<GameMode>[^<]*</GameMode>",
+        "replace": "<GameMode>${SERVER_MODE}</GameMode>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox_config.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox_config.sbc",
+        "search": "<MaxPlayers>[^<]*</MaxPlayers>",
+        "replace": "<MaxPlayers>${MAX_PLAYERS}</MaxPlayers>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox_config.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox_config.sbc",
+        "search": "<AutoSaveInMinutes>[^<]*</AutoSaveInMinutes>",
+        "replace": "<AutoSaveInMinutes>${SAVE_INTERVAL}</AutoSaveInMinutes>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox_config.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox_config.sbc",
+        "search": "<EnableSaving>[^<]*</EnableSaving>",
+        "replace": "<EnableSaving>${SAVE_ENABLED}</EnableSaving>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox_config.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox_config.sbc",
+        "search": "<ExperimentalMode>[^<]*</ExperimentalMode>",
+        "replace": "<ExperimentalMode>${EXPERIMENTAL_ENABLED}</ExperimentalMode>",
+        "regex": true
+      },
+      {
+        "if": "file_exists('config/Saves/World/Sandbox_config.sbc')",
+        "type": "alterfile",
+        "file": "config/Saves/World/Sandbox_config.sbc",
+        "search": "<EnableIngameScripts>[^<]*</EnableIngameScripts>",
+        "replace": "<EnableIngameScripts>${INGAMESCRIPTS_ENABLED}</EnableIngameScripts>",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${STEAM_PORT}:${STEAM_PORT}/udp",
+      "0.0.0.0:${REMOTEAPI_PORT}:${REMOTEAPI_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:wine_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${STEAM_PORT}:${STEAM_PORT}/udp",
+        "0.0.0.0:${REMOTEAPI_PORT}:${REMOTEAPI_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

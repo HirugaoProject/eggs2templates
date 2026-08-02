@@ -1,0 +1,189 @@
+{
+  "type": "starbound",
+  "display": "Starbound (Docker)",
+  "data": {
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "211820",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Starbound dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_AUTH": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Guard Code",
+      "desc": "Steam Guard code or login token. Leave empty when the account has no Steam Guard.",
+      "required": false,
+      "userEdit": false
+    },
+    "STEAM_PASS": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Password",
+      "desc": "Password of that Steam account",
+      "required": true,
+      "userEdit": false
+    },
+    "STEAM_USER": {
+      "type": "string",
+      "value": "",
+      "display": "Steam Username",
+      "desc": "Steam account that owns Starbound. The server files are not available to anonymous Steam users.",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORKSHOP": {
+      "type": "option",
+      "value": "0",
+      "display": "Link Workshop Mods",
+      "desc": "Link every .pak already downloaded under steamapps/workshop into the mods folder on boot",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Disabled"
+        },
+        {
+          "value": "1",
+          "display": "Enabled"
+        }
+      ]
+    },
+    "port": {
+      "type": "integer",
+      "value": 21025,
+      "display": "Port",
+      "desc": "TCP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "mkdir",
+      "target": "storage"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz",
+        "bash -c 'mv -f linux/* . 2>/dev/null || true'",
+        "rm -rf linux",
+        "bash -c \"sed -i -e 's/\\\\.\\\\./\\\\./g' sbinit.config\""
+      ]
+    },
+    {
+      "if": "!file_exists('storage/starbound_server.config')",
+      "type": "writefile",
+      "target": "storage/starbound_server.config",
+      "text": "{\n  \"allowAdminCommands\" : true,\n  \"allowAdminCommandsFromAnyone\" : false,\n  \"allowAnonymousConnections\" : true,\n  \"allowAssetsMismatch\" : true,\n  \"anonymousConnectionsAreAdmin\" : false,\n  \"bannedIPs\" : [],\n  \"bannedUuids\" : [],\n  \"checkAssetsDigest\" : false,\n  \"clearPlayerFiles\" : false,\n  \"clearUniverseFiles\" : false,\n  \"clientIPJoinable\" : false,\n  \"clientP2PJoinable\" : true,\n  \"configurationVersion\" : {\n    \"basic\" : 2,\n    \"server\" : 4\n  },\n  \"crafting\" : {\n    \"filterHaveMaterials\" : false\n  },\n  \"gameServerBind\" : \"::\",\n  \"gameServerPort\" : ${port},\n  \"interactiveHighlight\" : true,\n  \"inventory\" : {\n    \"pickupToActionBar\" : true\n  },\n  \"maxPlayers\" : 8,\n  \"maxTeamSize\" : 4,\n  \"monochromeLighting\" : false,\n  \"playerBackupFileCount\" : 3,\n  \"queryServerBind\" : \"::\",\n  \"queryServerPort\" : 21025,\n  \"rconServerBind\" : \"::\",\n  \"rconServerPassword\" : \"\",\n  \"rconServerPort\" : 21026,\n  \"rconServerTimeout\" : 1000,\n  \"runQueryServer\" : false,\n  \"runRconServer\" : false,\n  \"safeScripts\" : true,\n  \"scriptInstructionLimit\" : 10000000,\n  \"scriptInstructionMeasureInterval\" : 10000,\n  \"scriptProfilingEnabled\" : false,\n  \"scriptRecursionLimit\" : 100,\n  \"serverFidelity\" : \"automatic\",\n  \"serverName\" : \"A Starbound Server\",\n  \"serverOverrideAssetsDigest\" : null,\n  \"serverUsers\" : {\n  },\n  \"tutorialMessages\" : true\n}\n"
+    },
+    {
+      "if": "WORKSHOP == '1'",
+      "type": "command",
+      "commands": [
+        "bash -c 'mkdir -p mods; for dir in steamapps/workshop/content/211820/*/; do [ -d \"$dir\" ] || continue; id=$(basename \"$dir\"); n=0; for pak in \"$dir\"*.pak; do [ -f \"$pak\" ] || continue; ln -rsf \"$pak\" \"mods/$id.$n.pak\"; n=$((n+1)); done; done'"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./starbound_server",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "WORKSHOP == '1'",
+        "type": "command",
+        "commands": [
+          "bash -c 'mkdir -p mods; for dir in steamapps/workshop/content/211820/*/; do [ -d \"$dir\" ] || continue; id=$(basename \"$dir\"); n=0; for pak in \"$dir\"*.pak; do [ -f \"$pak\" ] || continue; ln -rsf \"$pak\" \"mods/$id.$n.pak\"; n=$((n+1)); done; done'"
+        ]
+      },
+      {
+        "if": "file_exists('storage/starbound_server.config')",
+        "type": "alterfile",
+        "file": "storage/starbound_server.config",
+        "search": "\"gameServerPort\"\\s*:\\s*[0-9]+",
+        "replace": "\"gameServerPort\" : ${port}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/games:source",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/games:source",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
