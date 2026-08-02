@@ -1,0 +1,226 @@
+{
+  "type": "satisfactory",
+  "display": "Satisfactory (Docker)",
+  "data": {
+    "CONNECT_TIMEOUT": {
+      "type": "integer",
+      "value": 20,
+      "display": "Connection Timeout",
+      "desc": "Seconds before an already connected client counts as timed out",
+      "required": true,
+      "userEdit": true
+    },
+    "INIT_CONNECT_TIMEOUT": {
+      "type": "integer",
+      "value": 30,
+      "display": "Initial Connect Timeout",
+      "desc": "Seconds a new client may take to finish connecting. Raise it to 60 when players on slow links fail to join.",
+      "required": true,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 4,
+      "display": "Max Players",
+      "desc": "Concurrent players. Coffee Stain tunes the game for 4; higher values work but cost performance on large factories.",
+      "required": true,
+      "userEdit": true
+    },
+    "NUM_AUTOSAVES": {
+      "type": "integer",
+      "value": 3,
+      "display": "Rotating Autosaves",
+      "desc": "Autosave slots kept before the oldest is overwritten. The in-game server manager does not expose this.",
+      "required": true,
+      "userEdit": true
+    },
+    "RELIABLE_PORT": {
+      "type": "integer",
+      "value": 8888,
+      "display": "Reliable Port",
+      "desc": "TCP messaging port required from Satisfactory 1.1 on. It is both bound and advertised, so it has to match the forwarded port.",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "1690800",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Satisfactory dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Branch Name",
+      "desc": "Steam branch to install. Empty installs the stable branch, experimental installs the experimental branch. Switching branches on an existing server also needs Update On Boot and Validate Files enabled.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_BETAPASS": {
+      "type": "string",
+      "value": "",
+      "display": "Branch Password",
+      "desc": "Password for a private branch. Not needed for public or experimental.",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "VALIDATE": {
+      "type": "boolean",
+      "value": false,
+      "display": "Validate Files",
+      "desc": "Have SteamCMD verify every file while updating. Noticeably slower, so only turn it on when files look corrupted.",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'ARGS=\"\"; [ -n \"${SRCDS_BETAID}\" ] && ARGS=\"-beta ${SRCDS_BETAID}\"; [ -n \"${SRCDS_BETAPASS}\" ] && ARGS=\"$ARGS -betapassword ${SRCDS_BETAPASS}\"; exec ./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} $ARGS validate +quit'"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": "FactoryGame/Saved/Config/LinuxServer"
+    },
+    {
+      "if": "!file_exists('FactoryGame/Saved/Config/LinuxServer/Game.ini')",
+      "type": "writefile",
+      "target": "FactoryGame/Saved/Config/LinuxServer/Game.ini",
+      "text": "[/Script/Engine.GameSession]\nMaxPlayers=${MAX_PLAYERS}\n"
+    },
+    {
+      "if": "!file_exists('FactoryGame/Saved/Config/LinuxServer/Engine.ini')",
+      "type": "writefile",
+      "target": "FactoryGame/Saved/Config/LinuxServer/Engine.ini",
+      "text": "[/Script/FactoryGame.FGSaveSession]\nmNumRotatingAutosaves=${NUM_AUTOSAVES}\n\n[/Script/OnlineSubsystemUtils.IpNetDriver]\nInitialConnectTimeout=${INIT_CONNECT_TIMEOUT}\nConnectionTimeout=${CONNECT_TIMEOUT}\n"
+    }
+  ],
+  "run": {
+    "command": "bash -c 'exec ./Engine/Binaries/Linux/*-Linux-Shipping FactoryGame -Port=${port} -ReliablePort=${RELIABLE_PORT} -ExternalReliablePort=${RELIABLE_PORT}'",
+    "stopCode": 2,
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "bash -c 'ARGS=\"\"; VAL=\"\"; [ \"${VALIDATE}\" = \"1\" ] && VAL=\"validate\"; [ -n \"${SRCDS_BETAID}\" ] && ARGS=\"-beta ${SRCDS_BETAID}\"; [ -n \"${SRCDS_BETAPASS}\" ] && ARGS=\"$ARGS -betapassword ${SRCDS_BETAPASS}\"; exec ./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} $ARGS $VAL+quit'"
+        ]
+      },
+      {
+        "if": "file_exists('FactoryGame/Saved/Config/LinuxServer/Game.ini')",
+        "type": "alterfile",
+        "file": "FactoryGame/Saved/Config/LinuxServer/Game.ini",
+        "search": "^MaxPlayers=.*$",
+        "replace": "MaxPlayers=${MAX_PLAYERS}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('FactoryGame/Saved/Config/LinuxServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "FactoryGame/Saved/Config/LinuxServer/Engine.ini",
+        "search": "^mNumRotatingAutosaves=.*$",
+        "replace": "mNumRotatingAutosaves=${NUM_AUTOSAVES}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('FactoryGame/Saved/Config/LinuxServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "FactoryGame/Saved/Config/LinuxServer/Engine.ini",
+        "search": "^InitialConnectTimeout=.*$",
+        "replace": "InitialConnectTimeout=${INIT_CONNECT_TIMEOUT}",
+        "regex": true
+      },
+      {
+        "if": "file_exists('FactoryGame/Saved/Config/LinuxServer/Engine.ini')",
+        "type": "alterfile",
+        "file": "FactoryGame/Saved/Config/LinuxServer/Engine.ini",
+        "search": "^ConnectionTimeout=.*$",
+        "replace": "ConnectionTimeout=${CONNECT_TIMEOUT}",
+        "regex": true
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${RELIABLE_PORT}:${RELIABLE_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/steamcmd:debian",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${RELIABLE_PORT}:${RELIABLE_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

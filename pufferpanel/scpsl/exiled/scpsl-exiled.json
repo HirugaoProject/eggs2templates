@@ -1,0 +1,187 @@
+{
+  "type": "scpslexiled",
+  "display": "SCP:SL - EXILED (Docker)",
+  "data": {
+    "EXILED_PRE_RELEASES": {
+      "type": "option",
+      "value": "0",
+      "display": "Include Pre-Releases",
+      "desc": "When EXILED Version is latest, also consider pre-releases. Not needed when a specific version is pinned.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "0",
+          "display": "Stable only"
+        },
+        {
+          "value": "1",
+          "display": "Include pre-releases"
+        }
+      ]
+    },
+    "EXILED_VERSION": {
+      "type": "string",
+      "value": "latest",
+      "display": "EXILED Version",
+      "desc": "EXILED release to install, or latest for the newest release",
+      "required": true,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "996560",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the SCP: Secret Laboratory dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "SRCDS_BETAID": {
+      "type": "string",
+      "value": "",
+      "display": "Branch",
+      "desc": "Steam branch of SCP:SL to install, usually a testing build. Reinstall the server to switch branches.",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_BETAPASS": {
+      "type": "string",
+      "value": "",
+      "display": "Branch Password",
+      "desc": "Password for the selected branch",
+      "required": false,
+      "userEdit": true
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 7777,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "bash -c 'ARGS=\"\"; [ -n \"${SRCDS_BETAID}\" ] && ARGS=\"-beta ${SRCDS_BETAID}\"; [ -n \"${SRCDS_BETAPASS}\" ] && ARGS=\"$ARGS -betapassword ${SRCDS_BETAPASS}\"; exec ./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} $ARGS validate +quit'"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".config"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./LocalAdmin"
+      ]
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://github.com/ExMod-Team/EXILED/releases/latest/download/Exiled.Installer-Linux"
+      ]
+    },
+    {
+      "type": "command",
+      "commands": [
+        "chmod +x ./Exiled.Installer-Linux",
+        "bash -c './Exiled.Installer-Linux --path /pufferpanel/ --appdata /pufferpanel/.config --skip-version-select --exiled /pufferpanel/.config $([ \"${EXILED_PRE_RELEASES}\" = \"1\" ] && echo --pre-releases) $([ \"${EXILED_VERSION}\" != \"latest\" ] && echo \"--target-version ${EXILED_VERSION}\")'"
+      ]
+    }
+  ],
+  "run": {
+    "command": "./LocalAdmin ${port}",
+    "stop": "EXIT",
+    "environmentVars": {
+      "DOTNET_BUNDLE_EXTRACT_BASE_DIR": "/pufferpanel/dotnet-bundle"
+    },
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "bash -c 'ARGS=\"\"; [ -n \"${SRCDS_BETAID}\" ] && ARGS=\"-beta ${SRCDS_BETAID}\"; [ -n \"${SRCDS_BETAPASS}\" ] && ARGS=\"$ARGS -betapassword ${SRCDS_BETAPASS}\"; exec ./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} $ARGS validate +quit'"
+        ]
+      },
+      {
+        "if": "file_exists('Exiled.Installer-Linux')",
+        "type": "command",
+        "commands": [
+          "bash -c './Exiled.Installer-Linux --path /pufferpanel/ --appdata /pufferpanel/.config --skip-version-select --exiled /pufferpanel/.config $([ \"${EXILED_PRE_RELEASES}\" = \"1\" ] && echo --pre-releases) $([ \"${EXILED_VERSION}\" != \"latest\" ] && echo \"--target-version ${EXILED_VERSION}\")'"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "stdin"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/ptero-eggs/yolks:mono_latest",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/ptero-eggs/yolks:mono_latest",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}

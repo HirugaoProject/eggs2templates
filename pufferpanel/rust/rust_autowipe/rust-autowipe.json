@@ -1,0 +1,374 @@
+{
+  "type": "rustautowipe",
+  "display": "Rust Autowipe (Docker)",
+  "data": {
+    "ADDITIONAL_ARGS": {
+      "type": "string",
+      "value": "",
+      "display": "Additional Arguments",
+      "desc": "Extra startup parameters appended to the command line",
+      "required": false,
+      "userEdit": true
+    },
+    "APP_PORT": {
+      "type": "integer",
+      "value": 28082,
+      "display": "Rust+ App Port",
+      "desc": "Port used by the Rust+ companion app. -1 disables it.",
+      "required": true,
+      "userEdit": true
+    },
+    "DESCRIPTION": {
+      "type": "string",
+      "value": "Powered by PufferPanel",
+      "display": "Description",
+      "desc": "Text under the server title. Use \\n for line breaks.",
+      "required": true,
+      "userEdit": true
+    },
+    "FRAMEWORK": {
+      "type": "option",
+      "value": "vanilla",
+      "display": "Modding Framework",
+      "desc": "Modding framework loaded before the server starts. The framework is refreshed on every boot, the same way the Pterodactyl image did it.",
+      "required": true,
+      "userEdit": true,
+      "options": [
+        {
+          "value": "vanilla",
+          "display": "Vanilla (no framework)"
+        },
+        {
+          "value": "carbon",
+          "display": "Carbon"
+        },
+        {
+          "value": "oxide",
+          "display": "Oxide / uMod"
+        }
+      ]
+    },
+    "HOSTNAME": {
+      "type": "string",
+      "value": "A Rust Server",
+      "display": "Server Name",
+      "desc": "Name of the server in the public server list, at most 40 characters",
+      "required": true,
+      "userEdit": true
+    },
+    "LEVEL": {
+      "type": "string",
+      "value": "Procedural Map",
+      "display": "Level",
+      "desc": "World file Rust loads",
+      "required": true,
+      "userEdit": true
+    },
+    "MAP_URL": {
+      "type": "string",
+      "value": "",
+      "display": "Custom Map URL",
+      "desc": "Direct download URL of a custom map. When set it replaces the procedural map; an invalid URL crashes the server.",
+      "required": false,
+      "userEdit": true
+    },
+    "MAX_PLAYERS": {
+      "type": "integer",
+      "value": 40,
+      "display": "Max Players",
+      "desc": "Maximum number of players on the server",
+      "required": true,
+      "userEdit": true
+    },
+    "QUERY_PORT": {
+      "type": "integer",
+      "value": 28017,
+      "display": "Query Port",
+      "desc": "Port answering server browser queries",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PASS": {
+      "type": "string",
+      "value": "CHANGEME",
+      "display": "RCON Password",
+      "desc": "RCON password. Letters, digits, dots, dashes and underscores only.",
+      "required": true,
+      "userEdit": true
+    },
+    "RCON_PORT": {
+      "type": "integer",
+      "value": 28016,
+      "display": "RCON Port",
+      "desc": "TCP port the RCON websocket listens on",
+      "required": true,
+      "userEdit": false
+    },
+    "REGEN_SERVER": {
+      "type": "boolean",
+      "value": false,
+      "display": "Wipe On Reinstall",
+      "desc": "Delete the files listed below and draw a fresh seed when the server is reinstalled",
+      "required": false,
+      "userEdit": true
+    },
+    "REMOVE_FILES": {
+      "type": "string",
+      "value": "server/rust/player.deaths.*.db server/rust/player.identities.*.db server/rust/player.states.*.db server/rust/player.tokens.db proceduralmap.*.*.*.map server/rust/proceduralmap.*.*.*.sav oxide/data/Kits_Data.json oxide/data/NTeleportationHome.json oxide/data/ServerRewards/player_data.json oxide/data/PTTracker/playtime_data.json",
+      "display": "Files To Remove",
+      "desc": "Space separated list of files deleted when the server is wiped",
+      "required": true,
+      "userEdit": true
+    },
+    "SAVEINTERVAL": {
+      "type": "integer",
+      "value": 60,
+      "display": "Save Interval",
+      "desc": "Seconds between automatic saves",
+      "required": true,
+      "userEdit": true
+    },
+    "SERVER_IMG": {
+      "type": "string",
+      "value": "",
+      "display": "Header Image",
+      "desc": "URL of the header image at the top of the server listing",
+      "required": false,
+      "userEdit": true
+    },
+    "SERVER_URL": {
+      "type": "string",
+      "value": "https://pufferpanel.com",
+      "display": "Website",
+      "desc": "Address behind the Visit Website button",
+      "required": false,
+      "userEdit": true
+    },
+    "SRCDS_APPID": {
+      "type": "string",
+      "value": "258550",
+      "display": "Steam App ID",
+      "desc": "SteamCMD application id of the Rust dedicated server",
+      "required": true,
+      "userEdit": false
+    },
+    "UPDATE_ON_BOOT": {
+      "type": "boolean",
+      "value": true,
+      "display": "Update On Boot",
+      "desc": "Run SteamCMD before every server start so the server is always up to date",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_SEED": {
+      "type": "string",
+      "value": "0",
+      "display": "World Seed",
+      "desc": "Seed for the procedural map. 0 keeps the random seed generated at install time and stored in seed.txt.",
+      "required": false,
+      "userEdit": true
+    },
+    "WORLD_SIZE": {
+      "type": "integer",
+      "value": 3000,
+      "display": "World Size",
+      "desc": "Size of a procedural map",
+      "required": true,
+      "userEdit": true
+    },
+    "port": {
+      "type": "integer",
+      "value": 28015,
+      "display": "Port",
+      "desc": "UDP port the game server binds to",
+      "required": true,
+      "userEdit": false
+    }
+  },
+  "install": [
+    {
+      "type": "mkdir",
+      "target": "steamcmd"
+    },
+    {
+      "type": "mkdir",
+      "target": "steamapps"
+    },
+    {
+      "type": "download",
+      "files": [
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "type": "extract",
+      "source": "steamcmd_linux.tar.gz",
+      "destination": "steamcmd"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
+      ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk32"
+    },
+    {
+      "type": "mkdir",
+      "target": ".steam/sdk64"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
+        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
+        "rm -f steamcmd_linux.tar.gz"
+      ]
+    },
+    {
+      "if": "REGEN_SERVER",
+      "type": "command",
+      "commands": [
+        "bash -c 'rm -rf ${REMOVE_FILES}'",
+        "rm -f seed.txt"
+      ]
+    },
+    {
+      "if": "!file_exists('seed.txt')",
+      "type": "command",
+      "commands": [
+        "bash -c \"tr -dc '1-9' < /dev/urandom | fold -w 5 | head -n 1 > seed.txt\""
+      ]
+    },
+    {
+      "if": "FRAMEWORK == 'carbon'",
+      "type": "download",
+      "files": [
+        "https://github.com/CarbonCommunity/Carbon.Core/releases/download/production_build/Carbon.Linux.Release.tar.gz"
+      ]
+    },
+    {
+      "if": "FRAMEWORK == 'carbon'",
+      "type": "extract",
+      "source": "Carbon.Linux.Release.tar.gz",
+      "destination": "."
+    },
+    {
+      "if": "FRAMEWORK == 'carbon'",
+      "type": "command",
+      "commands": [
+        "rm -f Carbon.Linux.Release.tar.gz"
+      ]
+    },
+    {
+      "if": "FRAMEWORK == 'oxide'",
+      "type": "download",
+      "files": [
+        "https://github.com/OxideMod/Oxide.Rust/releases/latest/download/Oxide.Rust-linux.zip"
+      ]
+    },
+    {
+      "if": "FRAMEWORK == 'oxide'",
+      "type": "extract",
+      "source": "Oxide.Rust-linux.zip",
+      "destination": "."
+    },
+    {
+      "if": "FRAMEWORK == 'oxide'",
+      "type": "command",
+      "commands": [
+        "rm -f Oxide.Rust-linux.zip"
+      ]
+    }
+  ],
+  "run": {
+    "command": "bash -c 'SEED=${WORLD_SEED}; if [ \"$SEED\" = \"0\" ] && [ -f seed.txt ]; then SEED=$(cat seed.txt); fi; if [ -n \"${MAP_URL}\" ]; then MAP=\"+server.levelurl ${MAP_URL}\"; else MAP=\"+server.worldsize ${WORLD_SIZE} +server.seed $SEED\"; fi; if [ \"${FRAMEWORK}\" = \"carbon\" ]; then export DOORSTOP_ENABLED=1 DOORSTOP_TARGET_ASSEMBLY=/pufferpanel/carbon/managed/Carbon.Preloader.dll LD_PRELOAD=/pufferpanel/libdoorstop.so; fi; exec ./RustDedicated -batchmode +server.port ${port} +server.queryport ${QUERY_PORT} +server.identity rust +rcon.ip 0.0.0.0 +rcon.port ${RCON_PORT} +rcon.web true +server.hostname ${HOSTNAME} +server.level ${LEVEL} +server.description ${DESCRIPTION} +server.url ${SERVER_URL} +server.headerimage ${SERVER_IMG} +server.maxplayers ${MAX_PLAYERS} +rcon.password ${RCON_PASS} +app.port ${APP_PORT} +server.saveinterval ${SAVEINTERVAL} $MAP ${ADDITIONAL_ARGS}'",
+    "stop": "quit",
+    "pre": [
+      {
+        "if": "UPDATE_ON_BOOT",
+        "type": "command",
+        "commands": [
+          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
+        ]
+      },
+      {
+        "if": "FRAMEWORK == 'carbon'",
+        "type": "download",
+        "files": [
+          "https://github.com/CarbonCommunity/Carbon.Core/releases/download/production_build/Carbon.Linux.Release.tar.gz"
+        ]
+      },
+      {
+        "if": "FRAMEWORK == 'carbon'",
+        "type": "extract",
+        "source": "Carbon.Linux.Release.tar.gz",
+        "destination": "."
+      },
+      {
+        "if": "FRAMEWORK == 'carbon'",
+        "type": "command",
+        "commands": [
+          "rm -f Carbon.Linux.Release.tar.gz"
+        ]
+      },
+      {
+        "if": "FRAMEWORK == 'oxide'",
+        "type": "download",
+        "files": [
+          "https://github.com/OxideMod/Oxide.Rust/releases/latest/download/Oxide.Rust-linux.zip"
+        ]
+      },
+      {
+        "if": "FRAMEWORK == 'oxide'",
+        "type": "extract",
+        "source": "Oxide.Rust-linux.zip",
+        "destination": "."
+      },
+      {
+        "if": "FRAMEWORK == 'oxide'",
+        "type": "command",
+        "commands": [
+          "rm -f Oxide.Rust-linux.zip"
+        ]
+      }
+    ],
+    "stdin": {
+      "type": "rconws",
+      "ip": "127.0.0.1",
+      "port": "${RCON_PORT}",
+      "password": "${RCON_PASS}"
+    },
+    "autostart": false,
+    "autorecover": false,
+    "autorestart": false
+  },
+  "environment": {
+    "type": "docker",
+    "image": "ghcr.io/pterodactyl/games:rust",
+    "portBindings": [
+      "0.0.0.0:${port}:${port}/udp",
+      "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+      "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp",
+      "0.0.0.0:${APP_PORT}:${APP_PORT}/tcp"
+    ]
+  },
+  "supportedEnvironments": [
+    {
+      "type": "docker",
+      "image": "ghcr.io/pterodactyl/games:rust",
+      "portBindings": [
+        "0.0.0.0:${port}:${port}/udp",
+        "0.0.0.0:${QUERY_PORT}:${QUERY_PORT}/udp",
+        "0.0.0.0:${RCON_PORT}:${RCON_PORT}/tcp",
+        "0.0.0.0:${APP_PORT}:${APP_PORT}/tcp"
+      ]
+    }
+  ],
+  "requirements": {
+    "os": "linux",
+    "arch": "amd64"
+  }
+}
