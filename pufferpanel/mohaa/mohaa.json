@@ -89,20 +89,20 @@
       "target": "Logs"
     },
     {
-      "type": "download",
-      "files": [
-        "${DOWNLOAD_URL}"
+      "type": "command",
+      "commands": [
+        "curl -sSL -o mohaa-server.tar.xz ${DOWNLOAD_URL}"
       ]
     },
     {
       "type": "extract",
-      "source": "moh_revival_v1.12_RC3.5.1.tar.xz",
+      "source": "mohaa-server.tar.xz",
       "destination": "."
     },
     {
       "type": "command",
       "commands": [
-        "rm -f moh_revival_v1.12_RC3.5.1.tar.xz",
+        "rm -f mohaa-server.tar.xz",
         "chmod +x ./mohaa_lnxded"
       ]
     },

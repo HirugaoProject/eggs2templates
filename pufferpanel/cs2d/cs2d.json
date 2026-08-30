@@ -53,10 +53,10 @@
   },
   "install": [
     {
-      "type": "download",
-      "files": [
-        "${CLIENT_URL}",
-        "${DEDICATED_URL}"
+      "type": "command",
+      "commands": [
+        "curl -sSL -o cs2d_linux.zip ${CLIENT_URL}",
+        "curl -sSL -o cs2d_dedicated_linux.zip ${DEDICATED_URL}"
       ]
     },
     {

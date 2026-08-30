@@ -85,53 +85,9 @@
   },
   "install": [
     {
-      "type": "mkdir",
-      "target": "steamcmd"
-    },
-    {
-      "type": "mkdir",
-      "target": "steamapps"
-    },
-    {
-      "type": "download",
-      "files": [
-        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
-      ]
-    },
-    {
-      "type": "extract",
-      "source": "steamcmd_linux.tar.gz",
-      "destination": "steamcmd"
-    },
-    {
-      "if": "SRCDS_BETAID == ''",
-      "type": "command",
-      "commands": [
-        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} validate +quit"
-      ]
-    },
-    {
-      "if": "SRCDS_BETAID != ''",
-      "type": "command",
-      "commands": [
-        "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
-      ]
-    },
-    {
-      "type": "mkdir",
-      "target": ".steam/sdk32"
-    },
-    {
-      "type": "mkdir",
-      "target": ".steam/sdk64"
-    },
-    {
-      "type": "command",
-      "commands": [
-        "cp steamcmd/linux32/steamclient.so .steam/sdk32/steamclient.so",
-        "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
-        "rm -f steamcmd_linux.tar.gz"
-      ]
+      "type": "steamgamedl",
+      "appId": "${SRCDS_APPID}",
+      "branch": "${SRCDS_BETAID}"
     },
     {
       "if": "!file_exists('server.properties')",
@@ -148,18 +104,10 @@
     },
     "pre": [
       {
-        "if": "UPDATE_ON_BOOT && SRCDS_BETAID == ''",
-        "type": "command",
-        "commands": [
-          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} +quit"
-        ]
-      },
-      {
-        "if": "UPDATE_ON_BOOT && SRCDS_BETAID != ''",
-        "type": "command",
-        "commands": [
-          "./steamcmd/steamcmd.sh +force_install_dir /pufferpanel +login anonymous +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
-        ]
+        "type": "steamgamedl",
+        "appId": "${SRCDS_APPID}",
+        "branch": "${SRCDS_BETAID}",
+        "if": "UPDATE_ON_BOOT"
       },
       {
         "if": "file_exists('server.properties')",

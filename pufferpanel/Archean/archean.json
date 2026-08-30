@@ -349,7 +349,7 @@
   },
   "environment": {
     "type": "docker",
-    "image": "ghcr.io/ptero-eggs/yolks:ubuntu",
+    "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu_24.04",
     "portBindings": [
       "0.0.0.0:${port}:${port}/tcp",
       "0.0.0.0:${port}:${port}/udp"
@@ -358,7 +358,7 @@
   "supportedEnvironments": [
     {
       "type": "docker",
-      "image": "ghcr.io/ptero-eggs/yolks:ubuntu",
+      "image": "ghcr.io/ptero-eggs/steamcmd:ubuntu_24.04",
       "portBindings": [
         "0.0.0.0:${port}:${port}/tcp",
         "0.0.0.0:${port}:${port}/udp"

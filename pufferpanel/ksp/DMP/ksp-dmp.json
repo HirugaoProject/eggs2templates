@@ -151,9 +151,9 @@
   },
   "install": [
     {
-      "type": "download",
-      "files": [
-        "${DOWNLOAD_URL}"
+      "type": "command",
+      "commands": [
+        "curl -sSL -o DMPServer.zip ${DOWNLOAD_URL}"
       ]
     },
     {

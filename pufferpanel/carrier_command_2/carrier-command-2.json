@@ -253,6 +253,16 @@
       "type": "writefile",
       "target": "server_config.xml",
       "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<data port=\"${port}\" max_players=\"${MAX_PLAYERS}\" server_name=\"${SERVER_NAME}\" password=\"${SERVER_PASSWORD}\" save_name=\"${SAVE_NAME}\" island_count=\"${ISLAND_COUNT}\" island_count_per_team=\"${ISLAND_COUNT_PER_TEAM}\" carrier_count_per_team=\"${CARRIER_COUNT_PER_TEAM}\" team_count_ai=\"${TEAM_COUNT_AI}\" team_count_human=\"${TEAM_COUNT_HUMAN}\" base_difficulty=\"${BASE_DIFFICULTY}\" loadout_type=\"${LOADOUT_TYPE}\" blueprints=\"${BLUEPRINTS}\" game_data_path=\"rom_0\">\n    <permissions/>\n    <active_mod_folders/>\n</data>\n"
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
     }
   ],
   "run": {

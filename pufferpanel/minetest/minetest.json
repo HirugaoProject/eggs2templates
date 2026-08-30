@@ -154,16 +154,10 @@
     },
     {
       "if": "COMMUNITY_GAME_NAME != ''",
-      "type": "download",
-      "files": [
-        "https://content.luanti.org/packages/${COMMUNITY_GAME_AUTHOR}/${COMMUNITY_GAME_NAME}/download/"
+      "type": "command",
+      "commands": [
+        "curl -sSL -o games.zip https://content.luanti.org/packages/${COMMUNITY_GAME_AUTHOR}/${COMMUNITY_GAME_NAME}/download/"
       ]
-    },
-    {
-      "if": "COMMUNITY_GAME_NAME != '' && file_exists('download')",
-      "type": "move",
-      "source": "download",
-      "target": "games.zip"
     },
     {
       "if": "file_exists('games.zip')",

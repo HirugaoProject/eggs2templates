@@ -131,6 +131,16 @@
         "rm -rf iw4-server-configs-main main.zip iw4x-launcher-x86_64-unknown-linux-gnu.tar.gz steamcmd_linux.tar.gz LICENSE README.md",
         "chmod +x ./iw4x-launcher"
       ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
     }
   ],
   "run": {

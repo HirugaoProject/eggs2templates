@@ -140,9 +140,9 @@
     },
     {
       "if": "INSTALL_OXIDE",
-      "type": "download",
-      "files": [
-        "https://umod.org/games/hurtworld/download/develop"
+      "type": "command",
+      "commands": [
+        "curl -sSL -o Oxide.Hurtworld.zip https://umod.org/games/hurtworld/download/develop"
       ]
     },
     {

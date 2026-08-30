@@ -63,15 +63,10 @@
       "target": "data/Config"
     },
     {
-      "type": "download",
-      "files": [
-        "${TIMED_URL}"
+      "type": "command",
+      "commands": [
+        "curl -sSL -o foundryvtt.zip ${TIMED_URL}"
       ]
-    },
-    {
-      "type": "move",
-      "source": "foundryvtt*.zip",
-      "target": "foundryvtt.zip"
     },
     {
       "type": "extract",

@@ -135,9 +135,9 @@
       ]
     },
     {
-      "type": "download",
-      "files": [
-        "${DOWNLOAD_URL}"
+      "type": "command",
+      "commands": [
+        "curl -sSL -o fx.tar.xz ${DOWNLOAD_URL}"
       ]
     },
     {

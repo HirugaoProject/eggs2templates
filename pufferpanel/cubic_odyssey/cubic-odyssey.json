@@ -152,6 +152,16 @@
         "cp steamcmd/linux64/steamclient.so .steam/sdk64/steamclient.so",
         "rm -f steamcmd_linux.tar.gz"
       ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
     }
   ],
   "run": {

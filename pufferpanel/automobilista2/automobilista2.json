@@ -115,6 +115,16 @@
       "commands": [
         "cp config_sample/server_with_lists.cfg server.cfg"
       ]
+    },
+    {
+      "type": "mkdir",
+      "target": ".wine"
+    },
+    {
+      "type": "command",
+      "commands": [
+        "wineboot --init"
+      ]
     }
   ],
   "run": {
