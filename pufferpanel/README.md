@@ -180,6 +180,12 @@ normally sets them is replaced by PufferPanel's own command.
 * **Swords 'n Magic and Stuff** applies its panel variables to the `Game.ini`
   the game ships by key name. The egg never wrote them anywhere, and the key
   names are not documented, so a key that does not match is simply left alone.
+* **Subnautica (Nitrox)** downloads the game with `steamgamedl` rather than
+  SteamCMD, because Nitrox needs the .NET 9 runtime and no image carries both
+  that and the 32-bit libraries SteamCMD needs. The downloader authenticates
+  interactively when Steam Guard is on, and an install has no console to type a
+  code into, so the egg's `STEAM_GUARDCODE` variable is gone and the account
+  used must not have Steam Guard enabled.
 
 ## Coverage
 
