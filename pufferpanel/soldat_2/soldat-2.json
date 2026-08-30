@@ -46,7 +46,7 @@
       "type": "integer",
       "value": 0,
       "display": "RCON WebSockets Port",
-      "desc": "RCON WebSocket port. 0 disables it.",
+      "desc": "RCON WebSocket port. 0 disables it. It is not bound by default because a binding for port 0 is invalid; add a port binding to the template when you enable it.",
       "required": true,
       "userEdit": true
     },
@@ -70,7 +70,7 @@
       "type": "integer",
       "value": 0,
       "display": "WebSockets Port",
-      "desc": "WebSockets port. 0 disables it.",
+      "desc": "WebSockets port. 0 disables it. It is not bound by default because a binding for port 0 is invalid; add a port binding to the template when you enable it.",
       "required": true,
       "userEdit": true
     },

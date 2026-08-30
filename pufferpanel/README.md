@@ -436,3 +436,32 @@ Every directory below is converted.
 * `wolfenstein_enemy_territory/etlegacy` (1)
 * `wurm_unlimited` (1)
 * `xonotic` (1)
+
+## What is checked
+
+`pufferpanel/` is validated as a whole, not template by template. Every file has
+to pass, and the checks are:
+
+* the official `spec.json` schema;
+* `docker` is the only environment, in both `environment` and
+  `supportedEnvironments`;
+* every `${TOKEN}` resolves to a declared variable, and every declared variable
+  is referenced somewhere — including bare identifiers inside CEL `if`
+  expressions, which is how the boolean variables are used;
+* no `apt`/`apk`/`yum`/`dnf` install, and `pip` only with `--user`;
+* no `${VAR}` wrapped in quotes inside `run.command`, since PufferPanel quotes
+  the value itself (see *Quoting in `run.command`* above);
+* every `bash -c` script parses under `bash -n`;
+* SteamCMD only appears in images that carry i386 libraries, because it is a
+  32-bit binary. Where the runtime rules those images out — Rising World Java
+  Legacy needs a JRE, Subnautica needs the .NET 9 runtime — the template uses
+  the `steamgamedl` operation instead, which runs the daemon's own 64-bit
+  DepotDownloader;
+* port bindings are well formed.
+
+Beyond that, the finished set was audited for a handful of things a schema
+cannot see: that every `extract` names an archive some earlier step actually
+produces under that name, that CEL conditions match the type of the variable
+they test (booleans bare, strings compared against quoted literals), that every
+conditional `run.command` list has a branch that always matches, and that each
+declared port is either bound or deliberately left unbound.
